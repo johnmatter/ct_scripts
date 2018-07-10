@@ -2,7 +2,7 @@ CC=g++
 CXXFLAGS=`root-config --cflags --libs` -shared -fPIC
 SRCS=
 
-all: $(LIBS)
+all: $(SRCS)
 
 %.so: %.cxx %.h
 	$(CC) $(CXXFLAGS) $< -o $@

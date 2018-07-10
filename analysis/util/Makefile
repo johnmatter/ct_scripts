@@ -1,6 +1,6 @@
 CC=g++
 CXXFLAGS=`root-config --cflags --libs` -shared -fPIC
-LIBS=CTChains.so CTData.so
+LIBS=CTData.so
 
 all: $(LIBS)
 

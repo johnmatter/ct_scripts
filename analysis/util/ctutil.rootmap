@@ -1,7 +1,3 @@
-[ CTChains.so ]
-class CTChains
-header CTChains.h
-
 [ CTData.so ]
 class CTData
 header CTData.h
