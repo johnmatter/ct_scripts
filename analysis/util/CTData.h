@@ -12,14 +12,14 @@
 
 class CTData {
     public:
-        // Constructor takes argument spec, which is either COIN, SHMS, or HMS
-        // Default is coincidence data
-        CTData(TString spec="COIN");
+        ~CTData();                    // destructor
+        CTData(TString spec="COIN");  // constructor; argument is COIN, SHMS, or HMS
+        CTData(const CTData& ctdata); // copy constructor
 
-        // Copy constructor
-        CTData(const CTData& ctdata);
+        CTData& operator=(const CTData& ctdata); // assignment operator
 
-        ~CTData();
+        void Clear();
+        void Copy(const CTData& ctdata);
 
         TChain* GetChain(const char* target, int Q2);
 

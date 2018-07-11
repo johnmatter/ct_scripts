@@ -1,7 +1,53 @@
 #include "CTData.h"
 
-// Default constructor
+// Destructor
+CTData::~CTData() {
+    std::cout << "destructor" << std::endl;
+    Clear();
+}
+
+// Copy constructor
+CTData::CTData(const CTData& ctdata) {
+    std::cout << "copy constructor" << std::endl;
+    Copy(ctdata);
+}
+
+// Assignment operator
+CTData& CTData::operator=(const CTData& ctdata) {
+    std::cout << "assignment" << std::endl;
+    // Protect against self-assignment
+    if (this != &ctdata) {
+        Clear();      // prevents memory leak
+        Copy(ctdata); // copy object
+    }
+
+    return *this; // for cases like a=b=c
+}
+
+// Clear
+void CTData::Clear() {
+    if (chains.size()>0) {
+        for (auto& chain : chains) { delete chain.second; }
+    }
+}
+
+// Copy other CTData object to this one
+void CTData::Copy(const CTData& ctdata) {
+    for (auto& chain : ctdata.chains) {
+        // chain.first is the key: pair<const char* target,int Q^2>
+        // chain.second is the value: a TChain*
+
+        // Allocate memory
+        chains[chain.first] = new TChain("T");
+
+        // Copy TChain
+        chains[chain.first] = chain.second;
+    }
+}
+
+// Constructor
 CTData::CTData(TString spec) {
+    std::cout << "constructor" << std::endl;
     // Which data are we loading?
     // Template filenames are defined in the header
     if (spec.EqualTo("COIN")) { rootfileTemplate = rootfileTemplateCOIN; }
@@ -23,6 +69,7 @@ CTData::CTData(TString spec) {
 
             // Initialize this chain
             chains[key] = new TChain("T");
+            std::cout << chains[key] << std::endl;
 
             // Open run list
             runlistFilename = Form(runlistTemplate, runlistDir.Data(), t.Data(), q);
@@ -44,24 +91,6 @@ CTData::CTData(TString spec) {
         }
     }
     std::cout << "Finished loading" << std::endl; 
-}
-
-// Copy constructor
-CTData::CTData(const CTData& ctdata) {
-    for (auto& chain : ctdata.chains) {
-        // Allocate memory
-        chains[chain.first] = new TChain("T");
-
-        // Copy chain
-        chains[chain.first] = chain.second;
-    }
-}
-
-// Destructor
-CTData::~CTData() {
-    if (chains.size()>0) {
-        for (auto& chain : chains) { delete chain.second; }
-    }
 }
 
 // Get chain for specified target and Q^2
