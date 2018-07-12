@@ -65,11 +65,10 @@ CTData::CTData(TString spec) {
         std::cout << "Loading data for " << t << std::endl; 
         for (auto const &q : Q2s) {
             // Make key for map containing our TChains
-            std::pair<const char*, int> key = std::make_pair(t.Data(), q);
+            std::pair<TString, Int_t> key = std::make_pair(t, q);
 
             // Initialize this chain
             chains[key] = new TChain("T");
-            std::cout << chains[key] << std::endl;
 
             // Open run list
             runlistFilename = Form(runlistTemplate, runlistDir.Data(), t.Data(), q);
@@ -90,12 +89,27 @@ CTData::CTData(TString spec) {
             runlist.close();
         }
     }
-    std::cout << "Finished loading" << std::endl; 
 }
 
 // Get chain for specified target and Q^2
-TChain* CTData::GetChain(const char* target, int Q2) {
+TChain* CTData::GetChain(TString target, Int_t Q2) {
     // TODO: check if chain pointer is valid 
-    std::cout << chains[std::make_pair(target,Q2)] << std::endl;
-    return chains[std::make_pair(target,Q2)];
+    std::pair<TString, Int_t> key = std::make_pair(target, Q2);
+    return chains[key];
+}
+
+// Test that chains were all loaded successfully
+bool CTData::TestChains() {
+    bool status = true;
+    for (auto const &t : targets) {
+        for (auto const &q : Q2s) {
+            std::pair<TString, Int_t> key = std::make_pair(t, q);
+            if (chains[key]==NULL) {
+                std::cerr << "NULL TChain : " << t << "," << q << std::endl;
+                status = false;
+            }
+        }
+    }
+
+    return status;
 }

@@ -21,10 +21,12 @@ class CTData {
         void Clear();
         void Copy(const CTData& ctdata);
 
-        TChain* GetChain(const char* target, int Q2);
+        TChain* GetChain(TString target, Int_t Q2);
+
+        bool TestChains();
 
     private:
-        std::map<std::pair<const char*, int>, TChain*> chains;
+        std::map<std::pair<TString, Int_t>, TChain*> chains;
 
         TString runlistDir = "/home/jmatter/ct_scripts/runlists";
         TString runlistTemplate = "%s/runs_%s_Q2_%d";
@@ -37,8 +39,8 @@ class CTData {
         TString rootfileTemplateHMS  = "%s/hms_coin_replay_production_%d_-1.root";
 
         std::vector<TString> targets = {"LH2", "C12", "AL"};
-        std::vector<int> Q2s = {8, 10, 12, 14};
-        std::map<int,double> Q2Actual = {{8, 8.0}, {10, 9.5}, {12, 11.5}, {14, 14.3}};
+        std::vector<Int_t> Q2s = {8, 10, 12, 14};
+        std::map<Int_t,Double_t> Q2Actual = {{8, 8.0}, {10, 9.5}, {12, 11.5}, {14, 14.3}};
 };
 
 #endif

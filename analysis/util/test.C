@@ -3,13 +3,14 @@
 void test() {
     CTData* data = new CTData("COIN");
     
-    TString t = "LH2";
-    int q = 8;
-
-    std::cout << "get" << std::endl;
-    TChain* chain = data->GetChain(t.Data(),q);
-    std::cout << "got" << std::endl;
-
-    std::cout << chain->GetEntries() << std::endl;
-    //chain->Draw("H.cer.xAtCer:H.cer.yAtCer",cutShould);
+    if (data->TestChains() == true) {
+        TString t = "LH2";
+        Int_t q = 8;
+        std::cout << "getting chain" << std::endl;
+        TChain* chain = data->GetChain(t,q);
+        std::cout << "got nentries:" << std::endl;
+        std::cout << chain->GetEntries() << std::endl;
+    } else {
+        std::cout << "Failure." << std::endl;
+    }
 }
