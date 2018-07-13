@@ -6,10 +6,14 @@ void test() {
     if (data->TestChains() == true) {
         TString t = "LH2";
         Int_t q = 8;
-        std::cout << "getting chain" << std::endl;
+
+        std::cout << "Getting chain: " << t << ", " << q << std::endl;
         TChain* chain = data->GetChain(t,q);
-        std::cout << "got nentries:" << std::endl;
-        std::cout << chain->GetEntries() << std::endl;
+
+        std::cout << "Has nentries:" << chain->GetEntries() << std::endl;
+
+        std::cout << "Test draw" << std::endl;
+        chain->Draw("H.gtr.dp>>h(100,-20,20)");
     } else {
         std::cout << "Failure." << std::endl;
     }

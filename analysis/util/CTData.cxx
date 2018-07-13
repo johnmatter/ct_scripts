@@ -2,19 +2,16 @@
 
 // Destructor
 CTData::~CTData() {
-    std::cout << "destructor" << std::endl;
     Clear();
 }
 
 // Copy constructor
 CTData::CTData(const CTData& ctdata) {
-    std::cout << "copy constructor" << std::endl;
     Copy(ctdata);
 }
 
 // Assignment operator
 CTData& CTData::operator=(const CTData& ctdata) {
-    std::cout << "assignment" << std::endl;
     // Protect against self-assignment
     if (this != &ctdata) {
         Clear();      // prevents memory leak
@@ -47,7 +44,6 @@ void CTData::Copy(const CTData& ctdata) {
 
 // Constructor
 CTData::CTData(TString spec) {
-    std::cout << "constructor" << std::endl;
     // Which data are we loading?
     // Template filenames are defined in the header
     if (spec.EqualTo("COIN")) { rootfileTemplate = rootfileTemplateCOIN; }

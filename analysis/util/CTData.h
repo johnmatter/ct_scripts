@@ -23,6 +23,8 @@ class CTData {
 
         TChain* GetChain(TString target, Int_t Q2);
 
+        Double_t GetQ2Actual(Int_t q) { return Q2Actual[q]; };
+
         bool TestChains();
 
     private:
