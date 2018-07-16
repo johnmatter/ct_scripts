@@ -1,3 +1,7 @@
 [ CTData.so ]
 class CTData
 header CTData.h
+
+[ CTCuts.so ]
+class CTCuts
+header CTCuts.h

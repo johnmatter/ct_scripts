@@ -1,7 +1,9 @@
 #include <CTData.h>
+#include <CTCuts.h>
 
 void test() {
     CTData* data = new CTData("COIN");
+    CTCuts* cuts = new CTCuts();
     
     if (data->TestChains() == true) {
         TString t = "LH2";
@@ -13,7 +15,7 @@ void test() {
         std::cout << "Has nentries:" << chain->GetEntries() << std::endl;
 
         std::cout << "Test draw" << std::endl;
-        chain->Draw("H.gtr.dp>>h(100,-20,20)");
+        chain->Draw("H.gtr.dp>>h(100,-20,20)", cuts->GetCoinCut(t));
     } else {
         std::cout << "Failure." << std::endl;
     }

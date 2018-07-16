@@ -33,11 +33,11 @@ class CTData {
         TString runlistDir = "/home/jmatter/ct_scripts/runlists";
         TString runlistTemplate = "%s/runs_%s_Q2_%d";
 
-        TString rootfilesDir = "/home/jmatter/hallc_replay/ROOTfiles";
+        TString rootfilesDir = "/work/hallc/e1206107/CT12GeV/ct_replay/ROOTfiles";
         TString rootfileTemplate;
 
         TString rootfileTemplateCOIN = "%s/coin_replay_production_%d_-1.root";
-        TString rootfileTemplateSHMS = "%s/shms_coin_replay_production_%d_1000000.root";
+        TString rootfileTemplateSHMS = "%s/shms_coin_replay_production_%d_-1.root";
         TString rootfileTemplateHMS  = "%s/hms_coin_replay_production_%d_-1.root";
 
         std::vector<TString> targets = {"LH2", "C12", "AL"};
