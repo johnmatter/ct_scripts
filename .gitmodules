@@ -1,0 +1,3 @@
+[submodule "src/detector-efficiency"]
+	path = src/detector-efficiency
+	url = https://github.com/johnmatter/detector-efficiency
