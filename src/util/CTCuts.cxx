@@ -65,6 +65,11 @@ CTCuts::CTCuts() {
     // Cherenkov efficiency cuts
     fHCerShould = hBetaCut && hCalCut && "H.dc.ntrack>0";
     fHCerDid    = fHCerShould && hCerCut;
+
+    // ------------------------------------------------------------------------
+    // Calorimeter efficiency cuts
+    fHCalShould = hBetaCut && hCerCut && "H.dc.ntrack>0";
+    fHCalDid    = fHCalShould && hCalCut;
 }
 
 

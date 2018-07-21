@@ -9,15 +9,15 @@
 #include <CTCuts.h>
 #include <Efficiency1D.h>
 
-void hcer_delta() {
+void hcal_delta() {
     CTData *data = new CTData("COIN");
     CTCuts *cuts = new CTCuts();
 
     std::map<std::pair<TString, int>, Efficiency1D*> efficiencies;
 
     TString scanBranch = "H.gtr.dp";
-    TCut cutShould = cuts->GetHCerShouldCut();
-    TCut cutDid = cuts->GetHCerDidCut();
+    TCut cutShould = cuts->GetHCalShouldCut();
+    TCut cutDid = cuts->GetHCalDidCut();
 
     std::vector<TString> targets = {"LH2","C12"};
     std::vector<Int_t> Q2s = {8,10,12,14};
@@ -49,7 +49,7 @@ void hcer_delta() {
     }
 
     // Plot efficiencies
-    TCanvas* cLH2 = new TCanvas("cLH2", "LH2 HCer Efficiency", 1024, 640);
+    TCanvas* cLH2 = new TCanvas("cLH2", "LH2 HCal Efficiency", 1024, 640);
     cLH2->Divide(2,2);
     int pad=1;
     TString t = "LH2";
@@ -62,7 +62,7 @@ void hcer_delta() {
         pad++;
     }
 
-    TCanvas* cC12 = new TCanvas("cC12", "C12 HCer Efficiency", 1024, 640);
+    TCanvas* cC12 = new TCanvas("cC12", "C12 HCal Efficiency", 1024, 640);
     cC12->Divide(2,2);
     pad=1;
     t = "C12";
