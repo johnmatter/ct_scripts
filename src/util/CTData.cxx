@@ -81,6 +81,7 @@ CTData::CTData(TString spec) {
                 rootfilename = Form(rootfileTemplate, rootfilesDir.Data(), runNumber);
                 // TODO: should check if file exists
                 chains[key]->Add(rootfilename);
+                runs[key].push_back(runNumber);
             }
             runlist.close();
         }
@@ -92,6 +93,12 @@ TChain* CTData::GetChain(TString target, Int_t Q2) {
     // TODO: check if chain pointer is valid 
     std::pair<TString, Int_t> key = std::make_pair(target, Q2);
     return chains[key];
+}
+
+// Get runs for specified target and Q^2
+std::vector<Int_t> CTData::GetRuns(TString target, Int_t Q2) {
+    std::pair<TString, Int_t> key = std::make_pair(target, Q2);
+    return runs[key];
 }
 
 // Test that chains were all loaded successfully

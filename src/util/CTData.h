@@ -22,6 +22,7 @@ class CTData {
         void Copy(const CTData& ctdata);
 
         TChain* GetChain(TString target, Int_t Q2);
+        std::vector<Int_t> GetRuns(TString target, Int_t Q2);
 
         Double_t GetQ2Actual(Int_t q) { return Q2Actual[q]; };
 
@@ -29,6 +30,7 @@ class CTData {
 
     private:
         std::map<std::pair<TString, Int_t>, TChain*> chains;
+        std::map<std::pair<TString, Int_t>, std::vector<Int_t>> runs;
 
         TString runlistDir = "/home/jmatter/ct_scripts/runlists";
         TString runlistTemplate = "%s/runs_%s_Q2_%d";

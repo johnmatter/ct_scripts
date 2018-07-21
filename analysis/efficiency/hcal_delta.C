@@ -22,7 +22,7 @@ void hcal_delta() {
     std::vector<TString> targets = {"LH2","C12"};
     std::vector<Int_t> Q2s = {8,10,12,14};
 
-    
+
     // Calculate efficiencies
     for (auto const &t : targets) {
         for (auto const &q : Q2s) {
