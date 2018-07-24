@@ -49,29 +49,32 @@ void hcer_delta() {
     }
 
     // Plot efficiencies
-    TCanvas* cLH2 = new TCanvas("cLH2", "LH2 HCer Efficiency", 1024, 640);
-    cLH2->Divide(2,2);
+    TCanvas* cHcer = new TCanvas("cHcer", "HCer Efficiency", 1024, 640);
+    cHcer->Print("hcer_delta.pdf["); // open PDF
+    cHcer->Divide(2,2);
     int pad=1;
     TString t = "LH2";
     for (auto const &q : Q2s) {
-        cLH2->cd(pad);
+        cHcer->cd(pad);
 
         std::pair<TString, int> key = std::make_pair(t,q);
         efficiencies[key]->GetTEfficiency()->Draw();
 
         pad++;
     }
+    cHcer->Print("hcer_delta.pdf"); // write page to PDF
 
-    TCanvas* cC12 = new TCanvas("cC12", "C12 HCer Efficiency", 1024, 640);
-    cC12->Divide(2,2);
     pad=1;
     t = "C12";
     for (auto const &q : Q2s) {
-        cC12->cd(pad);
+        cHcer->cd(pad);
 
         std::pair<TString, int> key = std::make_pair(t,q);
         efficiencies[key]->GetTEfficiency()->Draw();
 
         pad++;
     }
+    cHcer->Print("hcer_delta.pdf"); // write page to PDF
+
+    cHcer->Print("hcer_delta.pdf]"); // close fPDF
 }
