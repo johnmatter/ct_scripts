@@ -16,7 +16,8 @@ from itertools import product
 runlistDir = '/home/jmatter/ct_scripts/runlists'
 runlistRegex = 'runs_(.*)_Q2_(.*)'
 
-reportDir = '/work/hallc/e1206107/CT12GeV/ct_replay/REPORT_OUTPUT/COIN/PRODUCTION'
+# reportDir = '/work/hallc/e1206107/CT12GeV/ct_replay/REPORT_OUTPUT/COIN/PRODUCTION'
+reportDir = '/home/jmatter/hallc-online/REPORT_OUTPUT/COIN/PRODUCTION'
 reportTemplate = 'replay_coin_production_%d_-1.report'
 
 regexTracksFound = 'Tracks found    = scleantrack = (.*)'
@@ -133,6 +134,7 @@ def scatterplotByRun(df, field, title):
     plt.xlabel('Run Number')
     plt.ylabel('Efficiency')
     plt.title(title)
+    plt.ylim(0.9,1.01)
 
     return f
 
@@ -183,10 +185,30 @@ def parseReport(run):
             elif numMatchesHodoEff>2:
                 print('Too many 3of4 matches! Run %d' % run)
 
-    SHMSTracksFound = int(float(SHMSTracksFound))
-    HMSTracksFound = int(float(HMSTracksFound))
-    SHMSHodoEff = float(SHMSHodoEff)
-    HMSHodoEff = float(HMSHodoEff)
+    try:
+        SHMSTracksFound = int(float(SHMSTracksFound))
+    except NameError:
+        print('Error processing run %d' % run)
+        return (np.nan, np.nan, np.nan, np.nan)
+
+    try:
+        HMSTracksFound = int(float(HMSTracksFound))
+    except NameError:
+        print('Error processing run %d' % run)
+        return (np.nan, np.nan, np.nan, np.nan)
+
+    try:
+        SHMSHodoEff = float(SHMSHodoEff)
+    except NameError:
+        print('Error processing run %d' % run)
+        return (np.nan, np.nan, np.nan, np.nan)
+
+    try:
+        HMSHodoEff = float(HMSHodoEff)
+    except NameError:
+        print('Error processing run %d' % run)
+        return (np.nan, np.nan, np.nan, np.nan)
+
 
     return (SHMSTracksFound, SHMSHodoEff, HMSTracksFound, HMSHodoEff)
 

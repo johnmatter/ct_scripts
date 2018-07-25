@@ -5,17 +5,18 @@ CTCuts::CTCuts() {
     // SHMS cuts
     TCut pHodoTimeCut = "P.hod.goodstarttime == 1";
     TCut pDeltaCut    = "P.gtr.dp > -12 && P.gtr.dp < 12";
-    TCut pBetaCut     = "P.gtr.beta > 0.8 && P.gtr.beta < 1.3";                        
+    TCut pBetaCut     = "P.gtr.beta > 0.8 && P.gtr.beta < 1.3";
+    TCut pCalCut      = "P.cal.eprtracknorm < 0.2";
     TCut pCerCut      = "P.hgcer.npeSum < 0.1";
     TCut pPMissCut    = "abs(P.kin.secondary.pmiss) < 0.4";
-    
+
     // ------------------------------------------------------------------------
     // HMS cuts
-    TCut hHodoTimeCut = "H.hod.goodstarttime == 1";      
+    TCut hHodoTimeCut = "H.hod.goodstarttime == 1";
     TCut hDeltaCut    = "H.gtr.dp > -10 && H.gtr.dp < 10";
     TCut hBetaCut     = "H.gtr.beta > 0.8 &&  H.gtr.beta < 1.3";
-    TCut hCalCut      = "H.cal.etottracknorm > 0.8 && H.cal.etottracknorm < 1.5"; // && H.cal.eprtracknorm  > 0.2";         
-    TCut hCerCut      = "H.cer.npeSum > 0.5";                    
+    TCut hCalCut      = "H.cal.etottracknorm > 0.8 && H.cal.etottracknorm < 1.5"; // && H.cal.eprtracknorm  > 0.2";
+    TCut hCerCut      = "H.cer.npeSum > 0.5";
     TCut hWCut        = "H.kin.primary.W > 0.75 && H.kin.primary.W < 1.15";
 
     // ------------------------------------------------------------------------
@@ -63,11 +64,15 @@ CTCuts::CTCuts() {
 
     // ------------------------------------------------------------------------
     // Cherenkov efficiency cuts
+    fPCerShould = pBetaCut && pCalCut && "P.dc.ntrack>0";
+    fPCerDid    = fPCerShould && pCerCut;
     fHCerShould = hBetaCut && hCalCut && "H.dc.ntrack>0";
     fHCerDid    = fHCerShould && hCerCut;
 
     // ------------------------------------------------------------------------
     // Calorimeter efficiency cuts
+    fPCalShould = pBetaCut && pCerCut && "P.dc.ntrack>0";
+    fPCalDid    = fPCalShould && pCalCut;
     fHCalShould = hBetaCut && hCerCut && "H.dc.ntrack>0";
     fHCalDid    = fHCalShould && hCalCut;
 }
