@@ -2,7 +2,7 @@
 #include <CTCuts.h>
 
 void test() {
-    CTData* data = new CTData("COIN");
+    CTData* data = new CTData("COIN", "/home/jmatter/ct_scripts/config.json");
     CTCuts* cuts = new CTCuts();
 
     if (data->TestChains() == true) {

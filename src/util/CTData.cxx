@@ -43,7 +43,10 @@ void CTData::Copy(const CTData& ctdata) {
 }
 
 // Constructor
-CTData::CTData(TString spec) {
+CTData::CTData(TString spec, TString config) {
+    // Read config.json
+    Configure(config);
+
     // Which data are we loading?
     // Template filenames are defined in the header
     if (spec.EqualTo("COIN")) { rootfileTemplate = rootfileTemplateCOIN; }
@@ -56,10 +59,11 @@ CTData::CTData(TString spec) {
     Int_t runNumber;
     TString rootfilename;
 
+    // TODO: convert runlists to json
     // Loop over <target,Q^2> pairs and load the root files listed in the run lists
     for (auto const &t : targets) {
-        std::cout << "Loading data for " << t << std::endl; 
         for (auto const &q : Q2s) {
+            std::cout << "Loading data for " << t << ", Q^2=" << q<< std::endl;
             // Make key for map containing our TChains
             std::pair<TString, Int_t> key = std::make_pair(t, q);
 
@@ -67,7 +71,7 @@ CTData::CTData(TString spec) {
             chains[key] = new TChain("T");
 
             // Open run list
-            runlistFilename = Form(runlistTemplate, runlistDir.Data(), t.Data(), q);
+            runlistFilename = Form("%s/%s", runlistDir.Data(), runlists[key].Data());
             // TODO: should check if file exists
             runlist.open(runlistFilename.Data());
 
@@ -88,9 +92,47 @@ CTData::CTData(TString spec) {
     }
 }
 
+// Read config.json
+void CTData::Configure(TString config) {
+    // Read file into one long string for rapidjson to parse
+    std::ifstream jsonFile(config);
+    std::string jsonString((std::istreambuf_iterator<char>(jsonFile)),
+            std::istreambuf_iterator<char>());
+
+    // Parse JSON
+    rapidjson::Document dom;
+    dom.Parse(jsonString.c_str());
+
+    // TODO: asserts with IsString() etc
+    // Get info about where data live
+    rapidjson::Value& data = dom["data"];
+    runlistDir   = data["runlistDir"].GetString();
+    rootfilesDir = data["rootfilesDir"].GetString();
+    rootfileTemplateCOIN = data["rootfileTemplateCOIN"].GetString();
+    rootfileTemplateSHMS = data["rootfileTemplateSHMS"].GetString();
+    rootfileTemplateHMS  = data["rootfileTemplateHMS"].GetString();
+
+    // Get kinematics information
+    rapidjson::Value& kinematics = dom["kinematics"];
+    for (rapidjson::SizeType i=0; i<kinematics.Size(); i++) {
+        // Read
+        TString runlist = kinematics[i]["runlist"].GetString();
+        TString target  = kinematics[i]["target"].GetString();
+        Int_t Q2        = kinematics[i]["Q2"].GetInt();
+        Double_t Q2A    = kinematics[i]["Q2Actual"].GetDouble();
+
+        // Store
+        runlists[std::make_pair(target,Q2)] = runlist;
+        targets.push_back(target);
+        Q2s.push_back(Q2);
+        Q2Actual.insert(std::make_pair(Q2,Q2A));
+    }
+
+}
+
 // Get chain for specified target and Q^2
 TChain* CTData::GetChain(TString target, Int_t Q2) {
-    // TODO: check if chain pointer is valid 
+    // TODO: check if chain pointer is valid
     std::pair<TString, Int_t> key = std::make_pair(target, Q2);
     return chains[key];
 }

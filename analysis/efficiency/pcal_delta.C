@@ -10,7 +10,7 @@
 #include <Efficiency1D.h>
 
 void pcal_delta() {
-    CTData *data = new CTData("COIN");
+    CTData *data = new CTData("COIN", "/home/jmatter/ct_scripts/config.json");
     CTCuts *cuts = new CTCuts();
 
     std::map<std::pair<TString, int>, Efficiency1D*> efficiencies;

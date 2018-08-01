@@ -1,0 +1,58 @@
+{
+    "data" : {
+        "runlistDir"           : "/home/jmatter/ct_scripts/runlists",
+        "rootfilesDir"         : "/work/hallc/e1206107/CT12GeV/ct_replay/ROOTfiles",
+        "rootfileTemplateCOIN" : "%s/coin_replay_production_%d_-1.root",
+        "rootfileTemplateSHMS" : "%s/shms_coin_replay_production_%d_-1.root",
+        "rootfileTemplateHMS"  : "%s/hms_coin_replay_production_%d_-1.root"
+    },
+    "kinematics" : [
+        {
+            "Q2"       : 8,
+            "Q2Actual" : 8,
+            "target"   : "LH2",
+            "runlist"  : "runs_LH2_Q2_8"
+        },
+        {
+            "Q2"       : 10,
+            "Q2Actual" : 9.5,
+            "target"   : "LH2",
+            "runlist"  : "runs_LH2_Q2_10"
+        },
+        {
+            "Q2"       : 12,
+            "Q2Actual" : 11.5,
+            "target"   : "LH2",
+            "runlist"  : "runs_LH2_Q2_12"
+        },
+        {
+            "Q2"       : 14,
+            "Q2Actual" : 14.3,
+            "target"   : "LH2",
+            "runlist"  : "runs_LH2_Q2_14"
+        },
+        {
+            "Q2"       : 8,
+            "Q2Actual" : 8,
+            "target"   : "C12",
+            "runlist"  : "runs_C12_Q2_8"
+        },
+        {
+            "Q2"       : 10,
+            "Q2Actual" : 9.5,
+            "target"   : "C12",
+            "runlist"  : "runs_C12_Q2_10"
+        },
+        {
+            "Q2"       : 12,
+            "Q2Actual" : 11.5,
+            "target"   : "C12",
+            "runlist"  : "runs_C12_Q2_12"
+        },
+        {
+            "Q2"       : 14,
+            "Q2Actual" : 14.3,
+            "target"   : "C12",
+            "runlist"  : "runs_C12_Q2_14"
+        }]
+}
