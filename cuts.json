@@ -2,11 +2,11 @@
     "cuts" : [
         {
             "name" : "pHodoTimeCut",
-            "cut"  : "\"P.hod.goodstarttime ==1\""
+            "cut"  : "\"P.hod.goodstarttime==1\""
         },
         {
             "name" : "pDeltaCut",
-            "cut"  : "\"P.gtr.dp > -12 && P.gtr.dp < 12\""
+            "cut"  : "\"P.gtr.dp > -8 && P.gtr.dp < 8\""
         },
         {
             "name" : "pBetaCut",
@@ -26,11 +26,11 @@
         },
         {
             "name" : "hHodoTimeCut",
-            "cut"  : "\"H.hod.goodstarttime ==1\""
+            "cut"  : "\"H.hod.goodstarttime==1\""
         },
         {
             "name" : "hDeltaCut",
-            "cut"  : "\"H.gtr.dp > -10 && H.gtr.dp < 10\""
+            "cut"  : "\"H.gtr.dp > -7 && H.gtr.dp < 7\""
         },
         {
             "name" : "hBetaCut",
