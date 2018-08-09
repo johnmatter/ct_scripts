@@ -5,8 +5,9 @@
 # to hcana or hallc_replay.
 
 
-hcswif_dir=/home/jmatter/hcswif
-runlist_dir=/home/jmatter/ct_scripts/runlists/
+hcswif_dir=/home/jmatter/CTswif/hcswif
+runlist_dir=/home/jmatter/ct_scripts/runlists
 for f in `ls $runlist_dir/runs_*Q2_*`; do
-    $hcswif_dir/hcswif.py --mode replay --spectrometer COIN --replay SCRIPTS/COIN/PRODUCTION/replay_production_coin_hElec_pProt.C --events -1 --project c-comm2017 --run file $f --name $f
+    f_base=`basename $f`
+    $hcswif_dir/hcswif.py --mode replay --spectrometer COIN --replay SCRIPTS/COIN/PRODUCTION/replay_production_coin_hElec_pProt.C --events -1 --project c-comm2017 --run file $f --name $f_base
 done

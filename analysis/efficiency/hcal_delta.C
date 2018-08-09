@@ -10,14 +10,14 @@
 #include <Efficiency1D.h>
 
 void hcal_delta() {
-    CTData *data = new CTData("COIN", "/home/jmatter/ct_scripts/config.json");
-    CTCuts *cuts = new CTCuts();
+    CTData *data = new CTData("COIN", "/home/jmatter/ct_scripts/data.json");
+    CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     std::map<std::pair<TString, int>, Efficiency1D*> efficiencies;
 
     TString scanBranch = "H.gtr.dp";
-    TCut cutShould = cuts->GetHCalShouldCut();
-    TCut cutDid = cuts->GetHCalDidCut();
+    TCut cutShould = cuts->Get("hCalShould");
+    TCut cutDid = cuts->Get("hCalDid");
 
     std::vector<TString> targets = {"LH2","C12"};
     std::vector<Int_t> Q2s = {8,10,12,14};

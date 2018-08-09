@@ -1,57 +1,76 @@
 #ifndef CTCUTS_H
 #define CTCUTS_H
 
+#include <streambuf>
+#include <iostream>
+#include <fstream>
+#include <utility>
+#include <vector>
+#include <string>
 #include <map>
 
+#include <TROOT.h>
 #include <TCut.h>
+#include <TChain.h>
 #include <TString.h>
+
+#include "../rapidjson/document.h"
+
+// JSON File should look like:
+// {
+//     "cuts" : [
+//         {
+//             "name" : "cal",
+//             "cut"  : "\"H.cal.etottracknorm>0.7&&H.cal.etottracknorm<1.5\""
+//         },
+//         {
+//             "name" : "cer",
+//             "cut"  : "\"H.cer.npeSume>1.0\""
+//         },
+//         {
+//             "name" : "pid",
+//             "cut"  : "cal && cer"
+//         },
+//         {
+//             "name" : "clean",
+//             "cut"  : "pid && \"H.dc.ntrack>0 && H.hodo.goodstarttime==1\""
+//         }
+//     ]
+// }
+//
+// Note the escaped quotation marks in particular.
 
 class CTCuts {
     public:
         ~CTCuts();
         CTCuts();
+        CTCuts(TString json);
+        CTCuts(const CTCuts& ctcuts);
 
-        TCut GetCoinCut(TString target) { return fCoinCuts[target]; };
+        CTCuts& operator=(const CTCuts& ctcuts);
 
-        // Tracking efficiency cuts
-        TCut GetPTrackShouldCut()  { return fPTrackShould; }
-        TCut GetPTrackDidCut()     { return fPTrackDid;    }
-        TCut GetHTrackShouldCut()  { return fHTrackShould; }
-        TCut GetHTrackDidCut()     { return fHTrackDid;    }
+        void Clear();
+        void Copy(const CTCuts& ctcuts);
 
-        // Cherenkov efficiency cuts
-        TCut GetPCerShouldCut() { return fPCerShould; }
-        TCut GetPCerDidCut()    { return fPCerDid;    }
-        TCut GetHCerShouldCut() { return fHCerShould; }
-        TCut GetHCerDidCut()    { return fHCerDid;    }
+        TCut Get(TString cutName) { return fCuts[cutName]; };
+        void Add(TString cutName, TString cutRhs);
 
-        // Calorimeter efficiency cuts
-        TCut GetPCalShouldCut() { return fPCalShould; }
-        TCut GetPCalDidCut()    { return fPCalDid;    }
-        TCut GetHCalShouldCut() { return fHCalShould; }
-        TCut GetHCalDidCut()    { return fHCalDid;    }
+        void SetJson(TString json);
+
+        Int_t NCuts() { return fCuts.size(); };
 
     private:
-        // fCoinCuts is a map that takes a string specifying the target and returns a TCut
-        std::map<TString, TCut> fCoinCuts;
+        // fCuts takes the name of a cut and returns the TCut
+        std::map<TString, TCut> fCuts;
 
-        // Tracking efficiency cuts
-        TCut fPTrackShould;
-        TCut fPTrackDid;
-        TCut fHTrackShould;
-        TCut fHTrackDid;
+        // Location of json file containing cut specifications
+        TString fJsonFile;
 
-        // Cherenkov efficiency cuts
-        TCut fPCerShould;
-        TCut fPCerDid;
-        TCut fHCerShould;
-        TCut fHCerDid;
+        // Actual JSON data
+        rapidjson::Document fJson;
 
-        // Calorimeter efficiency cuts
-        TCut fPCalShould;
-        TCut fPCalDid;
-        TCut fHCalShould;
-        TCut fHCalDid;
+        void ParseJson();
+        void AddJsonCuts();
 };
 
 #endif

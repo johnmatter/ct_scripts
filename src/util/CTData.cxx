@@ -115,17 +115,26 @@ void CTData::Configure(TString config) {
     // Get kinematics information
     rapidjson::Value& kinematics = dom["kinematics"];
     for (rapidjson::SizeType i=0; i<kinematics.Size(); i++) {
-        // Read
+        // (1) Read
         TString runlist = kinematics[i]["runlist"].GetString();
         TString target  = kinematics[i]["target"].GetString();
         Int_t Q2        = kinematics[i]["Q2"].GetInt();
         Double_t Q2A    = kinematics[i]["Q2Actual"].GetDouble();
 
-        // Store
+        // (2) Store
         runlists[std::make_pair(target,Q2)] = runlist;
-        targets.push_back(target);
-        Q2s.push_back(Q2);
-        Q2Actual.insert(std::make_pair(Q2,Q2A));
+        // Only add to the vector if not already there
+        Bool_t empty = (targets.size()==0);
+        Bool_t exists = (std::find(targets.begin(),targets.end(),target) != targets.end());
+        if (empty || !exists) {
+            targets.push_back(target);
+        }
+        empty = (Q2s.size()==0);
+        exists = (std::find(Q2s.begin(),Q2s.end(),Q2) != Q2s.end());
+        if (empty || !exists) {
+            Q2s.push_back(Q2);
+            Q2Actual.insert(std::make_pair(Q2,Q2A));
+        }
     }
 
 }

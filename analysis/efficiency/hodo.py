@@ -16,8 +16,7 @@ from itertools import product
 runlistDir = '/home/jmatter/ct_scripts/runlists'
 runlistRegex = 'runs_(.*)_Q2_(.*)'
 
-# reportDir = '/work/hallc/e1206107/CT12GeV/ct_replay/REPORT_OUTPUT/COIN/PRODUCTION'
-reportDir = '/home/jmatter/hallc-online/REPORT_OUTPUT/COIN/PRODUCTION'
+reportDir = '/work/hallc/e1206107/jmatter/REPORT_OUTPUT/COIN/PRODUCTION'
 reportTemplate = 'replay_coin_production_%d_-1.report'
 
 regexTracksFound = 'Tracks found    = scleantrack = (.*)'

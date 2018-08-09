@@ -2,8 +2,8 @@
 #include <CTCuts.h>
 
 void test() {
-    CTData* data = new CTData("COIN", "/home/jmatter/ct_scripts/config.json");
-    CTCuts* cuts = new CTCuts();
+    CTData* data = new CTData("COIN", "/home/jmatter/ct_scripts/data.json");
+    CTCuts* cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     if (data->TestChains() == true) {
         TString t = "LH2";
@@ -21,8 +21,14 @@ void test() {
         TChain* chain = data->GetChain(t,q);
         std::cout << "Chain has nentries:" << chain->GetEntries() << std::endl;
 
+        TString drawStr = "H.gtr.dp>>h(100,-20,20)";
+        TCut cut = cuts->Get("coinCutsLH2");
+
         std::cout << "Test draw" << std::endl;
-        chain->Draw("H.gtr.dp>>h(100,-20,20)", cuts->GetCoinCut(t));
+        std::cout << drawStr << std::endl;
+        cut.Print();
+
+        chain->Draw(drawStr,cut);
     } else {
         std::cout << "Failure." << std::endl;
     }
