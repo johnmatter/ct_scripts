@@ -1,0 +1,75 @@
+{
+    "jobs": [
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/hcal_lower_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/hcswif/output/ct_efficiency_hcal_lower.err",
+            "stdout": "/home/jmatter/hcswif/output/ct_efficiency_hcal_lower.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/hcal_upper_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/hcswif/output/ct_efficiency_hcal_upper.err",
+            "stdout": "/home/jmatter/hcswif/output/ct_efficiency_hcal_upper.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/hcer_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/hcswif/output/ct_efficiency_hcer.err",
+            "stdout": "/home/jmatter/hcswif/output/ct_efficiency_hcer.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/pcal_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "pcal",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/hcswif/output/ct_efficiency_pcal.err",
+            "stdout": "/home/jmatter/hcswif/output/ct_efficiency_pcal.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/pcer_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "pcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/hcswif/output/ct_efficiency_pcer.err",
+            "stdout": "/home/jmatter/hcswif/output/ct_efficiency_pcer.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        }
+    ],
+    "name": "ct_efficiency"
+}
