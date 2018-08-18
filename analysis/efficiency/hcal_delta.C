@@ -28,7 +28,8 @@ void hcal_delta() {
         for (auto const &q : Q2s) {
             std::pair<TString, int> key = std::make_pair(t,q);
 
-            efficiencies[key] = new Efficiency1D();
+            TString name = Form("%s_Q2_%d", t.Data, q);
+            efficiencies[key] = new Efficiency1D(name.Data());
 
             TChain* chain = data->GetChain(t,q);
             efficiencies[key]->SetChain(chain);
