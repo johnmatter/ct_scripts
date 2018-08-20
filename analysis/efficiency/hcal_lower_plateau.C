@@ -20,7 +20,7 @@
 
 void hcal_lower_plateau() {
     // Load our data and cuts
-    CTData *data = new CTData("COIN", "/home/jmatter/ct_scripts/data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
     std::vector<TString> targets = {"LH2","C12"};
     std::vector<Int_t> Q2s = {8, 10, 12, 14};
@@ -60,7 +60,8 @@ void hcal_lower_plateau() {
                 efficiencyCalculators[key] = new Efficiency0D(efficiencyName.Data());
 
                 // Set chain
-                TChain* chain = data->GetChain(t,q);
+                TString dataKey = Form("%s_Q2_%d", t.Data(), q);
+                TChain* chain = data->GetChain(dataKey);
                 efficiencyCalculators[key]->SetChain(chain);
 
                 // Set cuts
@@ -114,7 +115,8 @@ void hcal_lower_plateau() {
         mgLH2->Add(efficiencyGraphs[key]);
 
         // Legend
-        TString label = Form("%s, Q^2=%.1f", t.Data(), data->GetQ2Actual(q));
+        TString dataKey = Form("%s_Q2_%d", t.Data(), q);
+        TString label = Form("%s, Q^2=%.1f", t.Data(), data->GetQ2(dataKey));
         legLH2->AddEntry(efficiencyGraphs[key], label.Data(), "lp");
     }
     mgLH2->Draw("ALP");
@@ -137,7 +139,8 @@ void hcal_lower_plateau() {
         mgC12->Add(efficiencyGraphs[key]);
 
         // Legend
-        TString label = Form("%s, Q^2=%.1f", t.Data(), data->GetQ2Actual(q));
+        TString dataKey = Form("%s_Q2_%d", t.Data(), q);
+        TString label = Form("%s, Q^2=%.1f", t.Data(), data->GetQ2(dataKey));
         legC12->AddEntry(efficiencyGraphs[key], label.Data(), "lp");
     }
     mgC12->Draw("ALP");

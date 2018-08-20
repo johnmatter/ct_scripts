@@ -10,7 +10,7 @@
 #include <Efficiency1D.h>
 
 void pcal_delta() {
-    CTData *data = new CTData("COIN", "/home/jmatter/ct_scripts/data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     std::map<std::pair<TString, int>, Efficiency1D*> efficiencies;
@@ -22,16 +22,15 @@ void pcal_delta() {
     std::vector<TString> targets = {"LH2","C12"};
     std::vector<Int_t> Q2s = {8,10,12,14};
 
-
     // Calculate efficiencies
     for (auto const &t : targets) {
         for (auto const &q : Q2s) {
             std::pair<TString, int> key = std::make_pair(t,q);
 
-            TString name = Form("%s_Q2_%d", t.Data, q);
+            TString name = Form("%s_Q2_%d", t.Data(), q);
             efficiencies[key] = new Efficiency1D(name.Data());
 
-            TChain* chain = data->GetChain(t,q);
+            TChain* chain = data->GetChain(name);
             efficiencies[key]->SetChain(chain);
 
             efficiencies[key]->SetScanBranch(scanBranch);
@@ -44,7 +43,7 @@ void pcal_delta() {
             efficiencies[key]->Init();
             efficiencies[key]->Calculate();
 
-            TString title = Form("%s Q^{2} = %.1f GeV^{2}", t.Data(), data->GetQ2Actual(q));
+            TString title = Form("%s Q^{2} = %.1f GeV^{2}", t.Data(), data->GetQ2(name));
             efficiencies[key]->SetTitle(title.Data());
         }
     }

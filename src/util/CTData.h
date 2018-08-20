@@ -16,40 +16,45 @@
 
 class CTData {
     public:
-        ~CTData(); // destructor
-        CTData(TString spec="COIN", TString config="");  // constructor; argument is COIN, SHMS, or HMS
-        CTData(const CTData& ctdata); // copy constructor
+        CTData(TString config="");               // constructor
+        CTData(const CTData& ctdata);            // copy constructor
+        CTData& operator=(const CTData& ctdata); // assignment
+        ~CTData();                               // destructor
 
-        CTData& operator=(const CTData& ctdata); // assignment operator
+        void Copy(const CTData& ctdata); // Copy method
+        void Configure(TString config);  // Read config info from json
+        void Load();                     // Load data after object is configured
+        void Clear();                    // Clear data
 
-        void Clear();
-        void Copy(const CTData& ctdata);
+        bool TestChains();               // Test that chains are non-null
 
-        void Configure(TString config);
-
-        TChain* GetChain(TString target, Int_t Q2);
-        std::vector<Int_t> GetRuns(TString target, Int_t Q2);
-
-        Double_t GetQ2Actual(Int_t q) { return Q2Actual[q]; };
-
-        bool TestChains();
+        // Various GetX() methods
+        std::vector<TString> GetNames() { return names; };
+        std::vector<Int_t> GetRuns(TString name) { return runs[name]; };
+        TChain* GetChain(TString name) { return chains[name]; };
+        TString GetTarget(TString name) { return targets[name]; };
+        Double_t GetQ2(TString name) { return Q2s[name]; };
 
     private:
-        std::map<std::pair<TString, Int_t>, TChain*> chains;
-        std::map<std::pair<TString, Int_t>, std::vector<Int_t>> runs;
-
+        TString configJson;
         TString runlistDir;
         TString rootfilesDir;
-        TString rootfileTemplate;
-        TString rootfileTemplateCOIN;
-        TString rootfileTemplateSHMS;
-        TString rootfileTemplateHMS;
 
-        // TODO: Write a CTKinematics class instead of using parallel vectors
-        std::map<std::pair<TString, Int_t>, TString> runlists;
-        std::vector<TString> targets;
-        std::vector<Int_t> Q2s;
-        std::map<Int_t,Double_t> Q2Actual;
+        // TODO: Implement this as a CTKinematics class rather than parallel maps
+        // TODO: Add spectrometers' central momenta, angles, etc
+        // Those EPICS data are accessible in raw CODA data.
+        // Can be included in the tree if replayed with appropriate settings.
+
+        // This information is read by Config()
+        std::vector<TString> names;
+        std::map<TString, Double_t> Q2s;
+        std::map<TString, TString> targets;
+        std::map<TString, TString> runlists;
+        std::map<TString, TString> rootfileTemplates;
+
+        // This data is read by Load()
+        std::map<TString, std::vector<Int_t>> runs;
+        std::map<TString, TChain*> chains;
 };
 
 #endif

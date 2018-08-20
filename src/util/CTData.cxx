@@ -1,8 +1,12 @@
 #include "CTData.h"
 
-// Destructor
-CTData::~CTData() {
-    Clear();
+// Constructor
+CTData::CTData(TString config) {
+    configJson = config;
+    // (1) Read config
+    Configure(configJson);
+    // (2) Load data specified by config
+    Load();
 }
 
 // Copy constructor
@@ -21,79 +25,24 @@ CTData& CTData::operator=(const CTData& ctdata) {
     return *this; // for cases like a=b=c
 }
 
-// Clear
-void CTData::Clear() {
-    if (chains.size()>0) {
-        for (auto& chain : chains) { delete chain.second; }
-    }
+// Destructor
+CTData::~CTData() {
+    Clear();
 }
 
-// Copy other CTData object to this one
+// Copy data from another object
 void CTData::Copy(const CTData& ctdata) {
-    for (auto& chain : ctdata.chains) {
-        // chain.first is the key: pair<const char* target,int Q^2>
-        // chain.second is the value: a TChain*
-
-        // Allocate memory
-        chains[chain.first] = new TChain("T");
-
-        // Copy TChain
-        chains[chain.first] = chain.second;
-    }
+    configJson = ctdata.configJson;
+    // (1) Read config
+    Configure(configJson);
+    // (2) Load data specified by config
+    Load();
 }
 
-// Constructor
-CTData::CTData(TString spec, TString config) {
-    // Read config.json
-    Configure(config);
-
-    // Which data are we loading?
-    // Template filenames are defined in the header
-    if (spec.EqualTo("COIN")) { rootfileTemplate = rootfileTemplateCOIN; }
-    if (spec.EqualTo("SHMS")) { rootfileTemplate = rootfileTemplateSHMS; }
-    if (spec.EqualTo("HMS"))  { rootfileTemplate = rootfileTemplateHMS;  }
-
-    // Define variables used to read each run's root file
-    std::ifstream runlist;
-    TString runlistFilename;
-    Int_t runNumber;
-    TString rootfilename;
-
-    // TODO: convert runlists to json
-    // Loop over <target,Q^2> pairs and load the root files listed in the run lists
-    for (auto const &t : targets) {
-        for (auto const &q : Q2s) {
-            std::cout << "Loading data for " << t << ", Q^2=" << q<< std::endl;
-            // Make key for map containing our TChains
-            std::pair<TString, Int_t> key = std::make_pair(t, q);
-
-            // Initialize this chain
-            chains[key] = new TChain("T");
-
-            // Open run list
-            runlistFilename = Form("%s/%s", runlistDir.Data(), runlists[key].Data());
-            // TODO: should check if file exists
-            runlist.open(runlistFilename.Data());
-
-            // Read list line-by-line and add each root file
-            while(1) {
-                // Read line
-                runlist >> runNumber;
-                if (!runlist.good()) {break;} // end if file's done
-
-                // Add root file to chain
-                rootfilename = Form(rootfileTemplate, rootfilesDir.Data(), runNumber);
-                // TODO: should check if file exists
-                chains[key]->Add(rootfilename);
-                runs[key].push_back(runNumber);
-            }
-            runlist.close();
-        }
-    }
-}
-
-// Read config.json
+// Read configuration from json
 void CTData::Configure(TString config) {
+    std::cout << "Reading CTData config from " << config << std::endl;
+
     // Read file into one long string for rapidjson to parse
     std::ifstream jsonFile(config);
     std::string jsonString((std::istreambuf_iterator<char>(jsonFile)),
@@ -104,64 +53,103 @@ void CTData::Configure(TString config) {
     dom.Parse(jsonString.c_str());
 
     // TODO: asserts with IsString() etc
-    // Get info about where data live
+    // Get info about where data live, how files are named
     rapidjson::Value& data = dom["data"];
-    runlistDir   = data["runlistDir"].GetString();
-    rootfilesDir = data["rootfilesDir"].GetString();
-    rootfileTemplateCOIN = data["rootfileTemplateCOIN"].GetString();
-    rootfileTemplateSHMS = data["rootfileTemplateSHMS"].GetString();
-    rootfileTemplateHMS  = data["rootfileTemplateHMS"].GetString();
+    runlistDir       = data["runlistDir"].GetString();
+    rootfilesDir     = data["rootfilesDir"].GetString();
 
     // Get kinematics information
     rapidjson::Value& kinematics = dom["kinematics"];
     for (rapidjson::SizeType i=0; i<kinematics.Size(); i++) {
         // (1) Read
-        TString runlist = kinematics[i]["runlist"].GetString();
-        TString target  = kinematics[i]["target"].GetString();
-        Int_t Q2        = kinematics[i]["Q2"].GetInt();
-        Double_t Q2A    = kinematics[i]["Q2Actual"].GetDouble();
+        TString name             = kinematics[i]["name"].GetString();
+        Double_t Q2              = kinematics[i]["Q2"].GetDouble();
+        TString runlist          = kinematics[i]["runlist"].GetString();
+        TString target           = kinematics[i]["target"].GetString();
+        TString rootfileTemplate = kinematics[i]["rootfileTemplate"].GetString();
 
         // (2) Store
-        runlists[std::make_pair(target,Q2)] = runlist;
-        // Only add to the vector if not already there
-        Bool_t empty = (targets.size()==0);
-        Bool_t exists = (std::find(targets.begin(),targets.end(),target) != targets.end());
-        if (empty || !exists) {
-            targets.push_back(target);
-        }
-        empty = (Q2s.size()==0);
-        exists = (std::find(Q2s.begin(),Q2s.end(),Q2) != Q2s.end());
-        if (empty || !exists) {
-            Q2s.push_back(Q2);
-            Q2Actual.insert(std::make_pair(Q2,Q2A));
-        }
+        names.push_back(name);
+        Q2s[name]               = Q2;
+        targets[name]           = target;
+        runlists[name]          = runlist;
+        rootfileTemplates[name] = rootfileTemplate;
     }
-
 }
 
-// Get chain for specified target and Q^2
-TChain* CTData::GetChain(TString target, Int_t Q2) {
-    // TODO: check if chain pointer is valid
-    std::pair<TString, Int_t> key = std::make_pair(target, Q2);
-    return chains[key];
+// Load info from Configure() into runlists and then TChains
+void CTData::Load() {
+    // Define variables used to read each run's root file
+    std::ifstream runlist;
+    TString runlistFilename;
+    Int_t runNumber;
+    TString rootfilename;
+
+    // Loop over vector of names and load the root files listed in the run lists
+    std::cout << std::endl;
+    std::cout << "Loading TChains" << std::endl;
+    std::cout << std::right
+              << std::setw(20) << "name"
+              << std::setw(10) << "Q2"
+              << std::setw(10) << "target" << std::endl;
+    std::cout << std::string(80, '-') << std::endl;
+
+    for (auto const &name : names) {
+        std::cout << std::right
+                  << std::setw(20) << name
+                  << std::setw(10) << Q2s[name]
+                  << std::setw(10) << targets[name] << std::endl;
+
+        // Initialize this chain
+        chains[name] = new TChain("T");
+
+        // Open run list
+        runlistFilename = Form("%s/%s", runlistDir.Data(), runlists[name].Data());
+        // TODO: should check if file exists
+        runlist.open(runlistFilename.Data());
+
+        // Read list line-by-line and add each root file
+        while(1) {
+            // Read line
+            runlist >> runNumber;
+            if (!runlist.good()) {break;} // end if file's done
+
+            // Add root file to chain
+            rootfilename = Form(rootfileTemplates[name], rootfilesDir.Data(), runNumber);
+            // TODO: should check if file exists
+            chains[name]->Add(rootfilename);
+            runs[name].push_back(runNumber);
+        }
+        runlist.close();
+    }
+    std::cout << std::endl;
 }
 
-// Get runs for specified target and Q^2
-std::vector<Int_t> CTData::GetRuns(TString target, Int_t Q2) {
-    std::pair<TString, Int_t> key = std::make_pair(target, Q2);
-    return runs[key];
+// Clear
+void CTData::Clear() {
+    if (chains.size()>0) {
+        for (auto& chain : chains) { delete chain.second; }
+    }
+    chains.clear();
+
+    runlistDir.Clear();
+    rootfilesDir.Clear();
+
+    names.clear();
+    Q2s.clear();
+    targets.clear();
+    runlists.clear();
+    runs.clear();
+    rootfileTemplates.clear();
 }
 
 // Test that chains were all loaded successfully
 bool CTData::TestChains() {
     bool status = true;
-    for (auto const &t : targets) {
-        for (auto const &q : Q2s) {
-            std::pair<TString, Int_t> key = std::make_pair(t, q);
-            if (chains[key]==NULL) {
-                std::cerr << "NULL TChain : " << t << "," << q << std::endl;
-                status = false;
-            }
+    for (auto const &name : names) {
+        if (chains[name]==NULL) {
+            std::cerr << "NULL TChain : " << name << std::endl;
+            status = false;
         }
     }
 
