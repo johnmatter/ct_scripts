@@ -20,7 +20,7 @@
 
 void hcal_upper_plateau() {
     // Load our data and cuts
-    CTData *data = new CTData("/home/jmatter/ct_scripts/data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
     std::vector<TString> targets = {"LH2","C12"};
     std::vector<Int_t> Q2s = {8, 10, 12, 14};

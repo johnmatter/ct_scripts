@@ -10,7 +10,7 @@
 #include <Efficiency1D.h>
 
 void pcer_delta() {
-    CTData *data = new CTData("/home/jmatter/ct_scripts/data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     std::map<std::pair<TString, int>, Efficiency1D*> efficiencies;

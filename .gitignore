@@ -5,3 +5,5 @@
 *.pcm
 *.gch
 *.pdf
+*.out
+*.err

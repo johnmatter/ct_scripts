@@ -1,7 +1,7 @@
 {
     "data" : {
-        "runlistDir"           : "/home/jmatter/ct_scripts/runlists",
-        "rootfilesDir"         : "/work/hallc/e1206107/jmatter/ROOTfiles"
+        "runlistDir"   : "/home/jmatter/ct_scripts/runlists/coin",
+        "rootfilesDir" : "/work/hallc/e1206107/jmatter/ROOTfiles"
     },
     "kinematics" : [
         {
@@ -40,10 +40,38 @@
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
         },
         {
+            "name"     : "C12_Q2_8_thin",
+            "Q2"       : 8,
+            "target"   : "C12_thin",
+            "runlist"  : "runs_C12_Q2_8_thin",
+            "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
+        },
+        {
+            "name"     : "C12_Q2_8_thick",
+            "Q2"       : 8,
+            "target"   : "C12_thin",
+            "runlist"  : "runs_C12_Q2_8_thick",
+            "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
+        },
+        {
             "name"     : "C12_Q2_10",
             "Q2"       : 9.5,
             "target"   : "C12",
             "runlist"  : "runs_C12_Q2_10",
+            "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
+        },
+        {
+            "name"     : "C12_Q2_10_thin",
+            "Q2"       : 9.5,
+            "target"   : "C12_thin",
+            "runlist"  : "runs_C12_Q2_10_thin",
+            "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
+        },
+        {
+            "name"     : "C12_Q2_10_thick",
+            "Q2"       : 9.5,
+            "target"   : "C12_thin",
+            "runlist"  : "runs_C12_Q2_10_thick",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
         },
         {
@@ -58,6 +86,27 @@
             "Q2"       : 14.3,
             "target"   : "C12",
             "runlist"  : "runs_C12_Q2_14",
+            "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
+        },
+        {
+            "name"     : "C12_Q2_14_beginning",
+            "Q2"       : 14.3,
+            "target"   : "C12",
+            "runlist"  : "runs_C12_Q2_14_beginning",
+            "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
+        },
+        {
+            "name"     : "C12_Q2_14_middle",
+            "Q2"       : 14.3,
+            "target"   : "C12",
+            "runlist"  : "runs_C12_Q2_14_middle",
+            "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
+        },
+        {
+            "name"     : "C12_Q2_14_end",
+            "Q2"       : 14.3,
+            "target"   : "C12",
+            "runlist"  : "runs_C12_Q2_14_end",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
         }
     ]

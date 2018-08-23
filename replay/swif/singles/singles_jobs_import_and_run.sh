@@ -1,6 +1,6 @@
 #!/bin/bash
-hcswif_dir=/home/jmatter/CTswif/hcswif/
-for f in `ls $hcswif_dir/output/runs_*Q2*.json`; do
+json_dir=/home/jmatter/ct_scripts/replay/swif/singles/json
+for f in `ls $json_dir/*.json`; do
     swif import -file $f
     echo Imported $f
 
