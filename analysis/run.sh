@@ -12,5 +12,7 @@ hcana_setup=$hcana_dir/setup.sh
 source $hcana_setup
 export PATH=$hcana_dir/bin:$PATH
 
-cd /home/jmatter/ct_scripts/analysis/efficiency
+analysis_dir=$(dirname $1)
+echo cd to $analysis_dir
+cd $analysis_dir
 hcana -q -b "$1++"

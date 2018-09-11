@@ -76,5 +76,5 @@ void hcal_delta() {
     }
     cHcal->Print("hcal_delta.pdf"); // write page to PDF
 
-    cHcal->Print("hcal_delta.pdf]"); // close fPDF
+    cHcal->Print("hcal_delta.pdf]"); // close PDF
 }

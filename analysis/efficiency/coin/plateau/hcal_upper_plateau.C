@@ -15,7 +15,7 @@
 #include <CTCuts.h>
 
 // This macro calculates the efficiency of the SHMS calorimeter as
-// a function of cuts on normalized preshower energer for proton
+// a function of cuts on normalized preshower energy for proton
 // events (i.e. rejecting pions).
 
 void hcal_upper_plateau() {

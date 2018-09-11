@@ -1,0 +1,75 @@
+{
+    "jobs": [
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/hcal_lower_plateau_singles.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 9000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_hcal_lower_singles.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_hcal_lower_singles.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/hcal_upper_plateau_singles.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 9000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_hcal_upper_singles.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_hcal_upper_singles.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/hcer_plateau_singles.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 9000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_hcer_singles.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_hcer_singles.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/pcer_plateau_singles.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "pcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 9000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_pcer_singles.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_pcer_singles.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/pcal_plateau_singles.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "pcal",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 9000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_pcal_singles.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/singles/plateau/ct_efficiency_pcal_singles.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        }
+    ],
+    "name": "ct_efficiency_singles"
+}

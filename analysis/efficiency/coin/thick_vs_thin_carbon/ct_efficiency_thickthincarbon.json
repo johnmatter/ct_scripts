@@ -1,0 +1,75 @@
+{
+    "jobs": [
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/hcal_lower_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/hcal_lower.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/hcal_lower.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/hcal_upper_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/hcal_upper.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/hcal_upper.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/hcer_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/hcer.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/hcer.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/pcal_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "pcal",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/pcal.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/pcal.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/pcer_plateau.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "pcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/pcer.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/thick_vs_thin_carbon/output/pcer.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        }
+    ],
+    "name": "ct_efficiency_thickthincarbon"
+}
