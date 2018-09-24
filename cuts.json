@@ -65,6 +65,22 @@
             "cut"  : "pHodoTimeCut && hHodoTimeCut"
         },
         {
+            "name" : "hElecStrictCer",
+            "cut"  : "\"H.cer.npeSum>2.0\""
+        },
+        {
+            "name" : "hPiPID",
+            "cut"  : "\"H.cer.npeSum==0\""
+        },
+        {
+            "name" : "hPi",
+            "cut"  : "hPiPID && hBetaCut && hDeltaCut"
+        },
+        {
+            "name" : "hElec",
+            "cut"  : "hElecStrictCer && hCalCut && hBetaCut && hDeltaCut"
+        },
+        {
             "name" : "coinCutsC12",
             "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pPMissCut"
         },
