@@ -29,8 +29,9 @@ void hcer_plateau() {
     std::map<std::pair<TString, Double_t>, Efficiency0D*> efficiencyCalculators;
 
     // These are the names in our json specifying kinematics settings
-    std::vector<TString> kinematics = {"C12_Q2_8_thin",  "C12_Q2_8_thick",
-                                       "C12_Q2_10_thin", "C12_Q2_10_thick"};
+    std::vector<TString> kinematics = {"C12_Q2_14_beginning",
+                                       "C12_Q2_14_middle",
+                                       "C12_Q2_14_end"};
 
     // Set up our cuts; we'll be scanning a cut threshold
     TCut cutShould = cuts->Get("hCerShould") && cuts->Get("hDeltaCut");
@@ -90,7 +91,7 @@ void hcer_plateau() {
     // Plot efficiencyGraphs
     std::vector<Int_t> colors = {46, 44, 30, 38};
     TCanvas* cHcer = new TCanvas("cHcer", "HCer Efficiency", 1024, 640);
-    cHcer->Print("hcer_plateau.pdf["); // open PDF
+    cHcer->Print("hcer.pdf["); // open PDF
 
     TMultiGraph *mg = new TMultiGraph("mg", "Efficiency");
     Int_t n=0; // color
@@ -110,7 +111,7 @@ void hcer_plateau() {
     mg->GetXaxis()->SetTitle("H.cer.npeSum cut");
     mg->GetYaxis()->SetTitle("Efficiency");
     leg->Draw();
-    cHcer->Print("hcer_plateau.pdf"); // write page to PDF
+    cHcer->Print("hcer.pdf"); // write page to PDF
 
-    cHcer->Print("hcer_plateau.pdf]"); // close fPDF
+    cHcer->Print("hcer.pdf]"); // close fPDF
 }

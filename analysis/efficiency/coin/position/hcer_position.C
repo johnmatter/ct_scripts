@@ -34,7 +34,7 @@ void hcer_position() {
             efficiencies[key]->SetChain(chain);
 
             efficiencies[key]->SetScanBranches("H.cer.yAtCer", "H.cer.xAtCer");
-            efficiencies[key]->SetScanRange(100, -50, 50, 100, -100, 100);
+            efficiencies[key]->SetScanRange(25, -50, 50, 50, -100, 100);
 
             efficiencies[key]->SetShouldCut(cutShould);
             efficiencies[key]->SetDidCut(cutDid);
@@ -50,7 +50,7 @@ void hcer_position() {
 
     // Plot efficiencies
     TCanvas* cHcer = new TCanvas("cHcer", "HCer Efficiency", 1024, 640);
-    cHcer->Print("hcer_delta.pdf["); // open PDF
+    cHcer->Print("hcer_position.pdf["); // open PDF
     cHcer->Divide(2,2);
     int pad=1;
     TString t = "LH2";
@@ -62,7 +62,7 @@ void hcer_position() {
 
         pad++;
     }
-    cHcer->Print("hcer_delta.pdf"); // write page to PDF
+    cHcer->Print("hcer_position.pdf"); // write page to PDF
 
     pad=1;
     t = "C12";
@@ -74,7 +74,7 @@ void hcer_position() {
 
         pad++;
     }
-    cHcer->Print("hcer_delta.pdf"); // write page to PDF
+    cHcer->Print("hcer_position.pdf"); // write page to PDF
 
-    cHcer->Print("hcer_delta.pdf]"); // close fPDF
+    cHcer->Print("hcer_position.pdf]"); // close fPDF
 }
