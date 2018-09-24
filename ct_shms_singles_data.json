@@ -7,6 +7,10 @@
         {
             "name"     : "LH2_Q2_8",
             "Q2"       : 8,
+            "shmsAngle": 17.1,
+            "hmsAngle" : 45.1,
+            "shmsP"    : 5.122, 
+            "hmsP"     : 2.131,
             "target"   : "LH2",
             "runlist"  : "runs_LH2_Q2_8_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
@@ -14,6 +18,10 @@
         {
             "name"     : "LH2_Q2_10",
             "Q2"       : 9.5,
+            "shmsAngle": 21.6,
+            "hmsAngle" : 23.2,
+            "shmsP"    : 5.925,
+            "hmsP"     : 5.539,
             "target"   : "LH2",
             "runlist"  : "runs_LH2_Q2_10_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
@@ -21,6 +29,10 @@
         {
             "name"     : "LH2_Q2_12",
             "Q2"       : 11.5,
+            "shmsAngle": 17.8,
+            "hmsAngle" : 28.5,
+            "shmsP"    : 7.001,
+            "hmsP"     : 4.478,
             "target"   : "LH2",
             "runlist"  : "runs_LH2_Q2_12_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
@@ -28,6 +40,10 @@
         {
             "name"     : "LH2_Q2_14",
             "Q2"       : 14.3,
+            "shmsAngle": 12.8,
+            "hmsAngle" : 39.3,
+            "shmsP"    : 8.505,
+            "hmsP"     : 2.982,
             "target"   : "LH2",
             "runlist"  : "runs_LH2_Q2_14_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
@@ -35,6 +51,10 @@
         {
             "name"     : "C12_Q2_8",
             "Q2"       : 8,
+            "shmsAngle": 17.1,
+            "hmsAngle" : 45.1,
+            "shmsP"    : 5.122, 
+            "hmsP"     : 2.131,
             "target"   : "C12",
             "runlist"  : "runs_C12_Q2_8_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
@@ -42,6 +62,10 @@
         {
             "name"     : "C12_Q2_10",
             "Q2"       : 9.5,
+            "shmsAngle": 21.6,
+            "hmsAngle" : 23.2,
+            "shmsP"    : 5.925,
+            "hmsP"     : 5.539,
             "target"   : "C12",
             "runlist"  : "runs_C12_Q2_10_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
@@ -49,6 +73,10 @@
         {
             "name"     : "C12_Q2_10_thin",
             "Q2"       : 9.5,
+            "shmsAngle": 21.6,
+            "hmsAngle" : 23.2,
+            "shmsP"    : 5.925,
+            "hmsP"     : 5.539,
             "target"   : "C12_thin",
             "runlist"  : "runs_C12_Q2_10_thin_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
@@ -56,6 +84,10 @@
         {
             "name"     : "C12_Q2_10_thick",
             "Q2"       : 9.5,
+            "shmsAngle": 21.6,
+            "hmsAngle" : 23.2,
+            "shmsP"    : 5.925,
+            "hmsP"     : 5.539,
             "target"   : "C12_thick",
             "runlist"  : "runs_C12_Q2_10_thick_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
@@ -63,6 +95,10 @@
         {
             "name"     : "C12_Q2_12",
             "Q2"       : 11.5,
+            "shmsAngle": 17.8,
+            "hmsAngle" : 28.5,
+            "shmsP"    : 7.001,
+            "hmsP"     : 4.478,
             "target"   : "C12",
             "runlist"  : "runs_C12_Q2_12_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
@@ -70,6 +106,10 @@
         {
             "name"     : "C12_Q2_14",
             "Q2"       : 14.3,
+            "shmsAngle": 12.8,
+            "hmsAngle" : 39.3,
+            "shmsP"    : 8.505,
+            "hmsP"     : 2.982,
             "target"   : "C12",
             "runlist"  : "runs_C12_Q2_14_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
