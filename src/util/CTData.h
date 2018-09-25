@@ -34,20 +34,24 @@ class CTData {
         TChain* GetChain(TString name) { return chains[name]; };
         TString GetTarget(TString name) { return targets[name]; };
         Double_t GetQ2(TString name) { return Q2s[name]; };
+        Double_t GetHMSMomentum(TString name) { return hmsMomenta[name]; };
+        Double_t GetSHMSMomentum(TString name) { return shmsMomenta[name]; };
+        Double_t GetHMSAngle(TString name) { return hmsAngles[name]; };
+        Double_t GetSHMSAngle(TString name) { return shmsAngles[name]; };
 
     private:
         TString configJson;
         TString runlistDir;
         TString rootfilesDir;
 
-        // TODO: Implement this as a CTKinematics class rather than parallel maps
-        // TODO: Add spectrometers' central momenta, angles, etc
-        // Those EPICS data are accessible in raw CODA data.
-        // Can be included in the tree if replayed with appropriate settings.
-
         // This information is read by Config()
+        // TODO: Implement this as someCTKinematics class rather than parallel maps
         std::vector<TString> names;
         std::map<TString, Double_t> Q2s;
+        std::map<TString, Double_t> hmsMomenta;
+        std::map<TString, Double_t> shmsMomenta;
+        std::map<TString, Double_t> hmsAngles;
+        std::map<TString, Double_t> shmsAngles;
         std::map<TString, TString> targets;
         std::map<TString, TString> runlists;
         std::map<TString, TString> rootfileTemplates;

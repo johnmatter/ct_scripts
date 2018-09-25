@@ -64,6 +64,10 @@ void CTData::Configure(TString config) {
         // (1) Read
         TString name             = kinematics[i]["name"].GetString();
         Double_t Q2              = kinematics[i]["Q2"].GetDouble();
+        Double_t hmsMomentum     = kinematics[i]["hmsP"].GetDouble();
+        Double_t shmsMomentum    = kinematics[i]["shmsP"].GetDouble();
+        Double_t hmsAngle        = kinematics[i]["hmsAngle"].GetDouble();
+        Double_t shmsAngle       = kinematics[i]["shmsAngle"].GetDouble();
         TString runlist          = kinematics[i]["runlist"].GetString();
         TString target           = kinematics[i]["target"].GetString();
         TString rootfileTemplate = kinematics[i]["rootfileTemplate"].GetString();
@@ -71,6 +75,10 @@ void CTData::Configure(TString config) {
         // (2) Store
         names.push_back(name);
         Q2s[name]               = Q2;
+        hmsMomenta[name]        = hmsMomentum;
+        shmsMomenta[name]       = shmsMomentum;
+        hmsAngles[name]         = hmsAngle;
+        shmsAngles[name]        = shmsAngle;
         targets[name]           = target;
         runlists[name]          = runlist;
         rootfileTemplates[name] = rootfileTemplate;
@@ -89,14 +97,14 @@ void CTData::Load() {
     std::cout << std::endl;
     std::cout << "Loading TChains" << std::endl;
     std::cout << std::right
-              << std::setw(20) << "name"
+              << std::setw(30) << "name"
               << std::setw(10) << "Q2"
               << std::setw(10) << "target" << std::endl;
     std::cout << std::string(80, '-') << std::endl;
 
     for (auto const &name : names) {
         std::cout << std::right
-                  << std::setw(20) << name
+                  << std::setw(30) << name
                   << std::setw(10) << Q2s[name]
                   << std::setw(10) << targets[name] << std::endl;
 
@@ -137,6 +145,10 @@ void CTData::Clear() {
 
     names.clear();
     Q2s.clear();
+    hmsMomenta.clear();
+    shmsMomenta.clear();
+    hmsAngles.clear();
+    shmsAngles.clear();
     targets.clear();
     runlists.clear();
     runs.clear();
