@@ -9,7 +9,7 @@
 #include <CTCuts.h>
 
 // This macro calculates the efficiency of PID detectors relevant to
-// out experiment. It then prints the values as a CSV.
+// our experiment. It then prints the values as a CSV.
 void print_all_no_pHGC_pCal() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts_no_pHGC_pCal.json");
