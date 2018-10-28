@@ -31,7 +31,7 @@ void hcer_plateau() {
     std::map<std::tuple<TString, Int_t, Double_t>, Efficiency0D*> efficiencyCalculators;
 
     // Set up our cuts; we'll be scanning a cut threshold
-    TCut cutShould = cuts->Get("hCerShould") && cuts->Get("hDeltaCut");
+    TCut cutShould = cuts->Get("hCerShould");
     TString cutDidString = "H.cer.npeSum > %f";
     std::vector<Double_t> cutParams = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0};
 

@@ -1,0 +1,33 @@
+{
+    "jobs": [
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/print/print_all.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/print/print_all.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/print/print_all.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/print/print_all_no_pHGC_pCal.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/print/print_all_no_pHGC_pCal.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/print/print_all_no_pHGC_pCal.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        }
+    ],
+    "name": "ct_efficiency_pid_print"
+}

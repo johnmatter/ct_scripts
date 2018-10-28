@@ -100,7 +100,7 @@ void CTData::Load() {
               << std::setw(30) << "name"
               << std::setw(10) << "Q2"
               << std::setw(10) << "target" << std::endl;
-    std::cout << std::string(80, '-') << std::endl;
+    std::cout << std::string(50, '-') << std::endl;
 
     for (auto const &name : names) {
         std::cout << std::right

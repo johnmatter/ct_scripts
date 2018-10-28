@@ -32,7 +32,7 @@ void pcal_plateau() {
     std::map<std::tuple<TString, Int_t, Double_t>, Efficiency0D*> efficiencyCalculators;
 
     // Set up our cuts; we'll be scanning a cut threshold
-    TCut cutShould = cuts->Get("pCalShould") && cuts->Get("pDeltaCut");
+    TCut cutShould = cuts->Get("pCalShould");
     TString cutDidString = "P.cal.eprtracknorm < %f";
     std::vector<Double_t> cutParams = {0.001, 0.1, 0.2, 0.3, 0.4, 0.5};
 

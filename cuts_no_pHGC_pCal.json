@@ -206,7 +206,7 @@
         },
         {
             "name" : "pHGCerShould",
-            "cut"  : "deltaCut && betaCut && pNGCerCut && pCalCut && hCalCut && hCerCut"
+            "cut"  : "deltaCut && betaCut && hCalCut && hCerCut"
         },
         {
             "name" : "pHGCerDid",
@@ -214,7 +214,7 @@
         },
         {
             "name" : "hCerShould",
-            "cut"  : "deltaCut && betaCut && pHGCerCut && pNGCerCut && pCalCut && hCalCut"
+            "cut"  : "deltaCut && betaCut && pHGCerCut && hCalCut"
         },
         {
             "name" : "hCerDid",
@@ -230,7 +230,7 @@
         },
         {
             "name" : "hCalShould",
-            "cut"  : "deltaCut && betaCut && pCalCut && pHGCerCut && pNGCerCut && hCerCut"
+            "cut"  : "deltaCut && betaCut && pHGCerCut && hCerCut"
         },
         {
             "name" : "hCalDid",

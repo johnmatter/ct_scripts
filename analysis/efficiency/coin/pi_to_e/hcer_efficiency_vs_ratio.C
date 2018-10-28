@@ -13,7 +13,7 @@
 
 // Plot efficiency vs pi:e ratio for each kinematics
 // Extrapolate to zero pi:e ratio to get "true" efficiency
-void hcer() {
+void hcer_efficiency_vs_ratio() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
@@ -112,8 +112,8 @@ void hcer() {
 
     // Plot
     TCanvas* cHcal = new TCanvas("cHcal", "HCal Efficiency", 1024, 640);
-    cHcal->Print("hcal_delta.pdf["); // open PDF
+    cHcal->Print("hcer_efficiency_vs_pi_to_e.pdf["); // open PDF
     gr->Draw("A");                   // draw graph on canvas
-    cHcal->Print("hcal_delta.pdf");  // print page
-    cHcal->Print("hcal_delta.pdf]"); // close PDF
+    cHcal->Print("hcer_efficiency_vs_pi_to_e.pdf");  // print page
+    cHcal->Print("hcer_efficiency_vs_pi_to_e.pdf]"); // close PDF
 }

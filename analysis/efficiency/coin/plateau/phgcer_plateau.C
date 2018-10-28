@@ -17,7 +17,7 @@
 // This macro calculates the efficiency of the SHMS Cherenkov detector as
 // a function of cuts on npeSum for proton events (i.e. rejecting pions).
 
-void pcer_plateau() {
+void phgcer_plateau() {
     // Load our data and cuts
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
@@ -31,7 +31,7 @@ void pcer_plateau() {
     std::map<std::tuple<TString, Int_t, Double_t>, Efficiency0D*> efficiencyCalculators;
 
     // Set up our cuts; we'll be scanning a cut threshold
-    TCut cutShould = cuts->Get("pCerShould") && cuts->Get("pDeltaCut");
+    TCut cutShould = cuts->Get("pHGCerShould");
     TString cutDidString = "P.hgcer.npeSum < %f";
     std::vector<Double_t> cutParams = {0.001, 0.1, 0.2, 0.3, 0.4, 0.5};
 
@@ -95,7 +95,7 @@ void pcer_plateau() {
     // Plot efficiencyGraphs
     std::vector<Int_t> colors = {46, 44, 30, 38};
     TCanvas* cPcer = new TCanvas("cPcer", "PCer Efficiency", 1024, 640);
-    cPcer->Print("pcer_plateau.pdf["); // open PDF
+    cPcer->Print("phgcer_plateau.pdf["); // open PDF
 
     TMultiGraph *mgLH2 = new TMultiGraph("mgLH2", "Efficiency");
     TString t = "LH2";
@@ -119,7 +119,7 @@ void pcer_plateau() {
     mgLH2->GetXaxis()->SetTitle("P.hgcer.npeSum cut");
     mgLH2->GetYaxis()->SetTitle("Efficiency");
     legLH2->Draw();
-    cPcer->Print("pcer_plateau.pdf"); // write page to PDF
+    cPcer->Print("phgcer_plateau.pdf"); // write page to PDF
 
     TMultiGraph *mgC12 = new TMultiGraph("mgC12", "Efficiency");
     t = "C12";
@@ -143,7 +143,7 @@ void pcer_plateau() {
     mgC12->GetXaxis()->SetTitle("P.hgcer.npeSum cut");
     mgC12->GetYaxis()->SetTitle("Efficiency");
     legC12->Draw();
-    cPcer->Print("pcer_plateau.pdf"); // write page to PDF
+    cPcer->Print("phgcer_plateau.pdf"); // write page to PDF
 
-    cPcer->Print("pcer_plateau.pdf]"); // close fPDF
+    cPcer->Print("phgcer_plateau.pdf]"); // close fPDF
 }

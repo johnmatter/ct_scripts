@@ -32,10 +32,7 @@ void hcal_upper_plateau() {
     std::map<std::tuple<TString, Int_t, Double_t>, Efficiency0D*> efficiencyCalculators;
 
     // Set up our cuts; we'll be scanning a cut threshold
-    TCut hBetaCut = cuts->Get("hBetaCut");
-    TCut hDeltaCut = cuts->Get("hDeltaCut");
-    TCut hCerCut = cuts->Get("hCerCut");
-    TCut cutShould = hBetaCut && hDeltaCut && hCerCut;
+    TCut cutShould = cuts->Get("hCalShould");
     TString cutDidString = "H.cal.etottracknorm > 0.8 && H.cal.etottracknorm < %f";
     std::vector<Double_t> cutParams = {1.5, 1.4, 1.3, 1.2, 1.1, 1.0};
 
