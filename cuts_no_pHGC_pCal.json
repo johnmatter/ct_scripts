@@ -97,6 +97,14 @@
             "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCut && pLH2EMissCut && pLH2PMissCut"
         },
         {
+            "name" : "coinCutsC12noDelta",
+            "cut"  : "betaCut && PIDCut && hodoTimeCut"
+        },
+        {
+            "name" : "coinCutsLH2noDelta",
+            "cut"  : "betaCut && PIDCut && hodoTimeCut && hWCut && pLH2EMissCut && pLH2PMissCut"
+        },
+        {
             "name" : "coinCutsAl",
             "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCut"
         },

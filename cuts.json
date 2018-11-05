@@ -25,6 +25,10 @@
             "cut"  : "\"P.ngcer.npeSum < 0.1\""
         },
         {
+            "name" : "pCerCut",
+            "cut"  : "(pHGCerCut || pNGCerCut)"
+        },
+        {
             "name" : "pLH2EMissCut",
             "cut"  : "\"P.kin.secondary.emiss < 0.1\""
         },
@@ -66,7 +70,7 @@
         },
         {
             "name" : "PIDCut",
-            "cut"  : "pHGCerCut && hCalCut && hCerCut"
+            "cut"  : "pCerCut && hCalCut && hCerCut"
         },
         {
             "name" : "hodoTimeCut",
@@ -130,7 +134,7 @@
         },
         {
             "name" : "pSinglesPID",
-            "cut"  : "pHGCerCut && pCalCut"
+            "cut"  : "pCerCut"
         },
         {
             "name" : "pScinShouldh",
@@ -198,7 +202,7 @@
         },
         {
             "name" : "pNGCerShould",
-            "cut"  : "deltaCut && betaCut && pHGCerCut && pCalCut && hCalCut && hCerCut"
+            "cut"  : "deltaCut && betaCut && pHGCerCut && hCalCut && hCerCut"
         },
         {
             "name" : "pNGCerDid",
@@ -206,15 +210,23 @@
         },
         {
             "name" : "pHGCerShould",
-            "cut"  : "deltaCut && betaCut && pNGCerCut && pCalCut && hCalCut && hCerCut"
+            "cut"  : "deltaCut && betaCut && pNGCerCut && hCalCut && hCerCut"
         },
         {
             "name" : "pHGCerDid",
             "cut"  : "pHGCerShould && pHGCerCut"
         },
         {
+            "name" : "pCerShould",
+            "cut"  : "deltaCut && betaCut && hCalCut && hCerCut"
+        },
+        {
+            "name" : "pCerDid",
+            "cut"  : "pCerShould && pCerCut"
+        },
+        {
             "name" : "hCerShould",
-            "cut"  : "deltaCut && betaCut && pHGCerCut && pNGCerCut && pCalCut && hCalCut"
+            "cut"  : "deltaCut && betaCut && pCerCut && hCalCut"
         },
         {
             "name" : "hCerDid",
@@ -222,7 +234,7 @@
         },
         {
             "name" : "pCalShould",
-            "cut"  : "deltaCut && betaCut && pHGCerCut && pNGCerCut && hCalCut && hCerCut"
+            "cut"  : "deltaCut && betaCut && pCerCut && hCalCut && hCerCut"
         },
         {
             "name" : "pCalDid",
@@ -230,7 +242,7 @@
         },
         {
             "name" : "hCalShould",
-            "cut"  : "deltaCut && betaCut && pCalCut && pHGCerCut && pNGCerCut && hCerCut"
+            "cut"  : "deltaCut && betaCut && pCerCut && hCerCut"
         },
         {
             "name" : "hCalDid",

@@ -11,7 +11,7 @@
 
 #include <CTData.h>
 #include <CTCuts.h>
-void delta_overlay() {
+void delta_overlay_without_delta_cut() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts_no_pHGC_pCal.json");
 
@@ -28,16 +28,16 @@ void delta_overlay() {
         // What cut to use for drawing?
         TCut drawCut;
         if (k.Contains("LH2")) {
-            drawCut = cuts->Get("coinCutsLH2");
+            drawCut = cuts->Get("coinCutsLH2noDelta");
         }
         if (k.Contains("C12")) {
-            drawCut = cuts->Get("coinCutsC12");
+            drawCut = cuts->Get("coinCutsC12noDelta");
         }
 
-        drawThis = Form("H.gtr.dp>>%s_hms_dp(80,-10,10)", k.Data());
+        drawThis = Form("H.gtr.dp>>%s_hms_dp(120,-15,15)", k.Data());
         data->GetChain(k)->Draw(drawThis.Data(), drawCut);
 
-        drawThis = Form("P.gtr.dp>>%s_shms_dp(100,-15,10)", k.Data());
+        drawThis = Form("P.gtr.dp>>%s_shms_dp(180,-25,20)", k.Data());
         data->GetChain(k)->Draw(drawThis.Data(), drawCut);
     }
 
@@ -51,7 +51,7 @@ void delta_overlay() {
     // Draw HMS ---------------------------------------------------------------
     gStyle->SetOptStat(0);
     TCanvas* cHMS = new TCanvas("cHMS", "hms_acceptance", 640, 640);
-    cHMS->Print("hms_acceptance.pdf["); // open PDF
+    cHMS->Print("hms_acceptance_without_delta_cut.pdf["); // open PDF
 
     // HMS overlay
     TLegend *legHMS = new TLegend(0.1,0.7,0.3,0.9);
@@ -68,7 +68,7 @@ void delta_overlay() {
         legHMS->AddEntry(h, k.Data(), "l");
     }
     legHMS->Draw();
-    cHMS->Print("hms_acceptance.pdf"); // write page to PDF
+    cHMS->Print("hms_acceptance_without_delta_cut.pdf"); // write page to PDF
 
     // Individual pages
     gStyle->SetOptStat(111111);
@@ -77,15 +77,15 @@ void delta_overlay() {
         TString hName = Form("%s_hms_dp", k.Data());
         TH1F *h = (TH1F*) gDirectory->Get(hName.Data());
         h->Draw("");
-        cHMS->Print("hms_acceptance.pdf"); // write page to PDF
+        cHMS->Print("hms_acceptance_without_delta_cut.pdf"); // write page to PDF
     }
 
-    cHMS->Print("hms_acceptance.pdf]"); // close fPDF
+    cHMS->Print("hms_acceptance_without_delta_cut.pdf]"); // close fPDF
 
     // Draw SHMS ---------------------------------------------------------------
     gStyle->SetOptStat(0);
     TCanvas* cSHMS = new TCanvas("cSHMS", "shms_acceptance", 640, 640);
-    cSHMS->Print("shms_acceptance.pdf["); // open PDF
+    cSHMS->Print("shms_acceptance_without_delta_cut.pdf["); // open PDF
 
     // SHMS overlay
     TLegend *legSHMS = new TLegend(0.1,0.7,0.3,0.9);
@@ -102,7 +102,7 @@ void delta_overlay() {
         legSHMS->AddEntry(h, k.Data(), "l");
     }
     legSHMS->Draw();
-    cSHMS->Print("shms_acceptance.pdf"); // write page to PDF
+    cSHMS->Print("shms_acceptance_without_delta_cut.pdf"); // write page to PDF
 
     // Individual pages
     gStyle->SetOptStat(111111);
@@ -111,8 +111,8 @@ void delta_overlay() {
         TString hName = Form("%s_shms_dp", k.Data());
         TH1F *h = (TH1F*) gDirectory->Get(hName.Data());
         h->Draw("");
-        cSHMS->Print("shms_acceptance.pdf"); // write page to PDF
+        cSHMS->Print("shms_acceptance_without_delta_cut.pdf"); // write page to PDF
     }
 
-    cSHMS->Print("shms_acceptance.pdf]"); // close fPDF
+    cSHMS->Print("shms_acceptance_without_delta_cut.pdf]"); // close fPDF
 }
