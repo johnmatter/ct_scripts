@@ -1,8 +1,7 @@
 #include <CTData.h>
 #include <CTCuts.h>
 
-// This macro tests the CTData dn CTCuts classes.
-// It requires the user to know what I wrote this to test.
+// This macro tests the CTData and CTCuts classes.
 // TODO: Automated tests
 void test() {
     CTData* data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
@@ -50,17 +49,20 @@ void test() {
         std::cout << std::endl;
 
         // Try to access some info in the chain and plot it
+        std::cout << "Test chain access" << std::endl;
         TChain* chain = data->GetChain(kinematics);
         std::cout << "Chain has nentries:" << chain->GetEntries() << std::endl;
 
-        TString drawStr = "H.gtr.dp>>h(100,-20,20)";
+        std::cout << "Test cut access" << std::endl;
         TCut cut = cuts->Get("coinCutsLH2");
 
         std::cout << "Test draw" << std::endl;
+        TString drawStr = "H.gtr.dp>>h(100,-20,20)";
         std::cout << drawStr << std::endl;
         cut.Print();
 
         chain->Draw(drawStr,cut);
+
     } else {
         std::cout << "Failure." << std::endl;
     }

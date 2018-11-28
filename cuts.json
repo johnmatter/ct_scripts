@@ -69,8 +69,16 @@
             "cut"  : "pDeltaCut && hDeltaCut"
         },
         {
+            "name" : "pPIDCut",
+            "cut"  : "pCerCut"
+        },
+        {
+            "name" : "hPIDCut",
+            "cut"  : "hCalCut && hCerCut"
+        },
+        {
             "name" : "PIDCut",
-            "cut"  : "pCerCut && hCalCut && hCerCut"
+            "cut"  : "hPIDCut && pPIDCut"
         },
         {
             "name" : "hodoTimeCut",
@@ -133,24 +141,12 @@
             "cut"  : "pScinShould && \"P.dc.ntrack>0\""
         },
         {
-            "name" : "pSinglesPID",
-            "cut"  : "pCerCut"
-        },
-        {
             "name" : "pScinShouldh",
-            "cut"  : "pScinShould && pSinglesPID"
+            "cut"  : "pScinShould && pPIDCut"
         },
         {
             "name" : "pScinDidh",
-            "cut"  : "pScinDid && pSinglesPID"
-        },
-        {
-            "name" : "pTrackShould",
-            "cut"  : "pScinShould"
-        },
-        {
-            "name" : "pTrackDid",
-            "cut"  : "pScinDid"
+            "cut"  : "pScinDid && pPIDCut"
         },
         {
             "name" : "hScinGood",
@@ -181,24 +177,12 @@
             "cut"  : "hScinShould && \"H.dc.ntrack>0\""
         },
         {
-            "name" : "hSinglesPID",
-            "cut"  : "hCalCut && hCerCut"
-        },
-        {
             "name" : "hScinShoulde",
-            "cut"  : "hScinShould && hSinglesPID"
+            "cut"  : "hScinShould && hPIDCut"
         },
         {
             "name" : "hScinDide",
-            "cut"  : "hScinDid && hSinglesPID"
-        },
-        {
-            "name" : "hTrackShould",
-            "cut"  : "hScinShould"
-        },
-        {
-            "name" : "hTrackDid",
-            "cut"  : "hScinDid"
+            "cut"  : "hScinDid && hPIDCut"
         },
         {
             "name" : "pNGCerShould",

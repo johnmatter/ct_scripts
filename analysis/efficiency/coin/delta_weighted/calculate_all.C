@@ -34,9 +34,7 @@ void calculate_all() {
 
     // Which kinematics
     std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
-                                       "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14",
-                                       "LH2_Q2_10_pion_collimator",
-                                       "LH2_Q2_10_large_collimator"};
+                                       "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14"};
 
     // Where are we saving the output?
     TString csvFilename = "ct_event_weighted_efficiency.csv";
@@ -70,14 +68,16 @@ void calculate_all() {
             switch (d[0]) {
                 case 'h':
                     scanBranch = "H.gtr.dp";
-                    scanBins = 32;
+                    scanBins = 16;
                     scanLo = -8;
                     scanHi = +8;
+                    break;
                 case 'p':
                     scanBranch = "P.gtr.dp";
-                    scanBins = 50;
+                    scanBins = 25;
                     scanLo = -10;
                     scanHi = +15;
+                    break;
             }
             efficiencyCalculators[key]->SetScanBranch(scanBranch);
             efficiencyCalculators[key]->SetScanRange(scanBins, scanLo, scanHi);
@@ -157,13 +157,15 @@ void calculate_all() {
     // ------------------------------------------------------------------------
     // Calculate scalar event-weighted efficiencies
 
-    // Save efficiency values per bin for sanity checking
+    // Save efficiency values per bin in a csv for sanity checking
     std::ofstream ofsPerBin;
     ofsPerBin.open(csvPerBinFilename.Data());
-    ofsPerBin << "kinematics,detector,deltaBinCenter,efficiency,efficiencyErrorMax"
+    ofsPerBin << "kinematics,detector,target,Q2,deltaBinCenter,efficiency,weight,efficiencyErrorMax"
               << ",efficiencyErrorUp,efficiencyErrorLo,nShould,nDid,goodEvents" << std::endl;
 
     for (auto const &k : kinematics) {
+        TString target        = data->GetTarget(k);
+        Double_t Q2           = data->GetQ2(k);
         for (auto const &d : detectors) {
             TString key = Form("%s_%s", k.Data(), d.Data());
 
@@ -189,7 +191,7 @@ void calculate_all() {
             // These bins are indexed from 1 to N
             for (int bin=1; bin<=nBins; bin++) {
 
-                // Pick larger of the efficiency asymmetric errors
+                // Pick larger of the efficiency asymmetric errors for our weight
                 efficiencyErrorUp_i = efficiencyCalculators[key]->GetTEfficiency()->GetEfficiencyErrorUp(bin);
                 efficiencyErrorLo_i = efficiencyCalculators[key]->GetTEfficiency()->GetEfficiencyErrorLow(bin);
                 efficiencyErrorMax_i = max(efficiencyErrorUp_i, efficiencyErrorLo_i);
@@ -200,10 +202,11 @@ void calculate_all() {
                 events_i  = deltaHistograms[key]->GetBinContent(bin);
 
                 // Get bin center
-                binCenter_i = deltaHistograms[key]->GetXaxis()->GetBinCenter(bin);
+                binCenter_i = efficiencyCalculators[key]->GetTEfficiency()->GetCopyTotalHisto()->GetXaxis()->GetBinCenter(bin);
 
                 // Get weight
-                if (events_i>0) {
+                // Skip if no events in bin
+                if (nShould_i>0) {
                     weight_i = 1/pow(efficiencyErrorMax_i,2);
                 } else {
                     weight_i = 0;
@@ -214,11 +217,13 @@ void calculate_all() {
                 weightSquaredSum += pow(weight_i,2);
 
                 // Get efficiency and weight it
-                efficiency_i      = efficiencyCalculators[key]->GetTEfficiency()->GetEfficiency(bin);
+                efficiency_i        = efficiencyCalculators[key]->GetTEfficiency()->GetEfficiency(bin);
                 weightedEfficiency += weight_i * efficiency_i;
 
                 // Print to csv
-                ofsPerBin << k << "," << d << "," << binCenter_i << "," << efficiency_i << "," << efficiencyErrorMax_i
+                ofsPerBin << k << "," << d << "," << target << "," << Q2
+                          << "," << binCenter_i << "," << efficiency_i << "," << weight_i
+                          << "," << efficiencyErrorMax_i
                           << "," << efficiencyErrorUp_i << "," << efficiencyErrorLo_i
                           << "," << nShould_i << "," << nDid_i << "," << events_i << std::endl;
             }

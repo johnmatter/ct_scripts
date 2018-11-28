@@ -1,4 +1,5 @@
 #include <utility>
+#include <fstream>
 #include <vector>
 #include <tuple>
 #include <map>
@@ -41,14 +42,17 @@ void tracking() {
 
     // Set up our cuts
     TCut cutShould;
-    TCut hCutShould = cuts->Get("hTrackShould");
-    TCut pCutShould = cuts->Get("pTrackShould");
+    TCut hCutShould = cuts->Get("hScinShoulde");
+    TCut pCutShould = cuts->Get("pScinShouldh");
     TCut cutDid;
-    TCut hCutDid    = cuts->Get("hTrackDid");
-    TCut pCutDid    = cuts->Get("pTrackDid");
+    TCut hCutDid    = cuts->Get("hScinDide");
+    TCut pCutDid    = cuts->Get("pScinDidh");
 
     // This will contain all our graphs
-    TMultiGraph *multiGraph = new TMultiGraph("multiGraph", "Tracking Efficiency");
+    // TMultiGraph *multiGraph = new TMultiGraph("multiGraph", "Tracking Efficiency");
+
+    // Save
+    TString csvFilename = "tracking.csv";
 
     // ------------------------------------------------------------------------
     // Calculate and plot for both spectrometers
@@ -121,8 +125,11 @@ void tracking() {
 
     // ------------------------------------------------------------------------
     // Print efficiencies for other analyses
+    std::ofstream ofs;
+    ofs.open(csvFilename.Data());
+
     TString printme = Form("spectrometer,target,Q2,efficiency,efficiencyErrorUp,efficiencyErrorLow");
-    std::cout << printme << std::endl;
+    ofs << printme << std::endl;
 
     for (auto const &s : spectrometers) {
         for (auto const &t : targets)   {
@@ -137,64 +144,65 @@ void tracking() {
 
                 TString printme = Form("%s,%s,%f,%f,%f,%f", s.Data(), t.Data(), thisQ2,
                                         thisE, thisEUp, thisELow);
-                std::cout << printme << std::endl;
+                ofs << printme << std::endl;
             }
         }
     }
+    ofs.close();
 
     // ------------------------------------------------------------------------
     // Format and draw
-    TLegend *legend = new TLegend(0.15, 0.3, 0.35, 0.2);
+    // TLegend *legend = new TLegend(0.15, 0.3, 0.35, 0.2);
 
-    TString target, spect;
+    // TString target, spect;
 
-    target="LH2"; spect="SHMS";
-    auto key = std::make_tuple(target, spect);
-    efficiencyGraphs[key]->SetMarkerStyle(26);
-    efficiencyGraphs[key]->SetMarkerColor(38);
-    efficiencyGraphs[key]->SetLineStyle(9);
-    efficiencyGraphs[key]->SetLineColor(38);
-    legend->AddEntry(efficiencyGraphs[key],
-            Form("%s %s",target.Data(), spect.Data()), "lp");
+    // target="LH2"; spect="SHMS";
+    // auto key = std::make_tuple(target, spect);
+    // efficiencyGraphs[key]->SetMarkerStyle(26);
+    // efficiencyGraphs[key]->SetMarkerColor(38);
+    // efficiencyGraphs[key]->SetLineStyle(9);
+    // efficiencyGraphs[key]->SetLineColor(38);
+    // legend->AddEntry(efficiencyGraphs[key],
+    //         Form("%s %s",target.Data(), spect.Data()), "lp");
 
-    target="LH2"; spect="HMS";
-    key = std::make_tuple(target, spect);
-    efficiencyGraphs[key]->SetMarkerStyle(26);
-    efficiencyGraphs[key]->SetMarkerColor(46);
-    efficiencyGraphs[key]->SetLineStyle(9);
-    efficiencyGraphs[key]->SetLineColor(46);
-    legend->AddEntry(efficiencyGraphs[key],Form("%s %s",
-                target.Data(), spect.Data()), "lp");
+    // target="LH2"; spect="HMS";
+    // key = std::make_tuple(target, spect);
+    // efficiencyGraphs[key]->SetMarkerStyle(26);
+    // efficiencyGraphs[key]->SetMarkerColor(46);
+    // efficiencyGraphs[key]->SetLineStyle(9);
+    // efficiencyGraphs[key]->SetLineColor(46);
+    // legend->AddEntry(efficiencyGraphs[key],Form("%s %s",
+    //             target.Data(), spect.Data()), "lp");
 
-    target="C12"; spect="SHMS";
-    key = std::make_tuple(target, spect);
-    efficiencyGraphs[key]->SetMarkerStyle(20);
-    efficiencyGraphs[key]->SetMarkerColor(38);
-    efficiencyGraphs[key]->SetLineStyle(1);
-    efficiencyGraphs[key]->SetLineColor(38);
-    legend->AddEntry(efficiencyGraphs[key],
-            Form("%s %s",target.Data(), spect.Data()), "lp");
+    // target="C12"; spect="SHMS";
+    // key = std::make_tuple(target, spect);
+    // efficiencyGraphs[key]->SetMarkerStyle(20);
+    // efficiencyGraphs[key]->SetMarkerColor(38);
+    // efficiencyGraphs[key]->SetLineStyle(1);
+    // efficiencyGraphs[key]->SetLineColor(38);
+    // legend->AddEntry(efficiencyGraphs[key],
+    //         Form("%s %s",target.Data(), spect.Data()), "lp");
 
-    target="C12"; spect="HMS";
-    key = std::make_tuple(target, spect);
-    efficiencyGraphs[key]->SetMarkerStyle(20);
-    efficiencyGraphs[key]->SetMarkerColor(46);
-    efficiencyGraphs[key]->SetLineStyle(1);
-    efficiencyGraphs[key]->SetLineColor(46);
-    legend->AddEntry(efficiencyGraphs[key],
-            Form("%s %s",target.Data(), spect.Data()), "lp");
+    // target="C12"; spect="HMS";
+    // key = std::make_tuple(target, spect);
+    // efficiencyGraphs[key]->SetMarkerStyle(20);
+    // efficiencyGraphs[key]->SetMarkerColor(46);
+    // efficiencyGraphs[key]->SetLineStyle(1);
+    // efficiencyGraphs[key]->SetLineColor(46);
+    // legend->AddEntry(efficiencyGraphs[key],
+    //         Form("%s %s",target.Data(), spect.Data()), "lp");
 
-    TCanvas* cTrackEff = new TCanvas("cTrackEff", "Tracking Efficiency", 640, 640);
-    cTrackEff->Print("tracking.pdf["); // open PDF
+    // TCanvas* cTrackEff = new TCanvas("cTrackEff", "Tracking Efficiency", 640, 640);
+    // cTrackEff->Print("tracking.pdf["); // open PDF
 
-    multiGraph->Draw("LZAP");
-    multiGraph->GetXaxis()->SetTitle("Q^{2} (GeV^{2})");
-    multiGraph->GetYaxis()->SetTitle("Efficiency");
-    multiGraph->SetMinimum(0);
-    multiGraph->SetMaximum(1.02);
-    cTrackEff->Modified();
-    legend->Draw();
-    cTrackEff->Print("tracking.pdf"); // print page
+    // multiGraph->Draw("LZAP");
+    // multiGraph->GetXaxis()->SetTitle("Q^{2} (GeV^{2})");
+    // multiGraph->GetYaxis()->SetTitle("Efficiency");
+    // multiGraph->SetMinimum(0);
+    // multiGraph->SetMaximum(1.02);
+    // cTrackEff->Modified();
+    // legend->Draw();
+    // cTrackEff->Print("tracking.pdf"); // print page
 
-    cTrackEff->Print("tracking.pdf]"); // close PDF
+    // cTrackEff->Print("tracking.pdf]"); // close PDF
 }

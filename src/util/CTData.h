@@ -9,6 +9,7 @@
 #include <string>
 #include <map>
 
+#include <TFile.h>
 #include <TChain.h>
 #include <TString.h>
 
@@ -31,7 +32,6 @@ class CTData {
         // Various GetX() methods
         std::vector<TString> GetNames() { return names; };
         std::vector<Int_t> GetRuns(TString name) { return runs[name]; };
-        TChain* GetChain(TString name) { return chains[name]; };
         TString GetTarget(TString name) { return targets[name]; };
         Double_t GetQ2(TString name) { return Q2s[name]; };
         Double_t GetHMSMomentum(TString name) { return hmsMomenta[name]; };
@@ -39,13 +39,18 @@ class CTData {
         Double_t GetHMSAngle(TString name) { return hmsAngles[name]; };
         Double_t GetSHMSAngle(TString name) { return shmsAngles[name]; };
 
+        TChain* GetChain(TString kinematics, TString chain = "T");
+
+        TString GetRootfileTemplate(TString name) { return rootfileTemplates[name]; };
+        TString GetRootfileDirectory() { return rootfilesDir; };
+
     private:
         TString configJson;
         TString runlistDir;
         TString rootfilesDir;
 
-        // This information is read by Config()
-        // TODO: Implement this as someCTKinematics class rather than parallel maps
+        // This information is read by Config() ----------------------
+        // TODO: Implement this as some CTKinematics class rather than parallel maps
         std::vector<TString> names;
         std::map<TString, Double_t> Q2s;
         std::map<TString, Double_t> hmsMomenta;
@@ -56,9 +61,10 @@ class CTData {
         std::map<TString, TString> runlists;
         std::map<TString, TString> rootfileTemplates;
 
-        // This data is read by Load()
+        // This data is read by Load() -------------------------------
         std::map<TString, std::vector<Int_t>> runs;
-        std::map<TString, TChain*> chains;
+        // Key is <kinematics, chain name>
+        std::map<std::pair<TString,TString>, TChain*> chains;
 };
 
 #endif

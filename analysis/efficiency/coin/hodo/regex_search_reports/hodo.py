@@ -13,10 +13,10 @@ from itertools import product
 # These values are calculated during replay by the THcHodoEff class.
 # WARNING: This script makes substantial assumptions about the format of your reports.
 
-runlistDir = '/home/jmatter/ct_scripts/runlists'
+runlistDir = '/home/jmatter/ct_scripts/runlists/coin'
 runlistRegex = 'runs_(.*)_Q2_(.*)'
 
-reportDir = '/work/hallc/e1206107/jmatter/REPORT_OUTPUT/COIN/PRODUCTION'
+reportDir = '/work/hallc/e1206107/CT12GeV/ct_replay/REPORT_OUTPUT/COIN/PRODUCTION/pass0'
 reportTemplate = 'replay_coin_production_%d_-1.report'
 
 regexTracksFound = 'Tracks found    = scleantrack = (.*)'
@@ -24,8 +24,14 @@ regexHodoEff = '3_of_4 EFF : (.*)'
 
 #------------------------------------------------------------------------------
 def main():
-    # Get runlists
-    lists = os.listdir(runlistDir)
+    # Get all runlists in runlistDir
+    # lists = os.listdir(runlistDir)
+
+    # Set explicit list of runlists to process
+    lists = ["runs_LH2_Q2_8", "runs_LH2_Q2_10",
+             "runs_LH2_Q2_12", "runs_LH2_Q2_14",
+             "runs_C12_Q2_8", "runs_C12_Q2_10",
+             "runs_C12_Q2_12", "runs_C12_Q2_14"]
 
     # Loop over lists and store info in a list of dictionaries.
     # Each run has a dictionary with efficiency, Q^2, etc.

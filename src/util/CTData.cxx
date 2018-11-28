@@ -108,8 +108,9 @@ void CTData::Load() {
                   << std::setw(10) << Q2s[name]
                   << std::setw(10) << targets[name] << std::endl;
 
-        // Initialize this chain
-        chains[name] = new TChain("T");
+        // Initialize chains
+        auto keyT = std::make_pair(name,TString("T"));
+        chains[keyT] = new TChain("T");
 
         // Open run list
         runlistFilename = Form("%s/%s", runlistDir.Data(), runlists[name].Data());
@@ -122,10 +123,10 @@ void CTData::Load() {
             runlist >> runNumber;
             if (!runlist.good()) {break;} // end if file's done
 
-            // Add root file to chain
+            // Add root file to chains
             rootfilename = Form(rootfileTemplates[name], rootfilesDir.Data(), runNumber);
             // TODO: should check if file exists
-            chains[name]->Add(rootfilename);
+            chains[keyT]->Add(rootfilename);
             runs[name].push_back(runNumber);
         }
         runlist.close();
@@ -159,11 +160,20 @@ void CTData::Clear() {
 bool CTData::TestChains() {
     bool status = true;
     for (auto const &name : names) {
-        if (chains[name]==NULL) {
-            std::cerr << "NULL TChain : " << name << std::endl;
+
+        // Check T chain
+        auto keyT = std::make_pair(name,TString("T"));
+        if (chains[keyT]==NULL) {
+            std::cerr << "NULL TChain : T in " << name << std::endl;
             status = false;
         }
     }
 
     return status;
+}
+
+// Get a pointer to the requested TChain
+TChain* CTData::GetChain(TString kinematics, TString chain) {
+    auto const key = std::make_pair(kinematics,chain);
+    return chains[key];
 }
