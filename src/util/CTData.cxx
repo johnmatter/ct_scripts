@@ -111,6 +111,10 @@ void CTData::Load() {
         // Initialize chains
         auto keyT = std::make_pair(name,TString("T"));
         chains[keyT] = new TChain("T");
+        auto keyTSP = std::make_pair(name,TString("TSP"));
+        chains[keyTSP] = new TChain("TSP");
+        auto keyTSH = std::make_pair(name,TString("TSH"));
+        chains[keyTSH] = new TChain("TSH");
 
         // Open run list
         runlistFilename = Form("%s/%s", runlistDir.Data(), runlists[name].Data());
@@ -127,6 +131,8 @@ void CTData::Load() {
             rootfilename = Form(rootfileTemplates[name], rootfilesDir.Data(), runNumber);
             // TODO: should check if file exists
             chains[keyT]->Add(rootfilename);
+            chains[keyTSP]->Add(rootfilename);
+            chains[keyTSH]->Add(rootfilename);
             runs[name].push_back(runNumber);
         }
         runlist.close();
