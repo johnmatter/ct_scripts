@@ -1,7 +1,7 @@
 {
     "data" : {
         "runlistDir"   : "/home/jmatter/ct_scripts/runlists/coin",
-        "rootfilesDir" : "/work/hallc/e1206107/CT12GeV/ct_replay/ROOTfiles/pass0"
+        "rootfilesDir" : "/work/hallc/e1206107/CT12GeV/ct_replay/ROOTfiles/pass1"
     },
     "kinematics" : [
         {
