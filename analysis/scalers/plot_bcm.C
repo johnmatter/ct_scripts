@@ -12,19 +12,19 @@
 #include <CTData.h>
 #include <CTCuts.h>
 
-void plot_rates() {
+void plot_bcm() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // PDF to save
-    TString pdfFilename = "rates.pdf";
+    TString pdfFilename = "bcm.pdf";
 
     // Which kinematics
     std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
                                        "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14"};
 
     // Which bcms
-    std::vector<TString> bcms = {"BCM1", "BCM2", "BCM4A", "BCM4B", "BCM17", "Unser"};
+    std::vector<TString> bcms = {"BCM1", "BCM2", "BCM4A", "BCM4B", "BCM4C"};
 
     // key is kinematics
     // value is a vector of that kinematics' rootfiles
@@ -57,7 +57,7 @@ void plot_rates() {
     // Plot and save PDF
     TString drawMe; // used to format tree->Draw() type lines
     TString histoName;
-    TString histoTitle;
+    TString histoTitle, xAxisTitle, yAxisTitle;
     TH2F* histoTemp;
 
     TCanvas* cRates = new TCanvas("cRates", "Rates", 1024, 640);
@@ -69,23 +69,21 @@ void plot_rates() {
 
             TTree *scalerTree = data->GetChain(k, "TSP");
 
-            // pTRIG1
+            // Draw
             histoName = Form("h_%s_ptrig_vs_%s", k.Data(), b.Data());
-            drawMe = Form("P.pTRIG1.scalerRate:P.%s.scalerCurrent>>%s", b.Data(), histoName.Data());
+            drawMe = Form("P.%s.scalerCurrent:This->GetReadEntry()>>%s", b.Data(), histoName.Data());
             scalerTree->Draw(drawMe.Data());
-            histoTemp = (TH2F*) gPad->GetPrimitive(histoName.Data());
-            histoTitle = Form("%s pTRIG1 vs %s", k.Data(), b.Data());
-            histoTemp->SetTitle(histoTitle.Data());
-            cRates->Update();
-            cRates->Print(pdfFilename.Data()); // write page to PDF
 
-            // hTRIG1
-            histoName = Form("h_%s_htrig_vs_%s", k.Data(), b.Data());
-            drawMe = Form("P.hTRIG1.scalerRate:P.%s.scalerCurrent>>%s", b.Data(), histoName.Data());
-            scalerTree->Draw(drawMe.Data());
+            // Format
             histoTemp = (TH2F*) gPad->GetPrimitive(histoName.Data());
-            histoTitle = Form("%s hTRIG1 vs %s", k.Data(), b.Data());
+            histoTitle = Form("%s", k.Data());
+            xAxisTitle = Form("Entry");
+            yAxisTitle = Form("P.%s.scalerCurrent",b.Data());
             histoTemp->SetTitle(histoTitle.Data());
+            histoTemp->GetXaxis()->SetTitle(xAxisTitle.Data());
+            histoTemp->GetYaxis()->SetTitle(yAxisTitle.Data());
+
+            // Write page
             cRates->Update();
             cRates->Print(pdfFilename.Data()); // write page to PDF
         }

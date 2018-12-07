@@ -55,8 +55,7 @@ void write_to_csv() {
     Double_t bcm2;
     Double_t bcm4a;
     Double_t bcm4b;
-    Double_t bcm17;
-    Double_t unser;
+    Double_t bcm4c;
     Double_t hTRIG1;
     Double_t pTRIG1;
 
@@ -71,8 +70,7 @@ void write_to_csv() {
         << "," << "bcm2"
         << "," << "bcm4a"
         << "," << "bcm4b"
-        << "," << "bcm17"
-        << "," << "unser"
+        << "," << "bcm4c"
         << "," << "hTRIG1"
         << "," << "pTRIG1"
         << std::endl;
@@ -98,8 +96,7 @@ void write_to_csv() {
             scalerTree->SetBranchAddress("P.BCM2.scalerCurrent",  &bcm2);
             scalerTree->SetBranchAddress("P.BCM4A.scalerCurrent", &bcm4a);
             scalerTree->SetBranchAddress("P.BCM4B.scalerCurrent", &bcm4b);
-            scalerTree->SetBranchAddress("P.BCM17.scalerCurrent", &bcm17);
-            scalerTree->SetBranchAddress("P.Unser.scalerCurrent", &unser);
+            scalerTree->SetBranchAddress("P.BCM4C.scalerCurrent", &bcm4c);
             scalerTree->SetBranchAddress("P.hTRIG1.scalerRate",   &hTRIG1);
             scalerTree->SetBranchAddress("P.pTRIG1.scalerRate",   &pTRIG1);
             std::cout<<"✓"<<std::endl;
@@ -118,8 +115,7 @@ void write_to_csv() {
                     << "," << bcm2
                     << "," << bcm4a
                     << "," << bcm4b
-                    << "," << bcm17
-                    << "," << unser
+                    << "," << bcm4c
                     << "," << hTRIG1
                     << "," << pTRIG1
                     << std::endl;
