@@ -8,6 +8,7 @@
 #include <TCanvas.h>
 
 #include <Efficiency1D.h>
+#include <Efficiency0D.h>
 #include <CTData.h>
 #include <CTCuts.h>
 
@@ -22,7 +23,8 @@ void calculate_all() {
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // Efficiency infrastructure
-    std::map<TString, Efficiency1D*> efficiencyCalculators;
+    std::map<TString, Efficiency1D*> efficiencyCalculators1D; // weighted by delta bins' uncertainty
+    std::map<TString, Efficiency0D*> efficiencyCalculators0D; // unweighted
     std::map<TString, Double_t> efficiencies;
     std::map<TString, Double_t> efficiencyErrors;
 
@@ -45,7 +47,8 @@ void calculate_all() {
     // Calculate efficiencies as a function of delta
     for (auto const &k : kinematics) {
         for (auto const &d : detectors) {
-            TString key = Form("%s_%s", k.Data(), d.Data());
+            TString key_1D = Form("%s_%s_1D", k.Data(), d.Data());
+            TString key_0D = Form("%s_%s_0D", k.Data(), d.Data());
 
             TCut cutShould = cuts->Get(Form("%sShould", d.Data()));
             TCut cutDid    = cuts->Get(Form("%sDid",    d.Data()));
@@ -57,7 +60,8 @@ void calculate_all() {
             }
 
 
-            efficiencyCalculators[key] = new Efficiency1D(key.Data());
+            efficiencyCalculators1D[key_1D] = new Efficiency1D(key_1D.Data());
+            efficiencyCalculators0D[key_0D] = new Efficiency0D(key_0D.Data());
 
             // Set appropriate scan branch by spectrometer
             // The first character should be either p or h, denoting SHMS or HMS
@@ -79,24 +83,31 @@ void calculate_all() {
                     scanHi = +15;
                     break;
             }
-            efficiencyCalculators[key]->SetScanBranch(scanBranch);
-            efficiencyCalculators[key]->SetScanRange(scanBins, scanLo, scanHi);
+            efficiencyCalculators1D[key_1D]->SetScanBranch(scanBranch);
+            efficiencyCalculators1D[key_1D]->SetScanRange(scanBins, scanLo, scanHi);
 
             // Set TChain
             TChain* chain = data->GetChain(k.Data());
-            efficiencyCalculators[key]->SetChain(chain);
+            efficiencyCalculators1D[key_1D]->SetChain(chain);
+            efficiencyCalculators0D[key_0D]->SetChain(chain);
 
             // Set cuts
-            efficiencyCalculators[key]->SetShouldCut(cutShould);
-            efficiencyCalculators[key]->SetDidCut(cutDid);
+            efficiencyCalculators1D[key_1D]->SetShouldCut(cutShould);
+            efficiencyCalculators1D[key_1D]->SetDidCut(cutDid);
+            efficiencyCalculators0D[key_0D]->SetShouldCut(cutShould);
+            efficiencyCalculators0D[key_0D]->SetDidCut(cutDid);
 
             // Initialize and calculate
-            efficiencyCalculators[key]->SetEvents(-1);
-            efficiencyCalculators[key]->Init();
-            efficiencyCalculators[key]->Calculate();
+            efficiencyCalculators1D[key_1D]->SetEvents(-1);
+            efficiencyCalculators1D[key_1D]->Init();
+            efficiencyCalculators1D[key_1D]->Calculate();
+            efficiencyCalculators0D[key_0D]->SetEvents(-1);
+            efficiencyCalculators0D[key_0D]->Init();
+            efficiencyCalculators0D[key_0D]->Calculate();
 
             // Formatting
-            efficiencyCalculators[key]->SetTitle(key.Data());
+            efficiencyCalculators1D[key_1D]->SetTitle(key_1D.Data());
+            efficiencyCalculators0D[key_0D]->SetTitle(key_0D.Data());
         }
     }
 
@@ -107,9 +118,9 @@ void calculate_all() {
     // So I'm doing it this way.
     for (auto const &k : kinematics) {
         for (auto const &d : detectors) {
-            TString key = Form("%s_%s", k.Data(), d.Data());
+            TString key_1D = Form("%s_%s_1D", k.Data(), d.Data());
 
-            TString printMe = Form("Plotting delta for %s", key.Data());
+            TString printMe = Form("Plotting delta for %s", key_1D.Data());
             std::cout << printMe << std::endl;
 
             // Get data
@@ -123,12 +134,12 @@ void calculate_all() {
             switch (d[0]) {
                 case 'h':
                     drawBranch = "H.gtr.dp";
-                    drawBins = 32;
+                    drawBins = 16;
                     drawLo = -8;
                     drawHi = +8;
                 case 'p':
                     drawBranch = "P.gtr.dp";
-                    drawBins = 50;
+                    drawBins = 25;
                     drawLo = -10;
                     drawHi = +15;
             }
@@ -143,14 +154,14 @@ void calculate_all() {
             }
 
             // Draw
-            TString histoName = Form("%s_delta", key.Data());
+            TString histoName = Form("%s_delta", key_1D.Data());
             TString drawMe    = Form("%s>>%s(%d,%f,%f)",
                                   drawBranch.Data(), histoName.Data(),
                                   drawBins, drawLo, drawHi);
             chain->Draw(drawMe.Data(), drawCut, "goff");
 
             // Add to map
-            deltaHistograms[key] = (TH1*) gDirectory->Get(histoName.Data());
+            deltaHistograms[key_1D] = (TH1*) gDirectory->Get(histoName.Data());
         }
     }
 
@@ -167,12 +178,13 @@ void calculate_all() {
         TString target        = data->GetTarget(k);
         Double_t Q2           = data->GetQ2(k);
         for (auto const &d : detectors) {
-            TString key = Form("%s_%s", k.Data(), d.Data());
+            TString key_1D = Form("%s_%s_1D", k.Data(), d.Data());
+            TEfficiency* tEff = efficiencyCalculators1D[key_1D]->GetTEfficiency();
 
-            TString printMe = Form("Calculating event-weighted efficiency for %s", key.Data());
+            TString printMe = Form("Calculating event-weighted efficiency for %s", key_1D.Data());
             std::cout << printMe << std::endl;
 
-            Int_t nBins = efficiencyCalculators[key]->GetTEfficiency()->GetCopyTotalHisto()->GetNbinsX();
+            Int_t nBins = tEff->GetCopyTotalHisto()->GetNbinsX();
 
             Double_t efficiency_i;
             Double_t efficiencyErrorMax_i;
@@ -192,17 +204,17 @@ void calculate_all() {
             for (int bin=1; bin<=nBins; bin++) {
 
                 // Pick larger of the efficiency asymmetric errors for our weight
-                efficiencyErrorUp_i = efficiencyCalculators[key]->GetTEfficiency()->GetEfficiencyErrorUp(bin);
-                efficiencyErrorLo_i = efficiencyCalculators[key]->GetTEfficiency()->GetEfficiencyErrorLow(bin);
+                efficiencyErrorUp_i = tEff->GetEfficiencyErrorUp(bin);
+                efficiencyErrorLo_i = tEff->GetEfficiencyErrorLow(bin);
                 efficiencyErrorMax_i = max(efficiencyErrorUp_i, efficiencyErrorLo_i);
 
                 // Get number of events in this bin
-                nShould_i = efficiencyCalculators[key]->GetTEfficiency()->GetCopyTotalHisto()->GetBinContent(bin);
-                nDid_i    = efficiencyCalculators[key]->GetTEfficiency()->GetCopyPassedHisto()->GetBinContent(bin);
-                events_i  = deltaHistograms[key]->GetBinContent(bin);
+                nShould_i = tEff->GetCopyTotalHisto()->GetBinContent(bin);
+                nDid_i    = tEff->GetCopyPassedHisto()->GetBinContent(bin);
+                events_i  = deltaHistograms[key_1D]->GetBinContent(bin);
 
                 // Get bin center
-                binCenter_i = efficiencyCalculators[key]->GetTEfficiency()->GetCopyTotalHisto()->GetXaxis()->GetBinCenter(bin);
+                binCenter_i = tEff->GetCopyTotalHisto()->GetXaxis()->GetBinCenter(bin);
 
                 // Get weight
                 // Skip if no events in bin
@@ -217,7 +229,7 @@ void calculate_all() {
                 weightSquaredSum += pow(weight_i,2);
 
                 // Get efficiency and weight it
-                efficiency_i        = efficiencyCalculators[key]->GetTEfficiency()->GetEfficiency(bin);
+                efficiency_i        = tEff->GetEfficiency(bin);
                 weightedEfficiency += weight_i * efficiency_i;
 
                 // Print to csv
@@ -231,8 +243,8 @@ void calculate_all() {
             weightedEfficiency /= weightSum;
             weightedUncertainty = 1/sqrt(weightSquaredSum);
 
-            efficiencies[key]     = weightedEfficiency;
-            efficiencyErrors[key] = weightedUncertainty;
+            efficiencies[key_1D]     = weightedEfficiency;
+            efficiencyErrors[key_1D] = weightedUncertainty;
         }
     }
 
@@ -245,10 +257,12 @@ void calculate_all() {
 
     ofs << "kinematics,detector,target,Q2,"
               << "hmsAngle,shmsAngle,hmsMomentum,shmsMomentum,"
-              << "efficiency,efficiencyError" << std::endl;
+              << "efficiency,efficiencyError"
+              << "efficiencyUnweighted,efficiencyUnweightedErrorUp,efficiencyUnweightedErrorLo" << std::endl;
     for (auto &k: kinematics) {
         for (auto const &d : detectors) {
-            TString key = Form("%s_%s", k.Data(), d.Data());
+            TString key_1D = Form("%s_%s_1D", k.Data(), d.Data());
+            TString key_0D = Form("%s_%s_0D", k.Data(), d.Data());
 
             // Spectrometer info
             TString target        = data->GetTarget(k);
@@ -259,14 +273,20 @@ void calculate_all() {
             Double_t shmsMomentum = data->GetSHMSMomentum(k);
 
             // Efficiency info
-            Double_t efficiency      = efficiencies[key];
-            Double_t efficiencyError = efficiencyErrors[key];
+            Double_t efficiency      = efficiencies[key_1D];
+            Double_t efficiencyError = efficiencyErrors[key_1D];
+            Double_t efficiencyUnweighted = efficiencyCalculators0D[key_0D]->GetEfficiency();
+            Double_t efficiencyUnweightedErrorUp = efficiencyCalculators0D[key_0D]->GetEfficiencyErrorUp();
+            Double_t efficiencyUnweightedErrorLo = efficiencyCalculators0D[key_0D]->GetEfficiencyErrorLow();
 
             // Form print string
-            TString printMe = Form("%s,%s,%s,%f,%f,%f,%f,%f,%f,%f",
+            TString printMe = Form("%s,%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
                                     k.Data(), d.Data(), target.Data(), Q2,
                                     hmsAngle, shmsAngle, hmsMomentum, shmsMomentum,
-                                    efficiency, efficiencyError);
+                                    efficiency, efficiencyError,
+                                    efficiencyUnweighted,
+                                    efficiencyUnweightedErrorUp,
+                                    efficiencyUnweightedErrorLo);
             ofs << printMe << std::endl;
         }
     }
@@ -282,12 +302,12 @@ void calculate_all() {
     // Print one page per detector per kinematics
     for (auto const &d : detectors) {
         for (auto const &k : kinematics) {
-            TString key = Form("%s_%s", k.Data(), d.Data());
+            TString key_1D = Form("%s_%s_1D", k.Data(), d.Data());
 
-            TString printMe = Form("Plotting efficiency vs delta for %s", key.Data());
+            TString printMe = Form("Plotting efficiency vs delta for %s", key_1D.Data());
             std::cout << printMe << std::endl;
 
-            efficiencyCalculators[key]->GetTEfficiency()->Draw();
+            efficiencyCalculators1D[key_1D]->GetTEfficiency()->Draw();
             cEff->Print(pdfFilename.Data()); // write page to PDF
         }
     }
