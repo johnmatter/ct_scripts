@@ -16,14 +16,13 @@
 //  hDelta, pDelta, hBeta, pBeta,
 //  hTheta, pTheta, W, eMiss, pMiss, pMissZ,
 //  hCerNPE, hCalEtottracknorm, hCalEtot, hCalEprtrack, hCalEprtracknorm,
-//  pHGCerNPE, pCalEtottracknorm, pCalEprtracknorm,
+//  pHGCerNPE, pNGCerNpe, pCalEtottracknorm, pCalEprtracknorm,
 //  epCoinTimeROC1, epCoinTimeROC2
 void convert_to_csv() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
 
     std::vector<TString> kinematics = {"LH2_Q2_8", "LH2_Q2_10", "LH2_Q2_12", "LH2_Q2_14",
-                                       "C12_Q2_8", "C12_Q2_10", "C12_Q2_12", "C12_Q2_14",
-                                       "C12_Q2_14_pion_collimator", "C12_Q2_14_large_collimator"};
+                                       "C12_Q2_8", "C12_Q2_10", "C12_Q2_12", "C12_Q2_14"};
 
     // Loop over kinematics and print to CSVs
     for (auto &k: kinematics) {
@@ -71,6 +70,7 @@ void convert_to_csv() {
 
         // SHMS PID
         TTreeReaderValue<double> pHGCerNPE(reader,         "P.hgcer.npeSum");
+        TTreeReaderValue<double> pNGCerNPE(reader,         "P.ngcer.npeSum");
         TTreeReaderValue<double> pCalEtottracknorm(reader, "P.cal.etottracknorm");
         TTreeReaderValue<double> pCalEprtracknorm(reader,  "P.cal.eprtracknorm");
 
@@ -108,6 +108,7 @@ void convert_to_csv() {
              << "hCalEprtrack,"
              << "hCalEprtracknorm,"
              << "pHGCerNPE,"
+             << "pNGCerNPE,"
              << "pCalEtottracknorm,"
              << "pCalEprtracknorm,"
              << "epCoinTimeROC1,"
@@ -146,6 +147,7 @@ void convert_to_csv() {
                  << "," << *hCalEprtrack
                  << "," << *hCalEprtracknorm
                  << "," << *pHGCerNPE
+                 << "," << *pNGCerNPE
                  << "," << *pCalEtottracknorm
                  << "," << *pCalEprtracknorm
                  << "," << *epCoinTimeROC1
