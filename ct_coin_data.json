@@ -1,7 +1,7 @@
 {
     "data" : {
         "runlistDir"   : "/home/jmatter/ct_scripts/runlists/coin",
-        "rootfilesDir" : "/work/hallc/e1206107/CT12GeV/ct_replay/ROOTfiles/pass1"
+        "rootfilesDir" : "/home/jmatter/CT12GeV/ct_replay/ROOTfiles/pass1"
     },
     "kinematics" : [
         {
@@ -68,6 +68,28 @@
             "hmsP"      : 2.982,
             "target"    : "LH2",
             "runlist"   : "runs_LH2_Q2_14",
+            "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
+        },
+        {
+            "name"      : "LH2_Q2_14_large_collimator",
+            "Q2"        : 14.3,
+            "shmsAngle" : 12.8,
+            "hmsAngle"  : 39.3,
+            "shmsP"     : 8.505,
+            "hmsP"      : 2.982,
+            "target"    : "LH2",
+            "runlist"   : "runs_LH2_Q2_14_large_collimator",
+            "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
+        },
+        {
+            "name"      : "LH2_Q2_14_pion_collimator",
+            "Q2"        : 14.3,
+            "shmsAngle" : 12.8,
+            "hmsAngle"  : 39.3,
+            "shmsP"     : 8.505,
+            "hmsP"      : 2.982,
+            "target"    : "LH2",
+            "runlist"   : "runs_LH2_Q2_14_pion_collimator",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
         },
         {
