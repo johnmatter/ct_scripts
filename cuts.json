@@ -130,7 +130,7 @@
         },
         {
             "name" : "pDCNoLarge",
-            "cut"  : "pDC1NoLarge && pDC1NoLarge"
+            "cut"  : "pDC1NoLarge && pDC2NoLarge"
         },
         {
             "name" : "pScinShould",
@@ -166,7 +166,7 @@
         },
         {
             "name" : "hDCNoLarge",
-            "cut"  : "hDC1NoLarge && hDC1NoLarge"
+            "cut"  : "hDC1NoLarge && hDC2NoLarge"
         },
         {
             "name" : "hScinShould",
