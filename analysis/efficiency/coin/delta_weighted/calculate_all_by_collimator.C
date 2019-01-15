@@ -18,7 +18,7 @@
 //
 // Each detector's efficiency vs delta plot is saved in a PDF.
 // A summary of the scalar event-weighted efficiencies are saved as a CSV.
-void calculate_all() {
+void calculate_all_by_collimator() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
@@ -35,19 +35,15 @@ void calculate_all() {
     std::vector<TString> detectors = {"pCer","hCal","hCer"};
 
     // Which kinematics
-    std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
-                                       "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14",
-                                       "LH2_Q2_10_pion_collimator",
+    std::vector<TString> kinematics = {"LH2_Q2_10_pion_collimator",
                                        "LH2_Q2_10_large_collimator",
                                        "LH2_Q2_14_large_collimator",
-                                       "LH2_Q2_14_pion_collimator",
-                                       "C12_Q2_14_pion_collimator",
-                                       "C12_Q2_14_large_collimator"};
+                                       "LH2_Q2_14_pion_collimator"};
 
     // Where are we saving the output?
-    TString csvFilename = "ct_event_weighted_efficiency.csv";
-    TString pdfFilename = "ct_event_weighted_efficiency.pdf";
-    TString csvPerBinFilename = "ct_event_weighted_efficiency_per_bin.csv";
+    TString csvFilename = "ct_event_weighted_efficiency_by_collimator.csv";
+    TString pdfFilename = "ct_event_weighted_efficiency_by_collimator.pdf";
+    TString csvPerBinFilename = "ct_event_weighted_efficiency_per_bin_by_collimator.csv";
 
     // ------------------------------------------------------------------------
     // Calculate efficiencies as a function of delta
@@ -173,8 +169,8 @@ void calculate_all() {
 
     // ------------------------------------------------------------------------
     // Calculate scalar event-weighted efficiencies
-    // Save efficiency values per bin in a csv for sanity checking
 
+    // Save efficiency values per bin in a csv for sanity checking
     std::ofstream ofsPerBin;
     ofsPerBin.open(csvPerBinFilename.Data());
     ofsPerBin << "kinematics,detector,target,Q2,deltaBinCenter,efficiency,weight,efficiencyErrorMax"
@@ -257,13 +253,13 @@ void calculate_all() {
     ofsPerBin.close();
 
     // ------------------------------------------------------------------------
-    // Save scalar efficiencies to CSV
+    // Save to CSV
     std::ofstream ofs;
     ofs.open(csvFilename.Data());
 
     ofs << "kinematics,detector,target,Q2,"
               << "hmsAngle,shmsAngle,hmsMomentum,shmsMomentum,"
-              << "efficiency,efficiencyError,"
+              << "efficiency,efficiencyError"
               << "efficiencyUnweighted,efficiencyUnweightedErrorUp,efficiencyUnweightedErrorLo" << std::endl;
     for (auto &k: kinematics) {
         for (auto const &d : detectors) {

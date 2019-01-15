@@ -22,7 +22,13 @@ void calculate_3of4() {
 
     // Which kinematics
     std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
-                                       "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14"};
+                                       "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14",
+                                       "LH2_Q2_10_pion_collimator",
+                                       "LH2_Q2_10_large_collimator",
+                                       "LH2_Q2_14_large_collimator",
+                                       "LH2_Q2_14_pion_collimator",
+                                       "C12_Q2_14_pion_collimator",
+                                       "C12_Q2_14_large_collimator"};
 
     // Which hodoscope planes
     std::vector<TString> spectrometers = {"P", "H"};
@@ -85,17 +91,18 @@ void calculate_3of4() {
     std::cout << "Writing per-plane efficiency" << std::endl;
     std::ofstream ofsPerPlane;
     ofsPerPlane.open(csvPerPlaneFilename.Data());
-    ofsPerPlane << "target,Q2,spectrometer,plane,efficiency,efficiencyErrorUp,efficiencyErrorLow,did,should" << std::endl;
+    ofsPerPlane << "kinematics,target,Q2,spectrometer,plane,efficiency,efficiencyErrorUp,efficiencyErrorLow,did,should" << std::endl;
     for (auto const &k : kinematics) {
         for (auto const &s : spectrometers) {
             for (auto const &p : planes) {
                 auto key = std::make_tuple(k,s,p);
                 TEfficiency* e = efficiencyPerPlane[key];
-                TString printme = Form("%s,%f,%s,%s,%f,%f,%f,%d,%d",
-                                    data->GetTarget(k).Data(), data->GetQ2(k), s.Data(), p.Data(),
-                                    e->GetEfficiency(1), e->GetEfficiencyErrorUp(1), e->GetEfficiencyErrorLow(1),
-                                    e->GetCopyPassedHisto()->GetBinContent(1),
-                                    e->GetCopyTotalHisto()->GetBinContent(1));
+                TString printme = Form("%s,%s,%f,%s,%s,%f,%f,%f,%d,%d",
+                                        k.Data(), data->GetTarget(k).Data(), data->GetQ2(k), s.Data(), p.Data(),
+                                        e->GetEfficiency(1), e->GetEfficiencyErrorUp(1), e->GetEfficiencyErrorLow(1),
+                                        e->GetCopyPassedHisto()->GetBinContent(1),
+                                        e->GetCopyTotalHisto()->GetBinContent(1)
+                                      );
                 ofsPerPlane << printme << std::endl;
             }
         }
@@ -129,7 +136,7 @@ void calculate_3of4() {
             efficiency3of4[std::make_tuple(k,s)] = efficiency;
 
             // Calculate efficiency error
-            // sqrt( sum_i(1-[prod_{j!=i}(e_j)])*sigma_i)^2
+            // sqrt( sum_i(1-[prod_{j!=i}(e_j)])*sigma_i^2 )
             Double_t error = 0;
             for (auto const &p : planes) {
                 Double_t thisTerm = -1;
@@ -160,11 +167,11 @@ void calculate_3of4() {
     std::cout << "Writing 3/4 efficiency" << std::endl;
     std::ofstream ofs3of4;
     ofs3of4.open(csv3of4Filename.Data());
-    ofs3of4 << "target,Q2,spectrometer,efficiency,efficiencyError" << std::endl;
+    ofs3of4 << "kinematics,target,Q2,spectrometer,efficiency,efficiencyError" << std::endl;
     for (auto const &k : kinematics) {
         for (auto const &s : spectrometers) {
-                TString printme = Form("%s,%f,%s,%f,%f",
-                                    data->GetTarget(k).Data(), data->GetQ2(k), s.Data(),
+                TString printme = Form("%s,%s,%f,%s,%f,%f",
+                                    k.Data(), data->GetTarget(k).Data(), data->GetQ2(k), s.Data(),
                                     efficiency3of4[std::make_tuple(k,s)],
                                     efficiency3of4Error[std::make_tuple(k,s)]);
                 ofs3of4 << printme << std::endl;
