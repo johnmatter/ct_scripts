@@ -1,0 +1,19 @@
+{
+    "jobs": [
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/efficiency/coin/shms_dc_tdc_window/run_pdc_window_study.sh",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "ct_pdc_time_window",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/shms_dc_tdc_window/job.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/shms_dc_tdc_window/job.out",
+            "timeSecs": 14400,
+            "track": "analysis"
+        }
+    ],
+    "name": "ct_pdc_time_window"
+}
