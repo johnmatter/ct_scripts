@@ -1,7 +1,7 @@
 {
     "jobs": [
         {
-            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/delta_weighted/calculate_all.C",
+            "command": "/home/jmatter/ct_scripts/analysis/efficiency/coin/delta_weighted/run.sh",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "hcer",

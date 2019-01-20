@@ -18,7 +18,7 @@
 //
 // Each detector's efficiency vs delta plot is saved in a PDF.
 // A summary of the scalar event-weighted efficiencies are saved as a CSV.
-void calculate_all() {
+int main() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
@@ -212,7 +212,7 @@ void calculate_all() {
                 // Pick larger of the efficiency asymmetric errors for our weight
                 efficiencyErrorUp_i = tEff->GetEfficiencyErrorUp(bin);
                 efficiencyErrorLo_i = tEff->GetEfficiencyErrorLow(bin);
-                efficiencyErrorMax_i = max(efficiencyErrorUp_i, efficiencyErrorLo_i);
+                efficiencyErrorMax_i = std::max(efficiencyErrorUp_i, efficiencyErrorLo_i);
 
                 // Get number of events in this bin
                 nShould_i = tEff->GetCopyTotalHisto()->GetBinContent(bin);
@@ -320,4 +320,5 @@ void calculate_all() {
 
     cEff->Print((pdfFilename+"]").Data()); // close PDF; "filename.pdf]"
 
+    return 0;
 }
