@@ -113,6 +113,28 @@
             "target"    : "C12",
             "runlist"   : "runs_C12_Q2_14_singles",
             "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+        },
+        {
+            "name"      : "C12_Q2_14_large_singles",
+            "Q2"        : 14.3,
+            "shmsAngle" : 12.8,
+            "hmsAngle"  : 39.3,
+            "shmsP"     : 8.505,
+            "hmsP"      : 2.982,
+            "target"    : "C12",
+            "runlist"   : "runs_C12_Q2_14_large_singles",
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+        },
+        
+            "name"      : "C12_Q2_14_pion_singles",
+            "Q2"        : 14.3,
+            "shmsAngle" : 12.8,
+            "hmsAngle"  : 39.3,
+            "shmsP"     : 8.505,
+            "hmsP"      : 2.982,
+            "target"    : "C12",
+            "runlist"   : "runs_C12_Q2_14_pion_singles",
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
         }
     ]
 }
