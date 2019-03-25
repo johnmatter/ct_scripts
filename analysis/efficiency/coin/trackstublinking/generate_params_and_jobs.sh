@@ -15,17 +15,17 @@ replayScript=/home/jmatter/ct_scripts/analysis/efficiency/coin/trackstublinking/
 runNumber=2054
 
 # Ranges
-xt_range=$(seq 0.5 0.5 20)
-yt_range=$(seq 0.25 0.25 5)
+xt_range=$(seq 0.5 0.5 30)
+yt_range=$(seq 0.125 0.125 10)
 xpt_range=$(seq 0.025 0.025 0.625)
-ypt_range=$(seq 0.025 0.025 0.5)
+ypt_range=$(seq 0.1 0.1 0.5)
 
 
 # Fixed vals
-x_fix=10
-xp_fix=0.4
-y_fix=7
-yp_fix=0.2
+x_fix=25
+xp_fix=0.5
+y_fix=10
+yp_fix=0.5
 
 # Scan x -------------
 x=$x_fix; xp=$xp_fix; y=$y_fix; yp=$yp_fix

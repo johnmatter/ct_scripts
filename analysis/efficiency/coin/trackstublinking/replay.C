@@ -40,7 +40,7 @@ void replay(Int_t RunNumber = 0, Int_t MaxEvent = 0, Double_t xt=0, Double_t xpt
   gHcParms->Load("PARAM/SHMS/GEN/p_fadc_debug.param");
 
   // LOAD MY TRACK STUB PARAMS
-  TString paramDir = "/home/jmatter/ct_scripts/analysis/efficiency/coin/track_pruning/PARAM";
+  TString paramDir = "/home/jmatter/ct_scripts/analysis/efficiency/coin/trackstublinking/PARAM";
   TString paramFile = Form("%s/ptracking_xt%.3f_xpt%.3f_yt%.3f_ypt%.3f.param", paramDir.Data(),
                             xt,xpt,y,ypt);
   gHcParms->Load(paramFile.Data());
