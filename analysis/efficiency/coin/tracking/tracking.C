@@ -22,7 +22,7 @@ void tracking() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
-    std::vector<TString>  spectrometers = {"HMS","SHMS"};
+    std::vector<TString>  spectrometers = {"HMS","SHMS","SHMS_REPORT"};
 
     // Which kinematics
     std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
@@ -45,6 +45,10 @@ void tracking() {
     TCut hCutDid    = cuts->Get("hScinDide");
     TCut pCutDid    = cuts->Get("pScinDidh");
 
+    // Cuts so we can compare my cuts to the report template cuts
+    TCut pReportCutShould = cuts->Get("pScinShould") && cuts->Get("pReportPIDCut";
+    TCut pReportCutDid    = pReportCutShould && "P.dc.ntrack>0";
+
     // Save
     TString csvFilename = "tracking.csv";
 
@@ -55,6 +59,10 @@ void tracking() {
         if (s=="SHMS") {
             cutShould = pCutShould;
             cutDid = pCutDid;
+        }
+        if (s=="SHMS_REPORT") {
+            cutShould = pReportCutShould;
+            cutDid = pReportCutDid;
         }
         if (s=="HMS") {
             cutShould = hCutShould;
