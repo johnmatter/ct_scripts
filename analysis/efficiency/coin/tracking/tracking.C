@@ -46,7 +46,7 @@ void tracking() {
     TCut pCutDid    = cuts->Get("pScinDidh");
 
     // Cuts so we can compare my cuts to the report template cuts
-    TCut pReportCutShould = cuts->Get("pScinShould") && cuts->Get("pReportPIDCut";
+    TCut pReportCutShould = cuts->Get("pScinShould") && cuts->Get("pReportPIDCut");
     TCut pReportCutDid    = pReportCutShould && "P.dc.ntrack>0";
 
     // Save
