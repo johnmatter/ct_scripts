@@ -10,14 +10,7 @@
 // This macro prints all coincidence data to a csv
 // No cuts are applied
 //
-// Format for csv (one row):
-//  name, Q2, target,
-//  hmsAngle, shmsAngle, hmsMomentum, shmsMomentum,
-//  hDelta, pDelta, hBeta, pBeta,
-//  hTheta, pTheta, W, eMiss, pMiss, pMissZ,
-//  hCerNPE, hCalEtottracknorm, hCalEtot, hCalEprtrack, hCalEprtracknorm,
-//  pHGCerNPE, pNGCerNpe, pCalEtottracknorm, pCalEprtracknorm,
-//  epCoinTimeROC1, epCoinTimeROC2
+// Format for csv is on line 82
 void convert_to_csv() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
 
@@ -63,16 +56,25 @@ void convert_to_csv() {
 
         // HMS PID
         TTreeReaderValue<double> hCerNPE(reader,           "H.cer.npeSum");
-        TTreeReaderValue<double> hCalEtottracknorm(reader, "H.cal.etottracknorm");
         TTreeReaderValue<double> hCalEtot(reader,          "H.cal.etot");
+        TTreeReaderValue<double> hCalEtotnorm(reader,      "H.cal.etotnorm");
+        TTreeReaderValue<double> hCalEtrack(reader,        "H.cal.etrack");
+        TTreeReaderValue<double> hCalEtracknorm(reader,    "H.cal.etracknorm");
         TTreeReaderValue<double> hCalEprtrack(reader,      "H.cal.eprtrack");
         TTreeReaderValue<double> hCalEprtracknorm(reader,  "H.cal.eprtracknorm");
+        TTreeReaderValue<double> hCalEtottracknorm(reader, "H.cal.etottracknorm");
+
 
         // SHMS PID
         TTreeReaderValue<double> pHGCerNPE(reader,         "P.hgcer.npeSum");
         TTreeReaderValue<double> pNGCerNPE(reader,         "P.ngcer.npeSum");
-        TTreeReaderValue<double> pCalEtottracknorm(reader, "P.cal.etottracknorm");
+        TTreeReaderValue<double> pCalEtot(reader,          "P.cal.etot");
+        TTreeReaderValue<double> pCalEtotnorm(reader,      "P.cal.etotnorm");
+        TTreeReaderValue<double> pCalEtrack(reader,        "P.cal.etrack");
+        TTreeReaderValue<double> pCalEtracknorm(reader,    "P.cal.etracknorm");
+        TTreeReaderValue<double> pCalEprtrack(reader,      "P.cal.eprtrack");
         TTreeReaderValue<double> pCalEprtracknorm(reader,  "P.cal.eprtracknorm");
+        TTreeReaderValue<double> pCalEtottracknorm(reader, "P.cal.etottracknorm");
 
         // Coincidence time
         TTreeReaderValue<double> epCoinTimeROC1 (reader, "CTime.epCoinTime_ROC1");
@@ -103,14 +105,22 @@ void convert_to_csv() {
              << "pMiss,"
              << "pMissZ,"
              << "hCerNPE,"
-             << "hCalEtottracknorm,"
              << "hCalEtot,"
+             << "hCalEtotnorm,"
+             << "hCalEtrack,"
+             << "hCalEtracknorm,"
              << "hCalEprtrack,"
              << "hCalEprtracknorm,"
+             << "hCalEtottracknorm,"
              << "pHGCerNPE,"
              << "pNGCerNPE,"
-             << "pCalEtottracknorm,"
+             << "pCalEtot,"
+             << "pCalEtotnorm,"
+             << "pCalEtrack,"
+             << "pCalEtracknorm,"
+             << "pCalEprtrack,"
              << "pCalEprtracknorm,"
+             << "pCalEtottracknorm,"
              << "epCoinTimeROC1,"
              << "epCoinTimeROC2"
              << std::endl;
@@ -142,14 +152,22 @@ void convert_to_csv() {
                  << "," << *pMiss
                  << "," << *pMissZ
                  << "," << *hCerNPE
-                 << "," << *hCalEtottracknorm
                  << "," << *hCalEtot
+                 << "," << *hCalEtotnorm
+                 << "," << *hCalEtrack
+                 << "," << *hCalEtracknorm
                  << "," << *hCalEprtrack
                  << "," << *hCalEprtracknorm
+                 << "," << *hCalEtottracknorm
                  << "," << *pHGCerNPE
                  << "," << *pNGCerNPE
-                 << "," << *pCalEtottracknorm
+                 << "," << *pCalEtot
+                 << "," << *pCalEtotnorm
+                 << "," << *pCalEtrack
+                 << "," << *pCalEtracknorm
+                 << "," << *pCalEprtrack
                  << "," << *pCalEprtracknorm
+                 << "," << *pCalEtottracknorm
                  << "," << *epCoinTimeROC1
                  << "," << *epCoinTimeROC2
                  << std::endl;
