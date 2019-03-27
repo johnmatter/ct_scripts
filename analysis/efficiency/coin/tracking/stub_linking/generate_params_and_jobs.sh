@@ -7,10 +7,10 @@
 #-------
 
 hcswif_dir=/home/jmatter/ctswif/
-param_dir=/home/jmatter/ct_scripts/analysis/efficiency/coin/trackstublinking/PARAM/
+param_dir=/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/stub_linking/PARAM/
 
-swifScript=/home/jmatter/ct_scripts/analysis/efficiency/coin/trackstublinking/run.sh
-replayScript=/home/jmatter/ct_scripts/analysis/efficiency/coin/trackstublinking/replay.C
+swifScript=/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/stub_linking/run.sh
+replayScript=/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/stub_linking/replay.C
 
 runNumber=2054
 

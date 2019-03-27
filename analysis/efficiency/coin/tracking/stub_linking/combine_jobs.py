@@ -5,7 +5,7 @@ import glob
 import os
 
 # Where are the swif jsons to concatenate?
-jsonDir = "/u/home/jmatter/ct_scripts/analysis/efficiency/coin/trackstublinking/json/"
+jsonDir = "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/stub_linking/json"
 
 # Output json filename
 jsonOutputName = "ptrackstublink.json"
