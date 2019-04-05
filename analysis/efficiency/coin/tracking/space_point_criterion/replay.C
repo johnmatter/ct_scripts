@@ -39,7 +39,7 @@ void replay(Int_t RunNumber = 0, Int_t MaxEvent = 0, Double_t spacepoint=0) {
   gHcParms->Load("PARAM/HMS/GEN/h_fadc_debug.param");
   gHcParms->Load("PARAM/SHMS/GEN/p_fadc_debug.param");
 
-  // LOAD MY TRACK STUB PARAMS
+  // LOAD MY SPACE POINT PARAMS
   TString paramDir = "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/space_point_criterion/PARAM";
   TString paramFile = Form("%s/ptracking_spacepoint%.3f.param", paramDir.Data(), spacepoint);
   gHcParms->Load(paramFile.Data());

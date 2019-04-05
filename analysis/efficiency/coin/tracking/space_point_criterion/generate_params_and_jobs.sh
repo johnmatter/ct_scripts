@@ -14,7 +14,7 @@ replayScript=/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/space_po
 runNumber=2054
 
 # Ranges
-spacepoint_range=$(seq 0.000 0.125 4)
+spacepoint_range=$(seq 0.000 0.01 2)
 
 for x in $spacepoint_range; do
     x=$(printf "%.3f\n" $x)
