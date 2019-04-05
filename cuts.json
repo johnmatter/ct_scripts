@@ -29,12 +29,12 @@
             "cut"  : "(pHGCerCut || pNGCerCut)"
         },
         {
-            "name" : "pLH2EMissCut",
-            "cut"  : "\"P.kin.secondary.emiss < 0.1\""
+            "name" : "pLH2EMissPMissCut",
+            "cut"  : "\"P.kin.secondary.emiss < 0.1 && abs(P.kin.secondary.pmiss) < 0.1\""
         },
         {
-            "name" : "pLH2PMissCut",
-            "cut"  : "\"abs(P.kin.secondary.pmiss) < 0.1\""
+            "name" : "pC12EMissPMissCut",
+            "cut"  : "\"P.kin.secondary.emiss < 0.08 && abs(P.kin.secondary.pmiss) < 0.3\""
         },
         {
             "name" : "hHodoTimeCut",
@@ -57,8 +57,20 @@
             "cut"  : "\"H.cer.npeSum > 0.0\""
         },
         {
-            "name" : "hWCut",
+            "name" : "hWCutQ2_8",
             "cut"  : "\"H.kin.primary.W > 0.85 && H.kin.primary.W < 1.03\""
+        },
+        {
+            "name" : "hWCutQ2_95",
+            "cut"  : "\"H.kin.primary.W > 0.85 && H.kin.primary.W < 1.04\""
+        },
+        {
+            "name" : "hWCutQ2_115",
+            "cut"  : "\"H.kin.primary.W > 0.85 && H.kin.primary.W < 1.05\""
+        },
+        {
+            "name" : "hWCutQ2_143",
+            "cut"  : "\"H.kin.primary.W > 0.85 && H.kin.primary.W < 1.06\""
         },
         {
             "name" : "betaCut",
@@ -106,15 +118,23 @@
         },
         {
             "name" : "coinCutsC12",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut"
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pC12EMissPMissCut"
         },
         {
-            "name" : "coinCutsLH2",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCut && pLH2EMissCut && pLH2PMissCut"
+            "name" : "coinCutsLH2_Q2_8",
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCutQ2_8 && pLH2EMissPMissCut"
         },
         {
-            "name" : "coinCutsAl",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCut"
+            "name" : "coinCutsLH2_Q2_95",
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCutQ2_95 && pLH2EMissPMissCut"
+        },
+        {
+            "name" : "coinCutsLH2_Q2_115",
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCutQ2_115 && pLH2EMissPMissCut"
+        },
+        {
+            "name" : "coinCutsLH2_Q2_143",
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCutQ2_143 && pLH2EMissPMissCut"
         },
         {
             "name" : "pScinGood",
