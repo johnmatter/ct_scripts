@@ -80,6 +80,23 @@ void convert_to_csv() {
         TTreeReaderValue<double> epCoinTimeROC1 (reader, "CTime.epCoinTime_ROC1");
         TTreeReaderValue<double> epCoinTimeROC2 (reader, "CTime.epCoinTime_ROC2");
 
+        // SHMS DC and hodo variables
+        TTreeReaderValue<double> pHodBetanotrack(reader, "P.hod.betanotrack");
+        TTreeReaderValue<double> pHodGoodscinhit(reader, "P.hod.goodscinhit");
+        TTreeReaderValue<double> pDC1x1nhit(reader, "P.dc.1x1.nhit");
+        TTreeReaderValue<double> pDC1u2nhit(reader, "P.dc.1u2.nhit");
+        TTreeReaderValue<double> pDC1u1nhit(reader, "P.dc.1u1.nhit");
+        TTreeReaderValue<double> pDC1v1nhit(reader, "P.dc.1v1.nhit");
+        TTreeReaderValue<double> pDC1x2nhit(reader, "P.dc.1x2.nhit");
+        TTreeReaderValue<double> pDC1v2nhit(reader, "P.dc.1v2.nhit");
+        TTreeReaderValue<double> pDC2x1nhit(reader, "P.dc.2x1.nhit");
+        TTreeReaderValue<double> pDC2u2nhit(reader, "P.dc.2u2.nhit");
+        TTreeReaderValue<double> pDC2u1nhit(reader, "P.dc.2u1.nhit");
+        TTreeReaderValue<double> pDC2v1nhit(reader, "P.dc.2v1.nhit");
+        TTreeReaderValue<double> pDC2x2nhit(reader, "P.dc.2x2.nhit");
+        TTreeReaderValue<double> pDC2v2nhit(reader, "P.dc.2v2.nhit");
+        TTreeReaderValue<int>    pDCntrack(reader,  "P.dc.ntrack");
+
         // Write to file ------------------------------------------------------
         TString filename = Form("/work/hallc/e1206107/jmatter/csv/%s.csv", k.Data());
         ofstream file;
@@ -122,7 +139,22 @@ void convert_to_csv() {
              << "pCalEprtracknorm,"
              << "pCalEtottracknorm,"
              << "epCoinTimeROC1,"
-             << "epCoinTimeROC2"
+             << "epCoinTimeROC2,"
+             << "pHodBetanotrack,"
+             << "pHodGoodscinhit,"
+             << "pDC1x1nhit,"
+             << "pDC1u2nhit,"
+             << "pDC1u1nhit,"
+             << "pDC1v1nhit,"
+             << "pDC1x2nhit,"
+             << "pDC1v2nhit,"
+             << "pDC2x1nhit,"
+             << "pDC2u2nhit,"
+             << "pDC2u1nhit,"
+             << "pDC2v1nhit,"
+             << "pDC2x2nhit,"
+             << "pDC2v2nhit,"
+             << "pDCntrack"
              << std::endl;
 
         // Go back to the first tree in the chain. GetEntries() previously moved it
@@ -170,6 +202,21 @@ void convert_to_csv() {
                  << "," << *pCalEtottracknorm
                  << "," << *epCoinTimeROC1
                  << "," << *epCoinTimeROC2
+                 << "," << *pHodBetanotrack
+                 << "," << *pHodGoodscinhit
+                 << "," << *pDC1x1nhit
+                 << "," << *pDC1u2nhit
+                 << "," << *pDC1u1nhit
+                 << "," << *pDC1v1nhit
+                 << "," << *pDC1x2nhit
+                 << "," << *pDC1v2nhit
+                 << "," << *pDC2x1nhit
+                 << "," << *pDC2u2nhit
+                 << "," << *pDC2u1nhit
+                 << "," << *pDC2v1nhit
+                 << "," << *pDC2x2nhit
+                 << "," << *pDC2v2nhit
+                 << "," << *pDCntrack
                  << std::endl;
 
             counter++;
