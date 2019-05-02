@@ -30,11 +30,11 @@
         },
         {
             "name" : "pLH2EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss < 0.1 && abs(P.kin.secondary.pmiss) < 0.1\""
+            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.1 && abs(P.kin.secondary.pmiss) < 0.1\""
         },
         {
             "name" : "pC12EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss < 0.08 && abs(P.kin.secondary.pmiss) < 0.3\""
+            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.08 && abs(P.kin.secondary.pmiss) < 0.3\""
         },
         {
             "name" : "hHodoTimeCut",
@@ -210,7 +210,7 @@
         },
         {
             "name" : "pNGCerShould",
-            "cut"  : "deltaCut && betaCut && pHGCerCut && hCalCut && hCerCut"
+            "cut"  : "pBetaCut && hBetaCut && hCalCut && hCerCut && pHGCerCut"
         },
         {
             "name" : "pNGCerDid",
@@ -218,7 +218,7 @@
         },
         {
             "name" : "pHGCerShould",
-            "cut"  : "deltaCut && betaCut && pNGCerCut && hCalCut && hCerCut"
+            "cut"  : "pBetaCut && hBetaCut && hCalCut && hCerCut && pNGCerCut"
         },
         {
             "name" : "pHGCerDid",
@@ -226,7 +226,7 @@
         },
         {
             "name" : "pCerShould",
-            "cut"  : "deltaCut && betaCut && hCalCut && hCerCut"
+            "cut"  : "pBetaCut && hBetaCut && hCalCut && hCerCut"
         },
         {
             "name" : "pCerDid",
@@ -234,15 +234,15 @@
         },
         {
             "name" : "hCerShould",
-            "cut"  : "hDeltaCut && hBetaCut && hCalCut"
+            "cut"  : "pBetaCut && hBetaCut && hCalCut && pCerCut"
         },
         {
             "name" : "hCerDid",
-            "cut"  : "hCerShould && hCerCut"
+            "cut"  : "hCerCut"
         },
         {
             "name" : "pCalShould",
-            "cut"  : "deltaCut && betaCut && pCerCut && hCalCut && hCerCut"
+            "cut"  : "pBetaCut && hbetaCut && hCalCut && hCerCut && pCerCut"
         },
         {
             "name" : "pCalDid",
@@ -250,7 +250,7 @@
         },
         {
             "name" : "hCalShould",
-            "cut"  : "deltaCut && betaCut && pCerCut && hCerCut "
+            "cut"  : "pBetaCut && hBetaCut && hCerCut && pCerCut"
         },
         {
             "name" : "hCalDid",

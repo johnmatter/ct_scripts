@@ -8,8 +8,7 @@
 #include <CTCuts.h>
 #include <Efficiency0D.h>
 
-// Plot efficiency vs pi:e ratio for each kinematics
-// Extrapolate to zero pi:e ratio to get "true" efficiency
+// Display pi:e ratio for all kinematics
 void print_ratios() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
