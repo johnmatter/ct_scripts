@@ -242,7 +242,7 @@
         },
         {
             "name" : "pCalShould",
-            "cut"  : "pBetaCut && hbetaCut && hCalCut && hCerCut && pCerCut"
+            "cut"  : "pBetaCut && hBetaCut && hCalCut && hCerCut && pCerCut"
         },
         {
             "name" : "pCalDid",
