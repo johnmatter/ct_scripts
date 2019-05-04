@@ -26,11 +26,11 @@
         },
         {
             "name" : "pCerCut",
-            "cut"  : "(pHGCerCut && pNGCerCut)"
+            "cut"  : "pHGCerCut)"
         },
         {
             "name" : "pLH2EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.1 && abs(P.kin.secondary.pmiss) < 0.1\""
+            "cut"  : "\"P.kin.secondary.emiss < 0.1 && abs(P.kin.secondary.pmiss) < 0.1\""
         },
         {
             "name" : "pC12EMissPMissCut",
@@ -118,7 +118,7 @@
         },
         {
             "name" : "coinCutsC12",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut"
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pC12EMissPMissCut"
         },
         {
             "name" : "coinCutsLH2_Q2_8",
