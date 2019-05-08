@@ -61,8 +61,10 @@ int main() {
 
             // Target-specific cuts
             if (k.Contains("LH2")) {
-                cutShould = cutShould && cuts->Get("pLH2PMissCut")
-                                      && cuts->Get("pLH2EMissCut");
+                cutShould = cutShould && cuts->Get("pLH2EMissPMissCut");
+            }
+            if (k.Contains("C12")) {
+                cutShould = cutShould && cuts->Get("pC12EMissPMissCut");
             }
 
 
