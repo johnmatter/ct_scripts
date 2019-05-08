@@ -6,6 +6,7 @@
 #include <map>
 
 #include <TCanvas.h>
+#include <TH1F.h>
 
 #include <Efficiency1D.h>
 #include <Efficiency0D.h>
@@ -17,10 +18,10 @@ void plot_delta() {
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // PDF to print to
-    TString pdfFilename = "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/distributions.pdf";
+    TString pdfFilename = "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/distributions_pid_delta.pdf";
 
      // Events-per-delta histograms for weighting
-    std::map<TString, TH1*> histograms;
+    std::map<TString, TH1F*> histograms;
 
     // Keep vector of the keys because I want to loop over it
     // at the end to print all the histos to PDF
@@ -90,7 +91,7 @@ void plot_delta() {
 
             // For carbon, also include missing energy and momentum cut
             if (k.Contains("C12")) {
-                shouldCut = shouldCut && "abs(P.kin.secondary.pmiss)<0.3";
+                shouldCut = shouldCut && cuts->Get("pC12EMissPMissCut");
             }
 
 
@@ -105,7 +106,7 @@ void plot_delta() {
             chain->Draw(drawMe.Data(), shouldCut, "goff");
 
             // Add to map
-            histograms[histoName] = (TH1*) gDirectory->Get(histoName.Data());
+            histograms[histoName] = (TH1F*) gDirectory->Get(histoName.Data());
             keys.push_back(histoName);
 
             // ----------------------
@@ -117,7 +118,7 @@ void plot_delta() {
             chain->Draw(drawMe.Data(), shouldCut && didCut, "goff");
 
             // Add to map
-            histograms[histoName] = (TH1*) gDirectory->Get(histoName.Data());
+            histograms[histoName] = (TH1F*) gDirectory->Get(histoName.Data());
             keys.push_back(histoName);
 
             // ----------------------
@@ -129,7 +130,7 @@ void plot_delta() {
             chain->Draw(drawMe.Data(), shouldCut && !(didCut), "goff");
 
             // Add to map
-            histograms[histoName] = (TH1*) gDirectory->Get(histoName.Data());
+            histograms[histoName] = (TH1F*) gDirectory->Get(histoName.Data());
             keys.push_back(histoName);
         }
     }
@@ -141,13 +142,12 @@ void plot_delta() {
     std::cout << "kinematics,detector,should,did,didnt" << std::endl;
     cEff->Print((pdfFilename+"[").Data()); // open PDF; "filename.pdf["
     for (auto const &k : kinematics) {
-        std::cout << printMe << std::endl;
         for (auto const &d : detectors) {
-            TH1* hShould = histograms[Form("%s_%s_should", k.Data(), d.Data())];
-            TH1* hDid    = histograms[Form("%s_%s_did", k.Data(), d.Data())];
-            TH1* hDidnt  = histograms[Form("%s_%s_didnt", k.Data(), d.Data())];
+            TH1F* hShould = histograms[Form("%s_%s_should", k.Data(), d.Data())];
+            TH1F* hDid    = histograms[Form("%s_%s_did", k.Data(), d.Data())];
+            TH1F* hDidnt  = histograms[Form("%s_%s_didnt", k.Data(), d.Data())];
 
-            TString printMe = Form("%s,%s,%d,%d,%d", k.Data(), d.Data(),
+            TString printMe = Form("%s,%s,%.0f,%.0f,%.0f", k.Data(), d.Data(),
                                     hShould->GetSum(), hDid->GetSum(), hDidnt->GetSum());
             std::cout << printMe << std::endl;
 

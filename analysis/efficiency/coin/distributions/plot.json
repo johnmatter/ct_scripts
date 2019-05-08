@@ -13,7 +13,35 @@
             "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_delta.out",
             "timeSecs": 36000,
             "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_hcer_cointime.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "ct_coin_plot_hcer_cointime",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 4000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_hcer_cointime.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_hcer_cointime.out",
+            "timeSecs": 36000,
+            "track": "analysis"
+        },
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_cer_track.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "ct_coin_plot_cer_track",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 4000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_cer_track.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_cer_track.out",
+            "timeSecs": 36000,
+            "track": "analysis"
         }
     ],
-    "name": "ct_coin_plot_delta"
+    "name": "ct_coin_plot_distributions"
 }
