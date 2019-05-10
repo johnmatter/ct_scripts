@@ -1,7 +1,7 @@
 {
     "data" : {
         "runlistDir"   : "/home/jmatter/ct_scripts/runlists/singles",
-        "rootfilesDir" : "/work/hallc/e1206107/jmatter/ROOTfiles"
+        "rootfilesDir" : "/volatile/hallc/comm2017/e1206107/ROOTfiles/pass2"
     },
     "kinematics"  : [
         {
@@ -125,7 +125,7 @@
             "runlist"   : "runs_C12_Q2_14_large_singles",
             "rootfileTemplate" : "%s/hms_coin_replay_production_%d_-1.root"
         },
-        
+        {
             "name"      : "C12_Q2_14_pion_singles",
             "Q2"        : 14.3,
             "shmsAngle" : 12.8,
