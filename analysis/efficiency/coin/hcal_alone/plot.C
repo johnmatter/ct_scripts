@@ -12,47 +12,25 @@ void plot() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
-    TCut cutShould = cuts->Get("hDeltaCut") && cuts->Get("hBetaCut");
+    TString pdfFilename = "/home/jmatter/ct_scripts/analysis/efficiency/coin/hcal/prshwr_vs_shw.pdf";
 
-    std::vector<TString> kinematics = {"LH2_Q2_8", "LH2_Q2_10", "LH2_Q2_12", "LH2_Q2_14",
-                                       "C12_Q2_8", "C12_Q2_10", "C12_Q2_12", "C12_Q2_14"};
+    TCut cutShould = cuts->Get("hBetaCut");
 
-    // Plot
-    for (auto const &k: kinematics) {
-        std::cout << "Calculating for " << k << std::endl;
+    //-------------------------------------------------------------------------
+    TCanvas *c1 = new TCanvas("c1", "HMS Cal Shower vs Preshower Energy", 600, 600);
+    c1->SetLogz();
 
-        TString drawThis = Form("(H.cal.etot-H.cal.eprtrack):H.cal.eprtrack>>%s(40,0,4,70,0,7)", k.Data());
+    c1->Print((pdfFilename+"[").Data()); // open PDF; "filename.pdf["
+    for (auto const &k: data->GetNames()) {
+        // Draw
+        TString histoName = Form("prshVsShw_%s", k.Data());
+        TString drawMe = Form("(H.cal.etrack-H.cal.eprtrack):H.cal.eprtrack>>%s(150,0,3,300,0,6)", histoName.Data());
+        data->GetChain(k)->Draw(drawMe.Data(), hBetaCut, "goff");
 
-        data->GetChain(k)->Draw(drawThis.Data(), cutShould);
+        // Print to pdf
+        TH1 *histoPointer = (TH1*) gDirectory->Get(histoName.Data());
+        histoPointer->Draw("colz");
+        c1->Print(pdfFilename.Data()); // write page to PDF
     }
-
-    // Draw
-    TCanvas* c = new TCanvas("c", "hcal shower vs preshower energy", 1024, 640);
-    c->Print("hcal.pdf["); // open PDF
-    c->Divide(2,2);
-    int pad;
-
-    // Hydrogen
-    pad=1;
-    for (auto const &k: {"LH2_Q2_8", "LH2_Q2_10", "LH2_Q2_12", "LH2_Q2_14"}) {
-        c->cd(pad++);
-        TH2F *h = (TH2F*) gDirectory->Get(k);
-        h->Draw("colz");
-        h->SetTitle(k);
-    }
-    c->SetLogz();
-    c->Print("hcal.pdf"); // write page to PDF
-
-    // Carbon
-    pad=1;
-    for (auto const &k: {"C12_Q2_8", "C12_Q2_10", "C12_Q2_12", "C12_Q2_14"}) {
-        c->cd(pad++);
-        TH2F *h = (TH2F*) gDirectory->Get(k);
-        h->Draw("colz");
-        h->SetTitle(k);
-    }
-    c->SetLogz();
-    c->Print("hcal.pdf"); // write page to PDF
-
-    c->Print("hcal.pdf]"); // close fPDF
+    c1->Print((pdfFilename+"]").Data()); // close PDF; "filename.pdf]"
 }
