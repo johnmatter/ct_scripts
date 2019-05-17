@@ -26,33 +26,6 @@ void plot_bcm() {
     // Which bcms
     std::vector<TString> bcms = {"BCM1", "BCM2", "BCM4A", "BCM4B", "BCM4C"};
 
-    // key is kinematics
-    // value is a vector of that kinematics' rootfiles
-    std::map<TString, std::vector<TString>> rootfilenames;
-    std::map<TString, std::vector<TFile*>>  rootfiles;
-
-    // Where are the rootfiles?
-    TString rootDirectory = data->GetRootfileDirectory();
-
-    // ------------------------------------------------------------------------
-    // Get lists of files
-    for (auto const &k : kinematics) {
-        // Get runs
-        std::vector<Int_t> runs = data->GetRuns(k);
-
-        // Get rootfile template
-        TString rootTemplate = data->GetRootfileTemplate(k.Data());
-
-        TString filename;
-        for (auto const &r : runs) {
-            filename = Form(rootTemplate, rootDirectory.Data(), r);
-            rootfilenames[k].push_back(filename);
-
-            TFile *f= new TFile(filename.Data(),"READ");
-            rootfiles[k].push_back(f);
-        }
-    }
-
     // ------------------------------------------------------------------------
     // Plot and save PDF
     TString drawMe; // used to format tree->Draw() type lines
