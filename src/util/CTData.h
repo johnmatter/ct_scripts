@@ -26,6 +26,7 @@ class CTData {
         void Configure(TString config);  // Read config info from json
         void Load();                     // Load data after object is configured
         void Clear();                    // Clear data
+        void ClearChains();              // Clear TChains
 
         bool TestChains();               // Test that chains are non-null
 
@@ -43,6 +44,9 @@ class CTData {
 
         TString GetRootfileTemplate(TString name) { return rootfileTemplates[name]; };
         TString GetRootfileDirectory() { return rootfilesDir; };
+
+        // Various SetX() methods
+        void SetRootfileDirectory(TString newRootfilesDir);
 
     private:
         TString configJson;

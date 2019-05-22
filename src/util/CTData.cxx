@@ -140,12 +140,18 @@ void CTData::Load() {
     std::cout << std::endl;
 }
 
-// Clear
-void CTData::Clear() {
+// Clear all TChains
+void CTData::ClearChains() {
     if (chains.size()>0) {
         for (auto& chain : chains) { delete chain.second; }
     }
     chains.clear();
+}
+
+// Clear all data
+void CTData::Clear() {
+    // Clear TChains
+    this->ClearChains();
 
     runlistDir.Clear();
     rootfilesDir.Clear();
@@ -180,6 +186,16 @@ bool CTData::TestChains() {
 
 // Get a pointer to the requested TChain
 TChain* CTData::GetChain(TString kinematics, TString chain) {
+    // e.g. key = <"LH2_Q2_8","TSH">
     auto const key = std::make_pair(kinematics,chain);
     return chains[key];
+}
+
+// Set a new rootfile directory
+void CTData::SetRootfileDirectory(TString newRootfilesDir) {
+    rootfilesDir = newRootfilesDir;
+
+    // We will need to reload all our TChains, so clear anything already there
+    // Hopefully this will prevnt user error of "set new root dir, but forgot to reload the TChains"
+    this->ClearChains();
 }
