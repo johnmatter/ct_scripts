@@ -58,18 +58,19 @@ int calculate_one(TString thisKinematics) {
             // HMS Cherenkov
             if (d=="hCer") {
                 cutShould = cuts->Get("hBetaCut") && cuts->Get("hCalCut")
-                                                  && "H.cal.eprtrack>0.1"
-                                                  && "(H.cal.etrack-H.cal.eprtrack)>0.5";
+                                                  && "H.cal.eprtrack>0.1";
                 cutDid    = cuts->Get("hCerCut");
             }
             // HMS Calorimeter
             if (d=="hCal") {
-                cutShould = cuts->Get("hBetaCut") && cuts->Get("hCerCut");
+                cutShould = cuts->Get("hBetaCut") && cuts->Get("hCerCut")
+                                                  && "H.cal.eprtrack>0.1";
                 cutDid    = cuts->Get("hCalCut");
             }
             // SHMS NG Cherenkov
             if (d=="pCer") {
-                cutShould = cuts->Get("pBetaCut") && cuts->Get("pHGCerCut");
+                cutShould = cuts->Get("pBetaCut") && cuts->Get("pHGCerCut")
+                                                  && "P.cal.eprtrack<0.1";
                 cutDid    = cuts->Get("pCerCut");
             }
 
@@ -87,14 +88,14 @@ int calculate_one(TString thisKinematics) {
                 case 'h':
                     chain = hmsData->GetChain(k.Data());
                     scanBranch = "H.gtr.dp";
-                    scanBins = 16;
-                    scanLo = -8;
-                    scanHi = +8;
+                    scanBins = 10;
+                    scanLo = -10;
+                    scanHi = +10;
                     break;
                 case 'p':
                     chain = shmsData->GetChain(k.Data());
                     scanBranch = "P.gtr.dp";
-                    scanBins = 25;
+                    scanBins = 12;
                     scanLo = -10;
                     scanHi = +15;
                     break;
