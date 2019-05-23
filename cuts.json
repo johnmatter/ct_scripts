@@ -162,7 +162,7 @@
         },
         {
             "name" : "pScinDid",
-            "cut"  : "\"P.dc.ntrack>0\""
+            "cut"  : "pScinShould && \"P.dc.ntrack>0\""
         },
         {
             "name" : "pScinShouldh",
@@ -198,7 +198,7 @@
         },
         {
             "name" : "hScinDid",
-            "cut"  : "\"H.dc.ntrack>0\""
+            "cut"  : "hScinShould && \"H.dc.ntrack>0\""
         },
         {
             "name" : "hScinShoulde",
@@ -214,7 +214,7 @@
         },
         {
             "name" : "pNGCerDid",
-            "cut"  : "pNGCerCut"
+            "cut"  : "pNGCerShould && pNGCerCut"
         },
         {
             "name" : "pHGCerShould",
@@ -222,7 +222,7 @@
         },
         {
             "name" : "pHGCerDid",
-            "cut"  : "pHGCerCut"
+            "cut"  : "pHGCerShould && pHGCerCut"
         },
         {
             "name" : "pCerShould",
@@ -230,7 +230,7 @@
         },
         {
             "name" : "pCerDid",
-            "cut"  : "pCerCut"
+            "cut"  : "pCerShould && pCerCut"
         },
         {
             "name" : "hCerShould",
@@ -238,7 +238,7 @@
         },
         {
             "name" : "hCerDid",
-            "cut"  : "hCerCut"
+            "cut"  : "hCerShould && hCerCut"
         },
         {
             "name" : "pCalShould",
@@ -246,7 +246,7 @@
         },
         {
             "name" : "pCalDid",
-            "cut"  : "pCalCut"
+            "cut"  : "pCalShould && pCalCut"
         },
         {
             "name" : "hCalShould",
@@ -254,7 +254,7 @@
         },
         {
             "name" : "hCalDid",
-            "cut"  : "hCalCut"
+            "cut"  : "hCalShould && hCalCut"
         }
     ]
 }
