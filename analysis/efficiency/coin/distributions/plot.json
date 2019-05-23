@@ -15,6 +15,20 @@
             "track": "analysis"
         },
         {
+            "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_hcer_npeSum.C",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "ct_coin_plot_hcer_npeSum",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 4000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_hcer_npeSum.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_hcer_npeSum.out",
+            "timeSecs": 36000,
+            "track": "analysis"
+        },
+        {
             "command": "/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/plot_hcer_delta.C",
             "cpuCores": 1,
             "diskBytes": 10000000000,
