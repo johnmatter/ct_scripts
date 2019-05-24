@@ -62,9 +62,11 @@ int main() {
             // Target-specific cuts
             if (k.Contains("LH2")) {
                 cutShould = cutShould && cuts->Get("pLH2EMissPMissCut");
+                cutDid    = cutDid    && cuts->Get("pLH2EMissPMissCut");
             }
             if (k.Contains("C12")) {
                 cutShould = cutShould && cuts->Get("pC12EMissPMissCut");
+                cutDid    = cutDid    && cuts->Get("pC12EMissPMissCut");
             }
 
 
@@ -91,6 +93,7 @@ int main() {
                     scanHi = +15;
                     break;
             }
+            efficiencyCalculators0D[key_0D]->SetScanBranch(scanBranch);
             efficiencyCalculators1D[key_1D]->SetScanBranch(scanBranch);
             efficiencyCalculators1D[key_1D]->SetScanRange(scanBins, scanLo, scanHi);
 
@@ -120,67 +123,13 @@ int main() {
     }
 
     // ------------------------------------------------------------------------
-    // Create delta TH1 for each (kinematics,detector) pair.
-    // This is redundant, but it makes the coding easier
-    // and costs very little in terms of time and space.
-    // So I'm doing it this way.
-    for (auto const &k : kinematics) {
-        for (auto const &d : detectors) {
-            TString key_1D = Form("%s_%s_1D", k.Data(), d.Data());
-
-            TString printMe = Form("Plotting delta for %s", key_1D.Data());
-            std::cout << printMe << std::endl;
-
-            // Get data
-            TChain* chain = data->GetChain(k.Data());
-
-            // Which spectrometer?
-            TString drawBranch;
-            Int_t drawBins;
-            Double_t drawLo;
-            Double_t drawHi;
-            switch (d[0]) {
-                case 'h':
-                    drawBranch = "H.gtr.dp";
-                    drawBins = 16;
-                    drawLo = -8;
-                    drawHi = +8;
-                case 'p':
-                    drawBranch = "P.gtr.dp";
-                    drawBins = 25;
-                    drawLo = -10;
-                    drawHi = +15;
-            }
-
-            // Which cuts?
-            TCut drawCut;
-            if (k.Contains("LH2")) {
-                drawCut = cuts->Get("coinCutsLH2");
-            }
-            if (k.Contains("C12")) {
-                drawCut = cuts->Get("coinCutsC12");
-            }
-
-            // Draw
-            TString histoName = Form("%s_delta", key_1D.Data());
-            TString drawMe    = Form("%s>>%s(%d,%f,%f)",
-                                  drawBranch.Data(), histoName.Data(),
-                                  drawBins, drawLo, drawHi);
-            chain->Draw(drawMe.Data(), drawCut, "goff");
-
-            // Add to map
-            deltaHistograms[key_1D] = (TH1*) gDirectory->Get(histoName.Data());
-        }
-    }
-
-    // ------------------------------------------------------------------------
     // Calculate scalar event-weighted efficiencies
     // Save efficiency values per bin in a csv for sanity checking
 
     std::ofstream ofsPerBin;
     ofsPerBin.open(csvPerBinFilename.Data());
     ofsPerBin << "kinematics,detector,target,Q2,deltaBinCenter,efficiency,weight,efficiencyErrorMax"
-              << ",efficiencyErrorUp,efficiencyErrorLo,nShould,nDid,goodEvents" << std::endl;
+              << ",efficiencyErrorUp,efficiencyErrorLo,nShould,nDid" << std::endl;
 
     for (auto const &k : kinematics) {
         TString target        = data->GetTarget(k);
@@ -200,7 +149,6 @@ int main() {
             Double_t efficiencyErrorLo_i;
             Int_t    nShould_i;
             Int_t    nDid_i;
-            Int_t    events_i;
             Double_t binCenter_i;
             Double_t weight_i;
             Double_t weightSum = 0;
@@ -219,7 +167,6 @@ int main() {
                 // Get number of events in this bin
                 nShould_i = tEff->GetCopyTotalHisto()->GetBinContent(bin);
                 nDid_i    = tEff->GetCopyPassedHisto()->GetBinContent(bin);
-                events_i  = deltaHistograms[key_1D]->GetBinContent(bin);
 
                 // Get bin center
                 binCenter_i = tEff->GetCopyTotalHisto()->GetXaxis()->GetBinCenter(bin);
@@ -245,7 +192,7 @@ int main() {
                           << "," << binCenter_i << "," << efficiency_i << "," << weight_i
                           << "," << efficiencyErrorMax_i
                           << "," << efficiencyErrorUp_i << "," << efficiencyErrorLo_i
-                          << "," << nShould_i << "," << nDid_i << "," << events_i << std::endl;
+                          << "," << nShould_i << "," << nDid_i << std::endl;
             }
 
             weightedEfficiency /= weightSum;

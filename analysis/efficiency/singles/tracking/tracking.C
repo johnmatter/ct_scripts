@@ -4,24 +4,12 @@
 #include <map>
 
 #include <TCut.h>
-#include <TCanvas.h>
-#include <TLegend.h>
-#include <TMultiGraph.h>
-#include <TGraphAsymmErrors.h>
 
 #include <CTData.h>
 #include <CTCuts.h>
 #include <Efficiency0D.h>
 
-// This plots tracking efficiency for the SHMS and HMS
-// as a function of Q^2 for C12 and LH2 targets
-//
-// The goal is 4 overlaid TGraphs: one per (spectrometer,target) pair
-// Each point will be for a particular (spectrometer, target, Q^2).
-// So we need:
-//      - one container for 2*2*4 TEfficiency calculations
-//      - one container for 2*2   TGraphs
-//
+// Calculate tracking efficiency for all singles kinematics
 void tracking() {
     // ------------------------------------------------------------------------
     // Load our data and cuts
@@ -29,153 +17,108 @@ void tracking() {
     CTData *shms_data = new CTData("/home/jmatter/ct_scripts/ct_shms_singles_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
+    // Which Spectrometers
     std::vector<TString>  spectrometers = {"HMS","SHMS"};
-    std::vector<TString>  targets       = {"LH2","C12"};
-    std::vector<Int_t>    Q2s           = {8, 10, 12, 14}; // rounded for filenames
-    std::vector<Double_t> Q2vals        = {8, 9.5, 11.5, 14.3}; // actual values
 
-    // This map takes std::tuple<spect,target,Q^2> as a key
-    std::map<std::tuple<TString, TString, Int_t>, Efficiency0D*> efficiencyCalculators;
+    // Which kinematics
+    // Assume SHMS and HMS singles have same kinematics runlists
+    std::vector<TString> kinematics = hms_data->GetNames();
 
-    // This map takes std::tuple<spect,target> as a key
-    std::map<std::tuple<TString, TString>, TGraphAsymmErrors*> efficiencyGraphs;
+    // This map takes std::pair<spectrometer,kinematics> as a key
+    std::map<std::pair<TString, TString>, Efficiency0D*> efficiencyCalculators;
 
     // Set up our cuts
     TCut cutShould;
-    TCut hCutShould = cuts->Get("hTrackShould");
-    TCut pCutShould = cuts->Get("pTrackShould");
+    TCut hCutShould = cuts->Get("hScinShoulde");
+    TCut pCutShould = cuts->Get("pScinShouldh");
     TCut cutDid;
-    TCut hCutDid    = cuts->Get("hTrackDid");
-    TCut pCutDid    = cuts->Get("pTrackDid");
+    TCut hCutDid    = cuts->Get("hScinDide");
+    TCut pCutDid    = cuts->Get("pScinDidh");
 
-    // This will contain all our graphs
-    TMultiGraph *multiGraph = new TMultiGraph("multiGraph", "Tracking Efficiency");
+    // File to save to
+    TString csvDir = "/home/jmatter/ct_scripts/analysis/efficiency/singles/tracking";
+    TString csvName = "tracking.csv";
+    TString csvFilename = Form("%s/%s", csvDir.Data(), csvName.Data());
+
+    // Used in loop over kinematics for data access or text output
+    TChain* chain;
+    Double_t Q2;
+    TString target;
 
     // ------------------------------------------------------------------------
-    // Calculate and plot for both spectrometers
-    for (auto const &s : spectrometers) {
-        // Get this spectrometer's data
-        CTData* data;
-        if (s=="SHMS") {
-            data = shms_data;
-            cutShould = pCutShould;
-            cutDid = pCutDid;
-        }
-        if (s=="HMS") {
-            data = hms_data;
-            cutShould = hCutShould;
-            cutDid = hCutDid;
-        }
+    // Calculate and print efficiencies
 
-        // Loop over <target,Q2> pairs
-        for (auto const &t : targets)   {
-            // These will be used to construct our TGraphAsymmErrors
-            std::vector<Double_t> e;      // efficiency
-            std::vector<Double_t> eUp;    // upper error bar
-            std::vector<Double_t> eLow;   // lower error bar
-            std::vector<Double_t> eZeros; // zeros to get rid of X error bars
+    // Open file
+    std::ofstream ofs;
+    ofs.open(csvFilename.Data());
 
-            for (auto const &q : Q2s)   {
-                auto key = std::make_tuple(s,t,q);
+    // Print header
+    TString printme = Form("kinematics,target,Q2,spectrometer,efficiency,efficiencyErrorUp,efficiencyErrorLow,did,should");
+    ofs << printme << std::endl;
 
-                // Create efficiency object
-                TString efficiencyName = Form("teff_%s_%s_%d", s.Data(), t.Data(), q);
-                efficiencyCalculators[key] = new Efficiency0D(efficiencyName.Data());
+    // Loop over kinematics
+    for (auto const &k : kinematics)   {
+        for (auto const &s : spectrometers) {
+            // Get this spectrometer's cuts and chain
+            if (s=="SHMS") {
+                cutShould = pCutShould;
+                cutDid    = pCutDid;
 
-                // Set chain
-                TString dataKey = Form("%s_Q2_%d", t.Data(), q);
-                TChain* chain = data->GetChain(dataKey);
-                efficiencyCalculators[key]->SetChain(chain);
+                chain  = shms_data->GetChain(k);
+                Q2     = shms_data->GetQ2(k);
+                target = shms_data->GetTarget(k);
+            }
+            if (s=="HMS") {
+                cutShould = hCutShould;
+                cutDid    = hCutDid;
 
-                // Set cuts
-                efficiencyCalculators[key]->SetShouldCut(cutShould);
-                efficiencyCalculators[key]->SetDidCut(cutDid);
-
-                TString status = Form("-------\nSTATUS: %s, %s, Q^2=%d",
-                        s.Data(), t.Data(), q);
-                std::cout << status << std::endl;
-
-                // Calculate
-                efficiencyCalculators[key]->SetEvents(-1);
-                efficiencyCalculators[key]->Init();
-                efficiencyCalculators[key]->Calculate();
-
-                // Get efficiencies and error, then add to our vectors
-                e.push_back(efficiencyCalculators[key]->GetEfficiency());
-                eUp.push_back(efficiencyCalculators[key]->GetEfficiencyErrorUp());
-                eLow.push_back(efficiencyCalculators[key]->GetEfficiencyErrorLow());
-                eZeros.push_back(0);
-
-                delete efficiencyCalculators[key];
+                chain  = hms_data->GetChain(k);
+                Q2     = hms_data->GetQ2(k);
+                target = hms_data->GetTarget(k);
             }
 
-            // Make key for this graph
-            auto key = std::make_tuple(s,t);
+            auto key = std::make_pair(s,k);
 
-            // TGraphAsymmErrors expects double*s as arguments.
-            // &v[0] "converts" a vector<double> named v into a double*
-            efficiencyGraphs[key] = new TGraphAsymmErrors(4, &Q2vals[0], &e[0],
-                                              &eZeros[0], &eZeros[0],
-                                              &eLow[0], &eUp[0]);
+            //----------
+            // Calculate
 
-            TString title = Form("%s %s", s.Data(), t.Data());
-            efficiencyGraphs[key]->SetTitle(title);
+            // Create efficiency object
+            TString efficiencyName = Form("teff_%s_%s", s.Data(), k.Data());
+            efficiencyCalculators[key] = new Efficiency0D(efficiencyName.Data());
+
+            // Set chain
+            efficiencyCalculators[key]->SetChain(chain);
+
+            // Set cuts
+            efficiencyCalculators[key]->SetShouldCut(cutShould);
+            efficiencyCalculators[key]->SetDidCut(cutDid);
+
+            TString status = Form("-------\nSTATUS: %s, %s", k.Data(), s.Data());
+            std::cout << status << std::endl;
+
+            // Calculate
+            efficiencyCalculators[key]->SetEvents(-1);
+            efficiencyCalculators[key]->Init();
+            efficiencyCalculators[key]->Calculate();
+
+            //----------
+            // Print
+
+            Double_t thisE    = efficiencyCalculators[key]->GetEfficiency();
+            Double_t thisEUp  = efficiencyCalculators[key]->GetEfficiencyErrorUp();
+            Double_t thisELow = efficiencyCalculators[key]->GetEfficiencyErrorLow();
+
+            Int_t did         = efficiencyCalculators[key]->GetTEfficiency()->GetCopyPassedHisto()->GetBinContent(1);
+            Int_t should      = efficiencyCalculators[key]->GetTEfficiency()->GetCopyTotalHisto()->GetBinContent(1);
+
+            TString printme = Form("%s,%s,%f,%s,%f,%f,%f,%d,%d", k.Data(), target.Data(), Q2, s.Data(),
+                    thisE, thisEUp, thisELow, did, should);
+            ofs << printme << std::endl;
+
+            // Delete TEfficiency
+            delete efficiencyCalculators[key];
         }
     }
-
-    // ------------------------------------------------------------------------
-    // Format and draw
-    TLegend *legend = new TLegend(0.15, 0.3, 0.35, 0.2);
-
-    TString target, spect;
-
-    target="LH2"; spect="SHMS";
-    auto key = std::make_tuple(target, spect);
-    efficiencyGraphs[key]->SetMarkerStyle(26);
-    efficiencyGraphs[key]->SetMarkerColor(38);
-    efficiencyGraphs[key]->SetLineStyle(9);
-    efficiencyGraphs[key]->SetLineColor(38);
-    legend->AddEntry(efficiencyGraphs[key],
-            Form("%s %s",target.Data(), spect.Data()), "lp");
-
-    target="LH2"; spect="HMS";
-    key = std::make_tuple(target, spect);
-    efficiencyGraphs[key]->SetMarkerStyle(26);
-    efficiencyGraphs[key]->SetMarkerColor(46);
-    efficiencyGraphs[key]->SetLineStyle(9);
-    efficiencyGraphs[key]->SetLineColor(46);
-    legend->AddEntry(efficiencyGraphs[key],Form("%s %s",
-                target.Data(), spect.Data()), "lp");
-
-    target="C12"; spect="SHMS";
-    key = std::make_tuple(target, spect);
-    efficiencyGraphs[key]->SetMarkerStyle(20);
-    efficiencyGraphs[key]->SetMarkerColor(38);
-    efficiencyGraphs[key]->SetLineStyle(1);
-    efficiencyGraphs[key]->SetLineColor(38);
-    legend->AddEntry(efficiencyGraphs[key],
-            Form("%s %s",target.Data(), spect.Data()), "lp");
-
-    target="C12"; spect="HMS";
-    key = std::make_tuple(target, spect);
-    efficiencyGraphs[key]->SetMarkerStyle(20);
-    efficiencyGraphs[key]->SetMarkerColor(46);
-    efficiencyGraphs[key]->SetLineStyle(1);
-    efficiencyGraphs[key]->SetLineColor(46);
-    legend->AddEntry(efficiencyGraphs[key],
-            Form("%s %s",target.Data(), spect.Data()), "lp");
-
-    TCanvas* cTrackEff = new TCanvas("cTrackEff", "Tracking Efficiency", 640, 640);
-    cTrackEff->Print("tracking.pdf["); // open PDF
-
-    multiGraph->Draw("LZAP");
-    multiGraph->GetXaxis()->SetTitle("Q^{2} (GeV^{2})");
-    multiGraph->GetYaxis()->SetTitle("Efficiency");
-    multiGraph->SetMinimum(0);
-    multiGraph->SetMaximum(1.02);
-    cTrackEff->Modified();
-    legend->Draw();
-    cTrackEff->Print("tracking.pdf"); // print page
-
-    cTrackEff->Print("tracking.pdf]"); // close PDF
+    ofs.close();
 }
+

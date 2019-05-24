@@ -7,7 +7,7 @@
             "name": "ct_coin_tracking",
             "os": "centos7",
             "project": "c-comm2017",
-            "ramBytes": 4000000000,
+            "ramBytes": 8000000000,
             "shell": "/usr/bin/bash",
             "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.err",
             "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.out",

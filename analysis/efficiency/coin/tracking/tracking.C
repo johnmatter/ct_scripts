@@ -1,7 +1,6 @@
 #include <utility>
 #include <fstream>
 #include <vector>
-#include <tuple>
 #include <map>
 
 #include <TCut.h>
@@ -16,26 +15,19 @@
 
 // This calculates tracking efficiency for the SHMS and HMS
 // as a function of Q^2 for C12 and LH2 targets
-void tracking() {
+void tracking(TString spectrometer) {
     // ------------------------------------------------------------------------
     // Load our data and cuts
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
-    std::vector<TString>  spectrometers = {"HMS","SHMS","SHMS_REPORT"};
+    std::vector<TString>  spectrometers = {"SHMS","HMS"};
 
     // Which kinematics
-    std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
-                                       "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14",
-                                       "LH2_Q2_10_pion_collimator",
-                                       "LH2_Q2_10_large_collimator",
-                                       "LH2_Q2_14_large_collimator",
-                                       "LH2_Q2_14_pion_collimator",
-                                       "C12_Q2_14_pion_collimator",
-                                       "C12_Q2_14_large_collimator"};
+    std::vector<TString> kinematics = data->GetNames();
 
     // This map takes std::pair<spectrometer,kinematics> as a key
-    std::map<std::pair<TString, TString>, Efficiency0D*> efficiencyCalculators;
+    std::map<TString, Efficiency0D*> efficiencyCalculators;
 
     // Set up our cuts
     TCut cutShould;
@@ -45,24 +37,26 @@ void tracking() {
     TCut hCutDid    = cuts->Get("hScinDide");
     TCut pCutDid    = cuts->Get("pScinDidh");
 
-    // Cuts so we can compare my cuts to the report template cuts
-    TCut pReportCutShould = cuts->Get("pScinShould") && cuts->Get("pReportPIDCut");
-    TCut pReportCutDid    = pReportCutShould && "P.dc.ntrack>0";
-
     // Save
-    TString csvFilename = "tracking.csv";
+    TString csvFilename = Form("%s_tracking.csv",spectrometer.Data());
 
     // ------------------------------------------------------------------------
-    // Calculate efficiencies
-    for (auto const &s : spectrometers) {
+    // Calculate and print efficiencies
+
+    // Open file
+    std::ofstream ofs;
+    ofs.open(csvFilename.Data());
+
+    // Print header
+    TString printme = Form("kinematics,target,Q2,spectrometer,efficiency,efficiencyErrorUp,efficiencyErrorLow,did,should");
+    ofs << printme << std::endl;
+
+    // for (auto const &s : spectrometers) {
+    TString s = spectrometer;
         // Get this spectrometer's cuts
         if (s=="SHMS") {
             cutShould = pCutShould;
             cutDid = pCutDid;
-        }
-        if (s=="SHMS_REPORT") {
-            cutShould = pReportCutShould;
-            cutDid = pReportCutDid;
         }
         if (s=="HMS") {
             cutShould = hCutShould;
@@ -71,11 +65,12 @@ void tracking() {
 
         // Loop over kinematics
         for (auto const &k : kinematics)   {
-            auto key = std::make_pair(s,k);
+            //----------
+            // Calculate
 
             // Create efficiency object
-            TString efficiencyName = Form("teff_%s_%s", s.Data(), k.Data());
-            efficiencyCalculators[key] = new Efficiency0D(efficiencyName.Data());
+            TString key = Form("teff_%s_%s", s.Data(), k.Data());
+            efficiencyCalculators[key] = new Efficiency0D(key.Data());
 
             // Set chain
             TChain* chain = data->GetChain(k);
@@ -85,28 +80,16 @@ void tracking() {
             efficiencyCalculators[key]->SetShouldCut(cutShould);
             efficiencyCalculators[key]->SetDidCut(cutDid);
 
-            TString status = Form("-------\nSTATUS: %s, %s", k.Data(), s.Data());
-            std::cout << status << std::endl;
+            // Dummy branch for histogram
+            efficiencyCalculators[key]->SetScanBranch("H.gtr.dp");
 
             // Calculate
             efficiencyCalculators[key]->SetEvents(-1);
             efficiencyCalculators[key]->Init();
             efficiencyCalculators[key]->Calculate();
-        }
-    }
 
-    // ------------------------------------------------------------------------
-    // Print efficiencies for other analyses
-    std::ofstream ofs;
-    ofs.open(csvFilename.Data());
-
-    TString printme = Form("kinematics,target,Q2,spectrometer,efficiency,efficiencyErrorUp,efficiencyErrorLow,did,should");
-    ofs << printme << std::endl;
-
-    for (auto const &s : spectrometers) {
-        for (auto const &k : kinematics) {
-            auto key = std::make_pair(s,k);
-
+            //----------
+            // Print
             Double_t Q2    = data->GetQ2(k);
             TString target = data->GetTarget(k);
 
@@ -120,7 +103,11 @@ void tracking() {
             TString printme = Form("%s,%s,%f,%s,%f,%f,%f,%d,%d", k.Data(), target.Data(), Q2, s.Data(),
                     thisE, thisEUp, thisELow, did, should);
             ofs << printme << std::endl;
+
+
+            // Delete TEfficiency
+            delete efficiencyCalculators[key];
         }
-    }
+    // }
     ofs.close();
 }

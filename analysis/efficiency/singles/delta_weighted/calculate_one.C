@@ -222,7 +222,7 @@ int calculate_one(TString thisKinematics) {
     ofs << "kinematics,detector,target,Q2,"
               << "hmsAngle,shmsAngle,hmsMomentum,shmsMomentum,"
               << "efficiency,efficiencyError,"
-              << "efficiencyUnweighted,efficiencyUnweightedErrorUp,efficiencyUnweightedErrorLo" << std::endl;
+              << "efficiencyUnweighted,efficiencyUnweightedErrorUp,efficiencyUnweightedErrorLo,did,should" << std::endl;
     for (auto &k: kinematics) {
         // Spectrometer info
         // Only using the HMS CTData* is a little sloppy, but it'll work for now
@@ -240,18 +240,24 @@ int calculate_one(TString thisKinematics) {
             // Efficiency info
             Double_t efficiency      = efficiencies[key_1D];
             Double_t efficiencyError = efficiencyErrors[key_1D];
+
             Double_t efficiencyUnweighted = efficiencyCalculators0D[key_0D]->GetEfficiency();
             Double_t efficiencyUnweightedErrorUp = efficiencyCalculators0D[key_0D]->GetEfficiencyErrorUp();
             Double_t efficiencyUnweightedErrorLo = efficiencyCalculators0D[key_0D]->GetEfficiencyErrorLow();
 
+            Int_t did    = efficiencyCalculators0D[key_0D]->GetTEfficiency()->GetCopyPassedHisto()->GetBinContent(1);
+            Int_t should = efficiencyCalculators1D[key_0D]->GetTEfficiency()->GetCopyTotalHisto()->GetBinContent(1);
+
             // Form print string
-            TString printMe = Form("%s,%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+            TString printMe = Form("%s,%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d",
                                     k.Data(), d.Data(), target.Data(), Q2,
                                     hmsAngle, shmsAngle, hmsMomentum, shmsMomentum,
                                     efficiency, efficiencyError,
                                     efficiencyUnweighted,
                                     efficiencyUnweightedErrorUp,
-                                    efficiencyUnweightedErrorLo);
+                                    efficiencyUnweightedErrorLo,
+                                    did,
+                                    should);
             ofs << printMe << std::endl;
         }
     }
