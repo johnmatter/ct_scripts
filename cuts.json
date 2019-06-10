@@ -73,6 +73,22 @@
             "cut"  : "\"H.kin.primary.W > 0.85 && H.kin.primary.W < 1.06\""
         },
         {
+            "name" : "hSinglesWCutQ2_8",
+            "cut"  : "\"H.kin.W > 0.85 && H.kin.W < 1.03\""
+        },
+        {
+            "name" : "hSinglesWCutQ2_10",
+            "cut"  : "\"H.kin.W > 0.85 && H.kin.W < 1.04\""
+        },
+        {
+            "name" : "hSinglesWCutQ2_12",
+            "cut"  : "\"H.kin.W > 0.85 && H.kin.W < 1.05\""
+        },
+        {
+            "name" : "hSinglesWCutQ2_14",
+            "cut"  : "\"H.kin.W > 0.85 && H.kin.W < 1.06\""
+        },
+        {
             "name" : "betaCut",
             "cut"  : "pBetaCut && hBetaCut"
         },
@@ -121,20 +137,8 @@
             "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pC12EMissPMissCut"
         },
         {
-            "name" : "coinCutsLH2_Q2_8",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCutQ2_8 && pLH2EMissPMissCut"
-        },
-        {
-            "name" : "coinCutsLH2_Q2_10",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCutQ2_10 && pLH2EMissPMissCut"
-        },
-        {
-            "name" : "coinCutsLH2_Q2_12",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCutQ2_12 && pLH2EMissPMissCut"
-        },
-        {
-            "name" : "coinCutsLH2_Q2_14",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && hWCutQ2_14 && pLH2EMissPMissCut"
+            "name" : "coinCutsLH2",
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pLH2EMissPMissCut"
         },
         {
             "name" : "pScinGood",
@@ -163,6 +167,14 @@
         {
             "name" : "pScinDid",
             "cut"  : "pScinShould && \"P.dc.ntrack>0\""
+        },
+        {
+            "name" : "pScinShouldCoin",
+            "cut"  : "pScinGood && pGoodBeta && pDCNoLarge && pCerCut && hHodoTimeCut && hCerCut"
+        },
+        {
+            "name" : "pScinDidCoin",
+            "cut"  : "pScinShouldCoin && \"P.dc.ntrack>0\""
         },
         {
             "name" : "pScinShouldh",
