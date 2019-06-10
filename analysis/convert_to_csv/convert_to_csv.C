@@ -10,9 +10,10 @@
 // This macro prints all coincidence data to a csv
 // No cuts are applied
 //
-// Format for csv is on line 82
+// Format for csv is on line 114
 void convert_to_csv() {
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
+    // CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass2_newtrack.json");
 
     std::vector<TString> kinematics = {"LH2_Q2_8", "LH2_Q2_10", "LH2_Q2_12", "LH2_Q2_14",
                                        "C12_Q2_8", "C12_Q2_10", "C12_Q2_12", "C12_Q2_14"};
@@ -22,7 +23,6 @@ void convert_to_csv() {
         std::cout << k << std::endl;
         TChain* chain = data->GetChain(k);
 
-        std::cout << "Entries: " << chain->GetEntries() << std::endl;
 
         // Data from the json database ---------------------------------------
         TString  name         = k;
@@ -64,6 +64,11 @@ void convert_to_csv() {
         TTreeReaderValue<double> hCalEprtracknorm(reader,  "H.cal.eprtracknorm");
         TTreeReaderValue<double> hCalEtottracknorm(reader, "H.cal.etottracknorm");
 
+        TTreeReaderValue<double> hCalE1(reader, "H.cal.1pr.eplane");
+        TTreeReaderValue<double> hCalE2(reader, "H.cal.2ta.eplane");
+        TTreeReaderValue<double> hCalE3(reader, "H.cal.3ta.eplane");
+        TTreeReaderValue<double> hCalE4(reader, "H.cal.4ta.eplane");
+
 
         // SHMS PID
         TTreeReaderValue<double> pHGCerNPE(reader,         "P.hgcer.npeSum");
@@ -95,7 +100,7 @@ void convert_to_csv() {
         TTreeReaderValue<double> pDC2v1nhit(reader, "P.dc.2v1.nhit");
         TTreeReaderValue<double> pDC2x2nhit(reader, "P.dc.2x2.nhit");
         TTreeReaderValue<double> pDC2v2nhit(reader, "P.dc.2v2.nhit");
-        TTreeReaderValue<int>    pDCntrack(reader,  "P.dc.ntrack");
+        TTreeReaderValue<double> pDCntrack(reader,  "P.dc.ntrack");
 
         // Write to file ------------------------------------------------------
         TString filename = Form("/work/hallc/e1206107/jmatter/csv/%s.csv", k.Data());
@@ -129,6 +134,10 @@ void convert_to_csv() {
              << "hCalEprtrack,"
              << "hCalEprtracknorm,"
              << "hCalEtottracknorm,"
+             << "hCalE1,"
+             << "hCalE2,"
+             << "hCalE3,"
+             << "hCalE4,"
              << "pHGCerNPE,"
              << "pNGCerNPE,"
              << "pCalEtot,"
@@ -156,9 +165,6 @@ void convert_to_csv() {
              << "pDC2v2nhit,"
              << "pDCntrack"
              << std::endl;
-
-        // Go back to the first tree in the chain. GetEntries() previously moved it
-        chain->LoadTree(-1);
 
         // Print each event
         int counter=0;
@@ -191,6 +197,10 @@ void convert_to_csv() {
                  << "," << *hCalEprtrack
                  << "," << *hCalEprtracknorm
                  << "," << *hCalEtottracknorm
+                 << "," << *hCalE1
+                 << "," << *hCalE2
+                 << "," << *hCalE3
+                 << "," << *hCalE4
                  << "," << *pHGCerNPE
                  << "," << *pNGCerNPE
                  << "," << *pCalEtot
@@ -222,5 +232,7 @@ void convert_to_csv() {
             counter++;
         }
         file.close();
+
+        std::cout << "Entries written: " << counter << std::endl;
     }
 }
