@@ -28,12 +28,13 @@ void tracking() {
     std::map<std::pair<TString, TString>, Efficiency0D*> efficiencyCalculators;
 
     // Set up our cuts
-    TCut cutShould;
+    TCut cutShould, cutDid;
+
+    TCut pCutShould = cuts->Get("pScinShouldh") && "P.cal.eprtrack<0.1";
+    TCut pCutDid    = cuts->Get("pScinDidh")    && "P.cal.eprtrack<0.1";
+
     TCut hCutShould = cuts->Get("hScinShoulde");
-    TCut pCutShould = cuts->Get("pScinShouldh");
-    TCut cutDid;
     TCut hCutDid    = cuts->Get("hScinDide");
-    TCut pCutDid    = cuts->Get("pScinDidh");
 
     // File to save to
     TString csvDir = "/home/jmatter/ct_scripts/analysis/efficiency/singles/tracking";
@@ -44,6 +45,8 @@ void tracking() {
     TChain* chain;
     Double_t Q2;
     TString target;
+    TString dummyScanBranch;
+    Double_t dummyLo, dummyHi;
 
     // ------------------------------------------------------------------------
     // Calculate and print efficiencies
@@ -67,6 +70,10 @@ void tracking() {
                 chain  = shms_data->GetChain(k);
                 Q2     = shms_data->GetQ2(k);
                 target = shms_data->GetTarget(k);
+
+                dummyScanBranch = "P.hod.goodstarttime";
+                dummyLo = 0;
+                dummyHi = 2;
             }
             if (s=="HMS") {
                 cutShould = hCutShould;
@@ -75,6 +82,10 @@ void tracking() {
                 chain  = hms_data->GetChain(k);
                 Q2     = hms_data->GetQ2(k);
                 target = hms_data->GetTarget(k);
+
+                dummyScanBranch = "H.hod.goodstarttime";
+                dummyLo = 0;
+                dummyHi = 2;
             }
 
             auto key = std::make_pair(s,k);
@@ -92,6 +103,10 @@ void tracking() {
             // Set cuts
             efficiencyCalculators[key]->SetShouldCut(cutShould);
             efficiencyCalculators[key]->SetDidCut(cutDid);
+
+            // Set dummy scan branch
+            efficiencyCalculators[key]->SetScanBranch(dummyScanBranch);
+            efficiencyCalculators[key]->SetScanRange(dummyLo, dummyHi);
 
             TString status = Form("-------\nSTATUS: %s, %s", k.Data(), s.Data());
             std::cout << status << std::endl;
