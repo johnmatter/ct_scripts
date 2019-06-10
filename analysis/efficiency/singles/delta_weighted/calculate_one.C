@@ -54,24 +54,29 @@ int calculate_one(TString thisKinematics) {
             std::cout << key_1D << std::endl;
 
             TCut cutShould, cutDid;
+            TString Wcut;
 
             // HMS Cherenkov
             if (d=="hCer") {
+                Wcut = Form("hSinglesWCutQ2_%d",int(round(hmsData->GetQ2(k))));
                 cutShould = cuts->Get("hBetaCut") && cuts->Get("hCalCut")
+                                                  && cuts->Get(Wcut)
                                                   && "H.cal.eprtrack>0.1";
-                cutDid    = cuts->Get("hCerCut");
+                cutDid    = cutShould && cuts->Get("hCerCut");
             }
             // HMS Calorimeter
             if (d=="hCal") {
+                Wcut = Form("hSinglesWCutQ2_%d",int(round(hmsData->GetQ2(k))));
                 cutShould = cuts->Get("hBetaCut") && cuts->Get("hCerCut")
+                                                  && cuts->Get(Wcut)
                                                   && "H.cal.eprtrack>0.1";
-                cutDid    = cuts->Get("hCalCut");
+                cutDid    = cutShould && cuts->Get("hCalCut");
             }
             // SHMS NG Cherenkov
             if (d=="pCer") {
                 cutShould = cuts->Get("pBetaCut") && cuts->Get("pHGCerCut")
                                                   && "P.cal.eprtrack<0.1";
-                cutDid    = cuts->Get("pCerCut");
+                cutDid    = cutShould && cuts->Get("pCerCut");
             }
 
             efficiencyCalculators1D[key_1D] = new Efficiency1D(key_1D.Data());
@@ -100,7 +105,9 @@ int calculate_one(TString thisKinematics) {
                     scanHi = +15;
                     break;
             }
+            efficiencyCalculators0D[key_0D]->SetScanBranch(scanBranch);
             efficiencyCalculators1D[key_1D]->SetScanBranch(scanBranch);
+            efficiencyCalculators0D[key_0D]->SetScanRange(scanLo, scanHi);
             efficiencyCalculators1D[key_1D]->SetScanRange(scanBins, scanLo, scanHi);
 
             std::cout << Form("%s(%d,%f,%f)", scanBranch.Data(), scanBins, scanLo, scanHi) << std::endl;
@@ -116,10 +123,10 @@ int calculate_one(TString thisKinematics) {
             efficiencyCalculators0D[key_0D]->SetDidCut(cutDid);
 
             // Initialize and calculate
-            efficiencyCalculators1D[key_1D]->SetEvents(-1);
+            efficiencyCalculators1D[key_1D]->SetEvents(3000000);
             efficiencyCalculators1D[key_1D]->Init();
             efficiencyCalculators1D[key_1D]->Calculate();
-            efficiencyCalculators0D[key_0D]->SetEvents(-1);
+            efficiencyCalculators0D[key_0D]->SetEvents(3000000);
             efficiencyCalculators0D[key_0D]->Init();
             efficiencyCalculators0D[key_0D]->Calculate();
 
@@ -246,7 +253,7 @@ int calculate_one(TString thisKinematics) {
             Double_t efficiencyUnweightedErrorLo = efficiencyCalculators0D[key_0D]->GetEfficiencyErrorLow();
 
             Int_t did    = efficiencyCalculators0D[key_0D]->GetTEfficiency()->GetCopyPassedHisto()->GetBinContent(1);
-            Int_t should = efficiencyCalculators1D[key_0D]->GetTEfficiency()->GetCopyTotalHisto()->GetBinContent(1);
+            Int_t should = efficiencyCalculators0D[key_0D]->GetTEfficiency()->GetCopyTotalHisto()->GetBinContent(1);
 
             // Form print string
             TString printMe = Form("%s,%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d",
