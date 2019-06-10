@@ -18,13 +18,15 @@
 void tracking(TString spectrometer) {
     // ------------------------------------------------------------------------
     // Load our data and cuts
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass2_newtrack.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     std::vector<TString>  spectrometers = {"SHMS","HMS"};
 
     // Which kinematics
     std::vector<TString> kinematics = data->GetNames();
+    // std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
+    //                                    "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14"};
 
     // This map takes std::pair<spectrometer,kinematics> as a key
     std::map<TString, Efficiency0D*> efficiencyCalculators;
@@ -53,18 +55,31 @@ void tracking(TString spectrometer) {
 
     // for (auto const &s : spectrometers) {
     TString s = spectrometer;
-        // Get this spectrometer's cuts
-        if (s=="SHMS") {
-            cutShould = pCutShould;
-            cutDid = pCutDid;
-        }
-        if (s=="HMS") {
-            cutShould = hCutShould;
-            cutDid = hCutDid;
-        }
 
         // Loop over kinematics
         for (auto const &k : kinematics)   {
+            // Get cuts
+
+            // Spectrometer cuts
+            if (s=="SHMS") {
+                cutShould = pCutShould;
+                cutDid = pCutDid;
+            }
+            if (s=="HMS") {
+                cutShould = hCutShould;
+                cutDid = hCutDid;
+            }
+
+            // Kinematic cuts
+            // if (data->GetTarget(k)=="LH2") {
+            //     cutShould = cutShould cuts->Get("pLH2EMissPMissCut");
+            //     cutDid    = cutDid    cuts->Get("pLH2EMissPMissCut");
+            // }
+            // if (data->GetTarget(k)=="C12") {
+            //     cutShould = cutShould && cuts->Get("pC12EMissPMissCut");
+            //     cutDid    = cutDid    && cuts->Get("pC12EMissPMissCut");
+            // }
+
             //----------
             // Calculate
 
