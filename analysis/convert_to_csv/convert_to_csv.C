@@ -51,6 +51,7 @@ void convert_to_csv() {
         // Invariant mass, missing momentum
         TTreeReaderValue<double> W(reader,      "H.kin.primary.W");
         TTreeReaderValue<double> eMiss(reader,  "P.kin.secondary.emiss");
+        TTreeReaderValue<double> eMissNuc(reader,  "P.kin.secondary.emiss_nuc");
         TTreeReaderValue<double> pMiss(reader,  "P.kin.secondary.pmiss");
         TTreeReaderValue<double> pMissZ(reader, "P.kin.secondary.pmiss_z");
 
@@ -124,6 +125,7 @@ void convert_to_csv() {
              << "pTheta,"
              << "W,"
              << "eMiss,"
+             << "eMissNuc,"
              << "pMiss,"
              << "pMissZ,"
              << "hCerNPE,"
@@ -187,6 +189,7 @@ void convert_to_csv() {
                  << "," << *pTheta
                  << "," << *W
                  << "," << *eMiss
+                 << "," << *eMissNuc
                  << "," << *pMiss
                  << "," << *pMissZ
                  << "," << *hCerNPE
