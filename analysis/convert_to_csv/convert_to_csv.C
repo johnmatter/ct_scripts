@@ -12,11 +12,11 @@
 //
 // Format for csv is on line 114
 void convert_to_csv() {
-    // CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass2_newtrack.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass3.json");
 
-    std::vector<TString> kinematics = {"LH2_Q2_8", "LH2_Q2_10", "LH2_Q2_12", "LH2_Q2_14",
-                                       "C12_Q2_8", "C12_Q2_10", "C12_Q2_12", "C12_Q2_14"};
+    std::vector<TString> kinematics = data->GetNames();
+    // std::vector<TString> kinematics = {"LH2_Q2_8", "LH2_Q2_10", "LH2_Q2_12", "LH2_Q2_14",
+    //                                    "C12_Q2_8", "C12_Q2_10", "C12_Q2_12", "C12_Q2_14"};
 
     // Loop over kinematics and print to CSVs
     for (auto &k: kinematics) {
@@ -87,8 +87,9 @@ void convert_to_csv() {
         TTreeReaderValue<double> epCoinTimeROC2 (reader, "CTime.epCoinTime_ROC2");
 
         // SHMS DC and hodo variables
-        TTreeReaderValue<double> pHodBetanotrack(reader, "P.hod.betanotrack");
-        TTreeReaderValue<double> pHodGoodscinhit(reader, "P.hod.goodscinhit");
+        TTreeReaderValue<double> pHodBetanotrack(reader,   "P.hod.betanotrack");
+        TTreeReaderValue<double> pHodGoodscinhit(reader,   "P.hod.goodscinhit");
+        TTreeReaderValue<double> pInsideDipoleExit(reader, "P.hod.InsideDipoleExit");
         TTreeReaderValue<double> pDC1x1nhit(reader, "P.dc.1x1.nhit");
         TTreeReaderValue<double> pDC1u2nhit(reader, "P.dc.1u2.nhit");
         TTreeReaderValue<double> pDC1u1nhit(reader, "P.dc.1u1.nhit");
@@ -102,6 +103,24 @@ void convert_to_csv() {
         TTreeReaderValue<double> pDC2x2nhit(reader, "P.dc.2x2.nhit");
         TTreeReaderValue<double> pDC2v2nhit(reader, "P.dc.2v2.nhit");
         TTreeReaderValue<double> pDCntrack(reader,  "P.dc.ntrack");
+
+        // HMS DC and hodo variables
+        TTreeReaderValue<double> hHodBetanotrack(reader,   "H.hod.betanotrack");
+        TTreeReaderValue<double> hHodGoodscinhit(reader,   "H.hod.goodscinhit");
+        TTreeReaderValue<double> hInsideDipoleExit(reader, "H.hod.InsideDipoleExit");
+        TTreeReaderValue<double> hDC1x1nhit(reader, "H.dc.1x1.nhit");
+        TTreeReaderValue<double> hDC1u2nhit(reader, "H.dc.1u2.nhit");
+        TTreeReaderValue<double> hDC1u1nhit(reader, "H.dc.1u1.nhit");
+        TTreeReaderValue<double> hDC1v1nhit(reader, "H.dc.1v1.nhit");
+        TTreeReaderValue<double> hDC1x2nhit(reader, "H.dc.1x2.nhit");
+        TTreeReaderValue<double> hDC1v2nhit(reader, "H.dc.1v2.nhit");
+        TTreeReaderValue<double> hDC2x1nhit(reader, "H.dc.2x1.nhit");
+        TTreeReaderValue<double> hDC2u2nhit(reader, "H.dc.2u2.nhit");
+        TTreeReaderValue<double> hDC2u1nhit(reader, "H.dc.2u1.nhit");
+        TTreeReaderValue<double> hDC2v1nhit(reader, "H.dc.2v1.nhit");
+        TTreeReaderValue<double> hDC2x2nhit(reader, "H.dc.2x2.nhit");
+        TTreeReaderValue<double> hDC2v2nhit(reader, "H.dc.2v2.nhit");
+        TTreeReaderValue<double> hDCntrack(reader,  "H.dc.ntrack");
 
         // Write to file ------------------------------------------------------
         TString filename = Form("/work/hallc/e1206107/jmatter/csv/%s.csv", k.Data());
@@ -153,6 +172,7 @@ void convert_to_csv() {
              << "epCoinTimeROC2,"
              << "pHodBetanotrack,"
              << "pHodGoodscinhit,"
+             << "pInsideDipoleExit,"
              << "pDC1x1nhit,"
              << "pDC1u2nhit,"
              << "pDC1u1nhit,"
@@ -166,6 +186,22 @@ void convert_to_csv() {
              << "pDC2x2nhit,"
              << "pDC2v2nhit,"
              << "pDCntrack"
+             << "hHodBetanotrack,"
+             << "hHodGoodscinhit,"
+             << "hInsideDipoleExit,"
+             << "hDC1x1nhit,"
+             << "hDC1u2nhit,"
+             << "hDC1u1nhit,"
+             << "hDC1v1nhit,"
+             << "hDC1x2nhit,"
+             << "hDC1v2nhit,"
+             << "hDC2x1nhit,"
+             << "hDC2u2nhit,"
+             << "hDC2u1nhit,"
+             << "hDC2v1nhit,"
+             << "hDC2x2nhit,"
+             << "hDC2v2nhit,"
+             << "hDCntrack"
              << std::endl;
 
         // Print each event
@@ -217,6 +253,7 @@ void convert_to_csv() {
                  << "," << *epCoinTimeROC2
                  << "," << *pHodBetanotrack
                  << "," << *pHodGoodscinhit
+                 << "," << *pInsideDipoleExit
                  << "," << *pDC1x1nhit
                  << "," << *pDC1u2nhit
                  << "," << *pDC1u1nhit
@@ -230,6 +267,22 @@ void convert_to_csv() {
                  << "," << *pDC2x2nhit
                  << "," << *pDC2v2nhit
                  << "," << *pDCntrack
+                 << "," << *hHodBetanotrack
+                 << "," << *hHodGoodscinhit
+                 << "," << *hInsideDipoleExit
+                 << "," << *hDC1x1nhit
+                 << "," << *hDC1u2nhit
+                 << "," << *hDC1u1nhit
+                 << "," << *hDC1v1nhit
+                 << "," << *hDC1x2nhit
+                 << "," << *hDC1v2nhit
+                 << "," << *hDC2x1nhit
+                 << "," << *hDC2u2nhit
+                 << "," << *hDC2u1nhit
+                 << "," << *hDC2v1nhit
+                 << "," << *hDC2x2nhit
+                 << "," << *hDC2v2nhit
+                 << "," << *hDCntrack
                  << std::endl;
 
             counter++;
