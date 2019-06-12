@@ -19,7 +19,7 @@
 // Each detector's efficiency vs delta plot is saved in a PDF.
 // A summary of the scalar event-weighted efficiencies are saved as a CSV.
 int main() {
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass3.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // Efficiency infrastructure

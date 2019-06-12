@@ -18,7 +18,7 @@
 void tracking(TString spectrometer) {
     // ------------------------------------------------------------------------
     // Load our data and cuts
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass2_newtrack.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass3.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     std::vector<TString>  spectrometers = {"SHMS","HMS"};

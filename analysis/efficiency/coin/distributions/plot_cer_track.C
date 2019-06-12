@@ -16,7 +16,7 @@
 #include <CTCuts.h>
 
 void plot_cer_track() {
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass3.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // PDF to print to

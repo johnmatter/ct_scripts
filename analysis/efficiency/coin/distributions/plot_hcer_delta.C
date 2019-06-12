@@ -16,7 +16,7 @@
 // Investigating what the distribution of delta look like
 // for events that should, do, and don't fire the HMS Cherenkov.
 void plot_hcer_delta() {
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass3.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // PDF to print to
