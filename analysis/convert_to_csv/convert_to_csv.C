@@ -44,6 +44,45 @@ void convert_to_csv() {
         TTreeReaderValue<double> hBeta(reader, "H.gtr.beta");
         TTreeReaderValue<double> pBeta(reader, "P.gtr.beta");
 
+        // SHMS Tracking
+        TTreeReaderValue<double> pGtrX(reader,    "P.gtr.x");
+        TTreeReaderValue<double> pGtrY(reader,    "P.gtr.y");
+        TTreeReaderValue<double> pGtrTh(reader,   "P.gtr.th");
+        TTreeReaderValue<double> pGtrPh(reader,   "P.gtr.ph");
+        TTreeReaderValue<double> pGtrXfp(reader,  "P.gtr.x_fp");
+        TTreeReaderValue<double> pGtrYfp(reader,  "P.gtr.y_fp");
+        TTreeReaderValue<double> pGtrXpfp(reader, "P.gtr.xp_fp");
+        TTreeReaderValue<double> pGtrYpfp(reader, "P.gtr.yp_fp");
+
+        TTreeReaderValue<double> pTrPruneSelect(reader, "P.tr.PruneSelect");
+
+        // HMS Tracking
+        TTreeReaderValue<double> hGtrX(reader,    "H.gtr.x");
+        TTreeReaderValue<double> hGtrY(reader,    "H.gtr.y");
+        TTreeReaderValue<double> hGtrTh(reader,   "H.gtr.th");
+        TTreeReaderValue<double> hGtrPh(reader,   "H.gtr.ph");
+        TTreeReaderValue<double> hGtrXfp(reader,  "H.gtr.x_fp");
+        TTreeReaderValue<double> hGtrYfp(reader,  "H.gtr.y_fp");
+        TTreeReaderValue<double> hGtrXpfp(reader, "H.gtr.xp_fp");
+        TTreeReaderValue<double> hGtrYpfp(reader, "H.gtr.yp_fp");
+
+        TTreeReaderValue<double> hTrPruneSelect(reader, "H.tr.PruneSelect");
+
+        //THcReactionPoint
+        TTreeReaderValue<double> reactOK(reader, "P.react.ok");
+        TTreeReaderValue<double> reactX(reader,  "P.react.x");
+        TTreeReaderValue<double> reactY(reader,  "P.react.y");
+        TTreeReaderValue<double> reactZ(reader,  "P.react.z");
+
+        //THcRasteredBeam
+        TTreeReaderValue<double> rbX(reader,  "P.rb.x");
+        TTreeReaderValue<double> rbY(reader,  "P.rb.y");
+        TTreeReaderValue<double> rbXp(reader, "P.rb.th");
+        TTreeReaderValue<double> rbYp(reader, "P.rb.ph");
+        TTreeReaderValue<double> rbPx(reader, "P.rb.px");
+        TTreeReaderValue<double> rbPy(reader, "P.rb.py");
+        TTreeReaderValue<double> rbPz(reader, "P.rb.pz");
+
         // Scattering angles in radians
         TTreeReaderValue<double> hTheta(reader, "H.kin.primary.scat_ang_rad");
         TTreeReaderValue<double> pTheta(reader, "P.kin.secondary.xangle");
@@ -140,6 +179,35 @@ void convert_to_csv() {
              << "pDelta,"
              << "hBeta,"
              << "pBeta,"
+             << "pGtrX,"
+             << "pGtrY,"
+             << "pGtrTh,"
+             << "pGtrPh,"
+             << "pGtrXfp,"
+             << "pGtrYfp,"
+             << "pGtrXpfp,"
+             << "pGtrYpfp,"
+             << "pTrPruneSelect,"
+             << "hGtrX,"
+             << "hGtrY,"
+             << "hGtrTh,"
+             << "hGtrPh,"
+             << "hGtrXfp,"
+             << "hGtrYfp,"
+             << "hGtrXpfp,"
+             << "hGtrYpfp,"
+             << "hTrPruneSelect,"
+             << "reactOK,"
+             << "reactX,"
+             << "reactY,"
+             << "reactZ,"
+             << "rbX,"
+             << "rbY,"
+             << "rbXp,"
+             << "rbYp,"
+             << "rbPx,"
+             << "rbPy,"
+             << "rbPz,"
              << "hTheta,"
              << "pTheta,"
              << "W,"
@@ -185,7 +253,7 @@ void convert_to_csv() {
              << "pDC2v1nhit,"
              << "pDC2x2nhit,"
              << "pDC2v2nhit,"
-             << "pDCntrack"
+             << "pDCntrack,"
              << "hHodBetanotrack,"
              << "hHodGoodscinhit,"
              << "hInsideDipoleExit,"
@@ -221,6 +289,35 @@ void convert_to_csv() {
                  << "," << *pDelta
                  << "," << *hBeta
                  << "," << *pBeta
+                 << "," << *pGtrX
+                 << "," << *pGtrY
+                 << "," << *pGtrTh
+                 << "," << *pGtrPh
+                 << "," << *pGtrXfp
+                 << "," << *pGtrYfp
+                 << "," << *pGtrXpfp
+                 << "," << *pGtrYpfp
+                 << "," << *pTrPruneSelect
+                 << "," << *hGtrX
+                 << "," << *hGtrY
+                 << "," << *hGtrTh
+                 << "," << *hGtrPh
+                 << "," << *hGtrXfp
+                 << "," << *hGtrYfp
+                 << "," << *hGtrXpfp
+                 << "," << *hGtrYpfp
+                 << "," << *hTrPruneSelect
+                 << "," << *reactOK
+                 << "," << *reactX
+                 << "," << *reactY
+                 << "," << *reactZ
+                 << "," << *rbX
+                 << "," << *rbY
+                 << "," << *rbXp
+                 << "," << *rbYp
+                 << "," << *rbPx
+                 << "," << *rbPy
+                 << "," << *rbPz
                  << "," << *hTheta
                  << "," << *pTheta
                  << "," << *W
