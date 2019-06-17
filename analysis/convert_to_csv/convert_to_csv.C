@@ -49,10 +49,10 @@ void convert_to_csv() {
         TTreeReaderValue<double> pGtrY(reader,    "P.gtr.y");
         TTreeReaderValue<double> pGtrTh(reader,   "P.gtr.th");
         TTreeReaderValue<double> pGtrPh(reader,   "P.gtr.ph");
-        TTreeReaderValue<double> pGtrXfp(reader,  "P.gtr.x_fp");
-        TTreeReaderValue<double> pGtrYfp(reader,  "P.gtr.y_fp");
-        TTreeReaderValue<double> pGtrXpfp(reader, "P.gtr.xp_fp");
-        TTreeReaderValue<double> pGtrYpfp(reader, "P.gtr.yp_fp");
+        TTreeReaderValue<double> pGtrXfp(reader,  "P.dc.x_fp");
+        TTreeReaderValue<double> pGtrYfp(reader,  "P.dc.y_fp");
+        TTreeReaderValue<double> pGtrXpfp(reader, "P.dc.xp_fp");
+        TTreeReaderValue<double> pGtrYpfp(reader, "P.dc.yp_fp");
 
         TTreeReaderValue<double> pTrPruneSelect(reader, "P.tr.PruneSelect");
 
@@ -61,10 +61,10 @@ void convert_to_csv() {
         TTreeReaderValue<double> hGtrY(reader,    "H.gtr.y");
         TTreeReaderValue<double> hGtrTh(reader,   "H.gtr.th");
         TTreeReaderValue<double> hGtrPh(reader,   "H.gtr.ph");
-        TTreeReaderValue<double> hGtrXfp(reader,  "H.gtr.x_fp");
-        TTreeReaderValue<double> hGtrYfp(reader,  "H.gtr.y_fp");
-        TTreeReaderValue<double> hGtrXpfp(reader, "H.gtr.xp_fp");
-        TTreeReaderValue<double> hGtrYpfp(reader, "H.gtr.yp_fp");
+        TTreeReaderValue<double> hGtrXfp(reader,  "H.dc.x_fp");
+        TTreeReaderValue<double> hGtrYfp(reader,  "H.dc.y_fp");
+        TTreeReaderValue<double> hGtrXpfp(reader, "H.dc.xp_fp");
+        TTreeReaderValue<double> hGtrYpfp(reader, "H.dc.yp_fp");
 
         TTreeReaderValue<double> hTrPruneSelect(reader, "H.tr.PruneSelect");
 
@@ -128,7 +128,7 @@ void convert_to_csv() {
         // SHMS DC and hodo variables
         TTreeReaderValue<double> pHodBetanotrack(reader,   "P.hod.betanotrack");
         TTreeReaderValue<double> pHodGoodscinhit(reader,   "P.hod.goodscinhit");
-        TTreeReaderValue<double> pInsideDipoleExit(reader, "P.hod.InsideDipoleExit");
+        TTreeReaderValue<double> pInsideDipoleExit(reader, "P.dc.InsideDipoleExit");
         TTreeReaderValue<double> pDC1x1nhit(reader, "P.dc.1x1.nhit");
         TTreeReaderValue<double> pDC1u2nhit(reader, "P.dc.1u2.nhit");
         TTreeReaderValue<double> pDC1u1nhit(reader, "P.dc.1u1.nhit");
@@ -146,7 +146,7 @@ void convert_to_csv() {
         // HMS DC and hodo variables
         TTreeReaderValue<double> hHodBetanotrack(reader,   "H.hod.betanotrack");
         TTreeReaderValue<double> hHodGoodscinhit(reader,   "H.hod.goodscinhit");
-        TTreeReaderValue<double> hInsideDipoleExit(reader, "H.hod.InsideDipoleExit");
+        TTreeReaderValue<double> hInsideDipoleExit(reader, "H.dc.InsideDipoleExit");
         TTreeReaderValue<double> hDC1x1nhit(reader, "H.dc.1x1.nhit");
         TTreeReaderValue<double> hDC1u2nhit(reader, "H.dc.1u2.nhit");
         TTreeReaderValue<double> hDC1u1nhit(reader, "H.dc.1u1.nhit");
