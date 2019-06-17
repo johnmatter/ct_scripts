@@ -35,6 +35,7 @@ class CTData {
         std::vector<TString> GetChainNames() { return chainNames; };
         std::vector<Int_t> GetRuns(TString name) { return runs[name]; };
         TString GetTarget(TString name) { return targets[name]; };
+        TString GetCollimator(TString name) { return collimators[name]; };
         Double_t GetQ2(TString name) { return Q2s[name]; };
         Double_t GetHMSMomentum(TString name) { return hmsMomenta[name]; };
         Double_t GetSHMSMomentum(TString name) { return shmsMomenta[name]; };
@@ -64,6 +65,7 @@ class CTData {
         std::map<TString, Double_t> hmsAngles;
         std::map<TString, Double_t> shmsAngles;
         std::map<TString, TString> targets;
+        std::map<TString, TString> collimators;
         std::map<TString, TString> runlists;
         std::map<TString, TString> rootfileTemplates;
 

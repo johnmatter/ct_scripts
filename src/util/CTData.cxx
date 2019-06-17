@@ -77,6 +77,7 @@ void CTData::Configure(TString config) {
         Double_t shmsAngle       = kinematics[i]["shmsAngle"].GetDouble();
         TString runlist          = kinematics[i]["runlist"].GetString();
         TString target           = kinematics[i]["target"].GetString();
+        TString collimator       = kinematics[i]["collimator"].GetString();
         TString rootfileTemplate = kinematics[i]["rootfileTemplate"].GetString();
 
         // (2) Store
@@ -87,6 +88,7 @@ void CTData::Configure(TString config) {
         hmsAngles[name]         = hmsAngle;
         shmsAngles[name]        = shmsAngle;
         targets[name]           = target;
+        collimators[name]       = collimator;
         runlists[name]          = runlist;
         rootfileTemplates[name] = rootfileTemplate;
     }
@@ -106,14 +108,18 @@ void CTData::Load() {
     std::cout << std::right
               << std::setw(30) << "kinematics"
               << std::setw(10) << "Q2"
-              << std::setw(10) << "target" << std::endl;
+              << std::setw(10) << "target"
+              << std::setw(10) << "collimator"
+              << std::endl;
     std::cout << std::string(50, '-') << std::endl;
 
     for (auto const &kinematics : kinematicsNames) {
         std::cout << std::right
                   << std::setw(30) << kinematics
                   << std::setw(10) << Q2s[kinematics]
-                  << std::setw(10) << targets[kinematics] << std::endl;
+                  << std::setw(10) << targets[kinematics]
+                  << std::setw(10) << collimators[kinematics]
+                  << std::endl;
 
         // Initialize chains
         for (auto const &chain : chainNames) {
@@ -170,6 +176,7 @@ void CTData::Clear() {
     hmsAngles.clear();
     shmsAngles.clear();
     targets.clear();
+    collimators.clear();
     runlists.clear();
     runs.clear();
     rootfileTemplates.clear();
