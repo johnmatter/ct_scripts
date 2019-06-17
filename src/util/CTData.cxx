@@ -53,12 +53,19 @@ void CTData::Configure(TString config) {
     dom.Parse(jsonString.c_str());
 
     // TODO: asserts with IsString() etc
-    // Get info about where data live, how files are named
+    // Get the following info:
+    //  - where our data live
+    //  - what runs we expect
+    //  - what TTrees we expect the files to contain
     rapidjson::Value& data = dom["data"];
     runlistDir       = data["runlistDir"].GetString();
     rootfilesDir     = data["rootfilesDir"].GetString();
+    rapidjson::Value& treeList  = data["chains"];
+    assert(treeList.IsArray());
+    for (rapidjson::SizeType i=0; i<treeList.Size(); i++)
+        chainNames.push_back(treeList[i].GetString());
 
-    // Get kinematics information
+    // Get kinematics information and root filename format
     rapidjson::Value& kinematics = dom["kinematics"];
     for (rapidjson::SizeType i=0; i<kinematics.Size(); i++) {
         // (1) Read
@@ -73,7 +80,7 @@ void CTData::Configure(TString config) {
         TString rootfileTemplate = kinematics[i]["rootfileTemplate"].GetString();
 
         // (2) Store
-        names.push_back(name);
+        kinematicsNames.push_back(name);
         Q2s[name]               = Q2;
         hmsMomenta[name]        = hmsMomentum;
         shmsMomenta[name]       = shmsMomentum;
@@ -93,31 +100,29 @@ void CTData::Load() {
     Int_t runNumber;
     TString rootfilename;
 
-    // Loop over vector of names and load the root files listed in the run lists
+    // Loop over vector of kinematicsNames and load the root files listed in the run lists
     std::cout << std::endl;
     std::cout << "Loading TChains" << std::endl;
     std::cout << std::right
-              << std::setw(30) << "name"
+              << std::setw(30) << "kinematics"
               << std::setw(10) << "Q2"
               << std::setw(10) << "target" << std::endl;
     std::cout << std::string(50, '-') << std::endl;
 
-    for (auto const &name : names) {
+    for (auto const &kinematics : kinematicsNames) {
         std::cout << std::right
-                  << std::setw(30) << name
-                  << std::setw(10) << Q2s[name]
-                  << std::setw(10) << targets[name] << std::endl;
+                  << std::setw(30) << kinematics
+                  << std::setw(10) << Q2s[kinematics]
+                  << std::setw(10) << targets[kinematics] << std::endl;
 
         // Initialize chains
-        auto keyT = std::make_pair(name,TString("T"));
-        chains[keyT] = new TChain("T");
-        auto keyTSP = std::make_pair(name,TString("TSP"));
-        chains[keyTSP] = new TChain("TSP");
-        auto keyTSH = std::make_pair(name,TString("TSH"));
-        chains[keyTSH] = new TChain("TSH");
+        for (auto const &chain : chainNames) {
+            auto key = std::make_pair(kinematics,chain);
+            chains[key] = new TChain(chain);
+        }
 
         // Open run list
-        runlistFilename = Form("%s/%s", runlistDir.Data(), runlists[name].Data());
+        runlistFilename = Form("%s/%s", runlistDir.Data(), runlists[kinematics].Data());
         // TODO: should check if file exists
         runlist.open(runlistFilename.Data());
 
@@ -128,12 +133,13 @@ void CTData::Load() {
             if (!runlist.good()) {break;} // end if file's done
 
             // Add root file to chains
-            rootfilename = Form(rootfileTemplates[name], rootfilesDir.Data(), runNumber);
+            rootfilename = Form(rootfileTemplates[kinematics], rootfilesDir.Data(), runNumber);
             // TODO: should check if file exists
-            chains[keyT]->Add(rootfilename);
-            chains[keyTSP]->Add(rootfilename);
-            chains[keyTSH]->Add(rootfilename);
-            runs[name].push_back(runNumber);
+            for (auto const &chain : chainNames) {
+                auto key = std::make_pair(kinematics,chain);
+                chains[key]->Add(rootfilename);
+            }
+            runs[kinematics].push_back(runNumber);
         }
         runlist.close();
     }
@@ -156,7 +162,8 @@ void CTData::Clear() {
     runlistDir.Clear();
     rootfilesDir.Clear();
 
-    names.clear();
+    kinematicsNames.clear();
+    chainNames.clear();
     Q2s.clear();
     hmsMomenta.clear();
     shmsMomenta.clear();
@@ -171,13 +178,16 @@ void CTData::Clear() {
 // Test that chains were all loaded successfully
 bool CTData::TestChains() {
     bool status = true;
-    for (auto const &name : names) {
 
-        // Check T chain
-        auto keyT = std::make_pair(name,TString("T"));
-        if (chains[keyT]==NULL) {
-            std::cerr << "NULL TChain : T in " << name << std::endl;
-            status = false;
+    // Loop over all kinematics and check if all chains were loaded
+    for (auto const &kinematics : kinematicsNames) {
+        for (auto const &chain : chainNames) {
+            auto key = std::make_pair(kinematics,chain);
+            // TODO: fix this. None of ==NULL, ==nullptr, or ==0 seem to actually work.
+            if (chains[key] == nullptr) {
+                std::cerr << "Missing TChain in kinematics " << kinematics << " : " << chain << std::endl;
+                status = false;
+            }
         }
     }
 
@@ -185,6 +195,7 @@ bool CTData::TestChains() {
 }
 
 // Get a pointer to the requested TChain
+// Default is chain="T"
 TChain* CTData::GetChain(TString kinematics, TString chain) {
     // e.g. key = <"LH2_Q2_8","TSH">
     auto const key = std::make_pair(kinematics,chain);

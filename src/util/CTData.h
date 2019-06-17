@@ -31,7 +31,8 @@ class CTData {
         bool TestChains();               // Test that chains are non-null
 
         // Various GetX() methods
-        std::vector<TString> GetNames() { return names; };
+        std::vector<TString> GetNames() { return kinematicsNames; };
+        std::vector<TString> GetChainNames() { return chainNames; };
         std::vector<Int_t> GetRuns(TString name) { return runs[name]; };
         TString GetTarget(TString name) { return targets[name]; };
         Double_t GetQ2(TString name) { return Q2s[name]; };
@@ -55,7 +56,8 @@ class CTData {
 
         // This information is read by Config() ----------------------
         // TODO: Implement this as some CTKinematics class rather than parallel maps
-        std::vector<TString> names;
+        std::vector<TString> kinematicsNames;
+        std::vector<TString> chainNames;
         std::map<TString, Double_t> Q2s;
         std::map<TString, Double_t> hmsMomenta;
         std::map<TString, Double_t> shmsMomenta;
