@@ -39,6 +39,8 @@ void tracking(TString spectrometer) {
     TCut hCutDid    = cuts->Get("hScinDide");
     TCut pCutDid    = cuts->Get("pScinDidh");
 
+    TString dummyBranch;
+
     // Save
     TString csvFilename = Form("%s_tracking.csv",spectrometer.Data());
 
@@ -50,7 +52,7 @@ void tracking(TString spectrometer) {
     ofs.open(csvFilename.Data());
 
     // Print header
-    TString printme = Form("kinematics,target,Q2,spectrometer,efficiency,efficiencyErrorUp,efficiencyErrorLow,did,should");
+    TString printme = Form("kinematics,target,Q2,collimator,spectrometer,efficiency,efficiencyErrorUp,efficiencyErrorLow,did,should");
     ofs << printme << std::endl;
 
     // for (auto const &s : spectrometers) {
@@ -58,30 +60,18 @@ void tracking(TString spectrometer) {
 
         // Loop over kinematics
         for (auto const &k : kinematics)   {
-            // Get cuts
 
-            // Spectrometer cuts
+            // Spectrometer-specific info
             if (s=="SHMS") {
                 cutShould = pCutShould;
                 cutDid = pCutDid;
+                dummyBranch = "P.hod.goodscinhit";
             }
             if (s=="HMS") {
                 cutShould = hCutShould;
                 cutDid = hCutDid;
+                dummyBranch = "H.hod.goodscinhit";
             }
-
-            // Kinematic cuts
-            // if (data->GetTarget(k)=="LH2") {
-            //     cutShould = cutShould cuts->Get("pLH2EMissPMissCut");
-            //     cutDid    = cutDid    cuts->Get("pLH2EMissPMissCut");
-            // }
-            // if (data->GetTarget(k)=="C12") {
-            //     cutShould = cutShould && cuts->Get("pC12EMissPMissCut");
-            //     cutDid    = cutDid    && cuts->Get("pC12EMissPMissCut");
-            // }
-
-            //----------
-            // Calculate
 
             // Create efficiency object
             TString key = Form("teff_%s_%s", s.Data(), k.Data());
@@ -96,7 +86,7 @@ void tracking(TString spectrometer) {
             efficiencyCalculators[key]->SetDidCut(cutDid);
 
             // Dummy branch for histogram
-            efficiencyCalculators[key]->SetScanBranch("H.gtr.dp");
+            efficiencyCalculators[key]->SetScanBranch(dummyBranch);
 
             // Calculate
             efficiencyCalculators[key]->SetEvents(-1);
@@ -107,6 +97,7 @@ void tracking(TString spectrometer) {
             // Print
             Double_t Q2    = data->GetQ2(k);
             TString target = data->GetTarget(k);
+            TString collimator = data->GetCollimator(k);
 
             Double_t thisE    = efficiencyCalculators[key]->GetEfficiency();
             Double_t thisEUp  = efficiencyCalculators[key]->GetEfficiencyErrorUp();
@@ -115,7 +106,7 @@ void tracking(TString spectrometer) {
             Int_t did         = efficiencyCalculators[key]->GetTEfficiency()->GetCopyPassedHisto()->GetBinContent(1);
             Int_t should      = efficiencyCalculators[key]->GetTEfficiency()->GetCopyTotalHisto()->GetBinContent(1);
 
-            TString printme = Form("%s,%s,%f,%s,%f,%f,%f,%d,%d", k.Data(), target.Data(), Q2, s.Data(),
+            TString printme = Form("%s,%s,%f,%s,%s,%f,%f,%f,%d,%d", k.Data(), target.Data(), Q2, collimator.Data(), s.Data(),
                     thisE, thisEUp, thisELow, did, should);
             ofs << printme << std::endl;
 

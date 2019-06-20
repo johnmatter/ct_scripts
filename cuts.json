@@ -213,12 +213,16 @@
             "cut"  : "hScinShould && \"H.dc.ntrack>0\""
         },
         {
+            "name" : "hNoTrackPID",
+            "cut"  : "\"abs(H.cal.etotnorm-1)<0.2\" && hCerCut"
+        },
+        {
             "name" : "hScinShoulde",
-            "cut"  : "hScinShould && \"abs(H.cal.etotnorm-1)<0.2\" && hCerCut"
+            "cut"  : "hScinShould && hNoTrackPID"
         },
         {
             "name" : "hScinDide",
-            "cut"  : "hScinDid && hPIDCut"
+            "cut"  : "hScinDid && hNoTrackPID"
         },
         {
             "name" : "pNGCerShould",
