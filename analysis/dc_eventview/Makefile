@@ -1,6 +1,6 @@
 CC=g++
-COMPILEFLAGS=`root-config --cflags --libs` -c -fPIC
-LINKFLAGS=`root-config --cflags --libs`
+COMPILEFLAGS=`root-config --cflags --libs` -g -c -fPIC
+LINKFLAGS=`root-config --cflags --libs` -g
 DEPS=Wire.h Plane.h
 OBJ=Wire.o Plane.o
 

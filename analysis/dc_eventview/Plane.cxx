@@ -85,8 +85,13 @@ void Plane::TurnOffWire(Int_t n) {
 
 void Plane::TurnOff() {
     for (auto &wire : wires) {
-        wire->TurnOff();
+        if (wire->IsOn())
+            wire->TurnOff();
     }
+}
+
+Bool_t Plane::WireIsOn(Int_t n) {
+    return wires[n]->IsOn();
 }
 
 void Plane::Draw() {

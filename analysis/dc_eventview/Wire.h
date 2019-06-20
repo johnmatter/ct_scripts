@@ -20,8 +20,10 @@ class Wire {
 
         void Draw() { guiElement->Draw(); };
 
+        Bool_t IsOn() { return isOn; };
+
     private:
-        Bool_t isHit = false;
+        Bool_t isOn = false;
         Int_t color = kBlack;
         Double_t xBegin;
         Double_t xEnd;

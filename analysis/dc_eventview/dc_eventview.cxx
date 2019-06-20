@@ -1,5 +1,6 @@
 #include <utility>
 #include <vector>
+#include <limits>
 #include <map>
 
 #include <TF1.h>
@@ -25,13 +26,23 @@
 #include "Plane.h"
 
 // GOAL: Plot hits in DC along with track found by hcana
+
+TString waitForInput(TString prompt)
+{
+    std::cout << prompt << std::flush;
+    // std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    TString temp;
+    std::cin >> temp;
+
+    return temp;
+}
+
+
 void StandaloneApplication(int argc, char** argv) {
-    TCanvas *c1 = new TCanvas("c1","c1",800,800);
+    TCanvas *c1 = new TCanvas("c1","c1",20,40,600,800);
     TView *view = TView::CreateView(1);
     view->SetRange(-50,-50,-50,50,50,50);
     view->ShowAxis();
-
-    int maxEvents = 1e9;
 
     // ------------------------------------------------------------
     TChain *chain = new TChain("T");
@@ -204,6 +215,12 @@ void StandaloneApplication(int argc, char** argv) {
     TTreeReaderValue<double> pHodBetanotrack(reader, "P.hod.betanotrack");
     TTreeReaderValue<double> pHodGoodscinhit(reader, "P.hod.goodscinhit");
     TTreeReaderValue<double> pNGCer(reader, "P.ngcer.npeSum");
+
+    TTreeReaderValue<double> pPrE(reader, "P.cal.pr.eplane");
+    TTreeReaderValue<double> pShE(reader, "P.cal.fly.earray");
+    TTreeReaderValue<double> pEtot(reader, "P.cal.etot");
+    TTreeReaderValue<double> pEtotnorm(reader, "P.cal.etotnorm");
+
     TTreeReaderValue<double> pNtrack(reader, "P.dc.ntrack");
 
     TTreeReaderValue<double> xfp(reader,  "P.dc.x_fp");
@@ -232,14 +249,21 @@ void StandaloneApplication(int argc, char** argv) {
     // open PDF; "filename.pdf["
     // canvas->Print((pdfFilename+"[").Data());
 
+    int currentEvent;
+    std::vector<Int_t> displayedEvents;
+
     TPolyLine3D   *track = nullptr;
     TPolyMarker3D *pm3d1 = nullptr;
 
     double wire;
     Int_t hitsum1, hitsum2;
-    int eventNum=-1;
-    while (reader.Next() && (eventNum<maxEvents)) {
-        eventNum++;
+    while (reader.Next()) {
+
+        // Turn off planes
+        for (auto const &p : planes) {
+            planes3D[p]->TurnOff();
+        }
+
 
         hitsum1=0;
         for (auto const &p : DC1planes) {
@@ -250,29 +274,57 @@ void StandaloneApplication(int argc, char** argv) {
             hitsum2 += **nhit[p];
         }
 
-
+        // =====================================================
+        // -----------------------------------------------------
+        // =====================================================
+        // Skip events we're not interested in
         if (!(   *pHodBetanotrack < 1.5 && *pHodBetanotrack>0.5
               && *pNGCer < 0.1
               && *pHodGoodscinhit==1
               && (hitsum1<21) && (hitsum2<21)
-              && ((hitsum1>0) || (hitsum2>0))
-              && *pNtrack==0
+              // && ((hitsum1>0) || (hitsum2>0))
+              // && *pNtrack==0
              )
            ) {
             continue;
         }
+        // =====================================================
+        // -----------------------------------------------------
+        // =====================================================
 
-        std::cout << "Event " << eventNum << std::endl;
+        // Display info to help user understand event
+        currentEvent = reader.GetCurrentEntry();
+
+        std::cout << std::endl;
+        std::cout << "--------------------" << std::endl;
+        std::cout << "Event " << currentEvent << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "DC2 hits = ";
+        for (auto const &p : DC2planes) {
+            std::cout << std::setw(2) << **nhit[p] << " +";
+        }
+        std::cout << " = " << hitsum2 << std::endl;
+
+        std::cout << "DC1 hits = ";
+        for (auto const &p : DC1planes) {
+            std::cout << std::setw(2) << **nhit[p] << " +";
+        }
+        std::cout << " = " << hitsum1 << std::endl;
+
+        std::cout << "NGCER NPE sum    = " << *pNGCer  << std::endl;
+        std::cout << "Calorimeter E    = " << *pPrE << " + " << *pShE << " = " << *pEtot << std::endl;
+        std::cout << "Calorimeter E/p0 = " << *pEtotnorm << std::endl;
+        std::cout << "Beta notrack     = " << *pHodBetanotrack << std::endl;
+        std::cout << std::endl;
 
         for (auto const &p : planes) {
-            planes3D[p]->TurnOff();
             for (int n=0; n < **wirenoN[p]; n++) {
                 wire = (*wireno[p])[n];
                 planes3D[p]->TurnOnWire(wire);
 
                 // std::cout << p << " wire #" << wire << std::endl;
             }
-            // planes3D[p]->Draw();
         }
 
         if (*pNtrack>0) {
@@ -307,20 +359,32 @@ void StandaloneApplication(int argc, char** argv) {
             pm3d1->SetPoint(2, xFP,  yFP,  zFP);
             pm3d1->SetMarkerSize(2);
             pm3d1->SetMarkerColor(4);
-            pm3d1->SetMarkerStyle(2);
+            pm3d1->SetMarkerStyle(3);
             pm3d1->Draw();
         }
 
         c1->Update();
         c1->Draw();
         gPad->Modified(); gPad->Update(); gSystem->ProcessEvents();
-        gSystem->Sleep(2000);
+        // gSystem->Sleep(2000);
 
-        if (track!=nullptr) {
+        TString response = waitForInput("Enter any text for next event, 'p' for previous event: ");
+        if (response=='p') {
+            displayedEvents.pop_back();
+            reader.SetEntry(displayedEvents.back());
+        } else {
+            displayedEvents.push_back(currentEvent);
+        }
+
+        if (track) {
             delete track;
             delete pm3d1;
         }
     }
+
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << "End of TChain." << std::endl;
 
     // canvas->Print((pdfFilename+"]").Data());
 

@@ -48,13 +48,13 @@ void Wire::Clear() {
 }
 
 void Wire::TurnOn() {
-    isHit = true;
+    isOn  = true;
     color = kRed;
     guiElement->SetLineColor(color);
 }
 
 void Wire::TurnOff() {
-    isHit = false;
+    isOn  = false;
     color = kBlack;
     guiElement->SetLineColorAlpha(color, 0.1);
 }

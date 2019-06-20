@@ -32,6 +32,8 @@ class Plane {
         void TurnOffWire(Int_t n);
         void TurnOff();
 
+        Bool_t WireIsOn(Int_t n);
+
         void Draw();
 
     private:
