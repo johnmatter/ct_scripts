@@ -214,7 +214,7 @@
         },
         {
             "name" : "hScinShoulde",
-            "cut"  : "hScinShould && hPIDCut"
+            "cut"  : "hScinShould && \"abs(H.cal.etotnorm-1)<0.2\" && hCerCut"
         },
         {
             "name" : "hScinDide",
