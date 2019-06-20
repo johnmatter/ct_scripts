@@ -30,7 +30,7 @@
         },
         {
             "name" : "pLH2EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss < 0.1 && abs(P.kin.secondary.pmiss) < 0.1\""
+            "cut"  : "\"P.kin.secondary.emiss < 0.05 && abs(P.kin.secondary.pmiss) < 0.1\""
         },
         {
             "name" : "pC12EMissPMissCut",
