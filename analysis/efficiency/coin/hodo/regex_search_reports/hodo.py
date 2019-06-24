@@ -16,7 +16,7 @@ from itertools import product
 runlistDir = '/home/jmatter/ct_scripts/runlists/coin'
 runlistRegex = 'runs_(.*)_Q2_(.*)'
 
-reportDir = '/work/hallc/e1206107/CT12GeV/ct_replay/REPORT_OUTPUT/COIN/PRODUCTION/pass1'
+reportDir = '/work/hallc/e1206107/CT12GeV/ct_replay/REPORT_OUTPUT/COIN/PRODUCTION/pass3'
 reportTemplate = 'replay_coin_production_%d_-1.report'
 
 regexTracksFound = 'Tracks found    = scleantrack = (.*)'
@@ -39,6 +39,8 @@ def main():
     for listname in lists:
         runlistFilename = os.path.join(runlistDir,listname)
 
+        print("Reading " + runlistFilename)
+
         # Get a tuple like ('LH2', 12)
         kinematics = parseFilename(listname)
         if (kinematics == ('','')):
@@ -60,6 +62,8 @@ def main():
             if len(run)>0:
                 runs.append(int(run))
 
+        print("# runs = " + str(len(runs)))
+
         # Scan each report's output for hodoscope efficiency lines and store it
         for run in runs:
             results = parseReport(run)
@@ -74,9 +78,11 @@ def main():
                     }
             listOfDicts.append(thisRun)
 
+    print("Checking for numbers too large for pd")
     # Safety check for large numbers
     listOfDicts = checkForLarge(listOfDicts)
 
+    print("Creating dataframe")
     # Create dataframe
     colNames = ['run', 'target', 'Q2', 'pTracks', 'pEfficiency', 'hTracks', 'hEfficiency']
     df  = pd.DataFrame(listOfDicts, columns = colNames)
@@ -85,6 +91,9 @@ def main():
     df = df[df['pTracks'].notna()]
 
     # Print, plot, etc.
+
+    print("Writing to csv")
+    df.to_csv("hodoEfficiency.csv")
 
     # Create label for each kinematics
     targets = df['target'].unique()
@@ -104,6 +113,7 @@ def main():
 
         scatterGroup+=1
 
+    print("Writing to pdf")
     # Scatter of efficiency versus run number
     fP = scatterplotByRun(df, 'pEfficiency', 'SHMS 3/4 Efficiency')
     fH = scatterplotByRun(df, 'hEfficiency', 'HMS 3/4 Efficiency')
