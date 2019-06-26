@@ -107,18 +107,18 @@ void CTData::Load() {
     std::cout << "Loading TChains" << std::endl;
     std::cout << std::right
               << std::setw(30) << "kinematics"
-              << std::setw(10) << "Q2"
-              << std::setw(10) << "target"
-              << std::setw(10) << "collimator"
+              << std::setw(6) << "Q2"
+              << std::setw(12) << "target"
+              << std::setw(12) << "collimator"
               << std::endl;
-    std::cout << std::string(50, '-') << std::endl;
+    std::cout << std::string(60, '-') << std::endl;
 
     for (auto const &kinematics : kinematicsNames) {
         std::cout << std::right
                   << std::setw(30) << kinematics
-                  << std::setw(10) << Q2s[kinematics]
-                  << std::setw(10) << targets[kinematics]
-                  << std::setw(10) << collimators[kinematics]
+                  << std::setw(6) << Q2s[kinematics]
+                  << std::setw(12) << targets[kinematics]
+                  << std::setw(12) << collimators[kinematics]
                   << std::endl;
 
         // Initialize chains
