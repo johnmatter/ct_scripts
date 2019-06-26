@@ -35,14 +35,7 @@ int main() {
     std::vector<TString> detectors = {"pCer","hCal","hCer"};
 
     // Which kinematics
-    std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
-                                       "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14",
-                                       "LH2_Q2_10_pion_collimator",
-                                       "LH2_Q2_10_large_collimator",
-                                       "LH2_Q2_14_large_collimator",
-                                       "LH2_Q2_14_pion_collimator",
-                                       "C12_Q2_14_pion_collimator",
-                                       "C12_Q2_14_large_collimator"};
+    std::vector<TString> kinematics = data->GetNames();
 
     // Where are we saving the output?
     TString csvFilename = "ct_event_weighted_efficiency.csv";
@@ -128,12 +121,14 @@ int main() {
 
     std::ofstream ofsPerBin;
     ofsPerBin.open(csvPerBinFilename.Data());
-    ofsPerBin << "kinematics,detector,target,Q2,deltaBinCenter,efficiency,weight,efficiencyErrorMax"
+    ofsPerBin << "kinematics,detector,target,Q2,collimator,deltaBinCenter,efficiency,weight,efficiencyErrorMax"
               << ",efficiencyErrorUp,efficiencyErrorLo,nShould,nDid" << std::endl;
 
     for (auto const &k : kinematics) {
         TString target        = data->GetTarget(k);
         Double_t Q2           = data->GetQ2(k);
+        TString collimator    = data->GetCollimator(k);
+
         for (auto const &d : detectors) {
             TString key_1D = Form("%s_%s_1D", k.Data(), d.Data());
             TEfficiency* tEff = efficiencyCalculators1D[key_1D]->GetTEfficiency();
@@ -188,7 +183,7 @@ int main() {
                 weightedEfficiency += weight_i * efficiency_i;
 
                 // Print to csv
-                ofsPerBin << k << "," << d << "," << target << "," << Q2
+                ofsPerBin << k << "," << d << "," << target << "," << Q2 << "," << collimator
                           << "," << binCenter_i << "," << efficiency_i << "," << weight_i
                           << "," << efficiencyErrorMax_i
                           << "," << efficiencyErrorUp_i << "," << efficiencyErrorLo_i
@@ -196,7 +191,7 @@ int main() {
             }
 
             weightedEfficiency /= weightSum;
-            weightedUncertainty = 1/sqrt(weightSquaredSum);
+            weightedUncertainty = 1/sqrt(weightSum);
 
             efficiencies[key_1D]     = weightedEfficiency;
             efficiencyErrors[key_1D] = weightedUncertainty;
@@ -210,7 +205,7 @@ int main() {
     std::ofstream ofs;
     ofs.open(csvFilename.Data());
 
-    ofs << "kinematics,detector,target,Q2,"
+    ofs << "kinematics,detector,target,Q2,collimator,"
               << "hmsAngle,shmsAngle,hmsMomentum,shmsMomentum,"
               << "efficiency,efficiencyError,"
               << "efficiencyUnweighted,efficiencyUnweightedErrorUp,efficiencyUnweightedErrorLo" << std::endl;
@@ -222,6 +217,7 @@ int main() {
             // Spectrometer info
             TString target        = data->GetTarget(k);
             Double_t Q2           = data->GetQ2(k);
+            TString collimator    = data->GetCollimator(k);
             Double_t hmsAngle     = data->GetHMSAngle(k);
             Double_t shmsAngle    = data->GetSHMSAngle(k);
             Double_t hmsMomentum  = data->GetHMSMomentum(k);
@@ -235,8 +231,8 @@ int main() {
             Double_t efficiencyUnweightedErrorLo = efficiencyCalculators0D[key_0D]->GetEfficiencyErrorLow();
 
             // Form print string
-            TString printMe = Form("%s,%s,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
-                                    k.Data(), d.Data(), target.Data(), Q2,
+            TString printMe = Form("%s,%s,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+                                    k.Data(), d.Data(), target.Data(), Q2, collimator.Data(),
                                     hmsAngle, shmsAngle, hmsMomentum, shmsMomentum,
                                     efficiency, efficiencyError,
                                     efficiencyUnweighted,
