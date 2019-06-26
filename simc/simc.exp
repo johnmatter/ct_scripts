@@ -1,0 +1,14 @@
+#!/bin/expect
+# Command line argument specifies input file for simc
+set infile [lindex $argv 0]
+
+# Where is simc?
+set simc "/work/hallc/e1206107/jmatter/simc_gfortran/simc"
+
+# Start simc
+spawn $simc
+
+# simc expects user to input filename
+expect "Enter the input filename" { send "$infile\r" }
+
+interact

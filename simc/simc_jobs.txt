@@ -1,0 +1,10 @@
+/home/jmatter/ct_scripts/simc/run_simc.sh c12_q_115.inp
+/home/jmatter/ct_scripts/simc/run_simc.sh c12_q_95.inp
+/home/jmatter/ct_scripts/simc/run_simc.sh h1_q_115.inp
+/home/jmatter/ct_scripts/simc/run_simc.sh h1_q_95.inp
+/home/jmatter/ct_scripts/simc/run_simc.sh c12_q_143.inp
+/home/jmatter/ct_scripts/simc/run_simc.sh c12thin_q_8.inp
+/home/jmatter/ct_scripts/simc/run_simc.sh h1_q_143.inp
+/home/jmatter/ct_scripts/simc/run_simc.sh c12_q_8.inp
+/home/jmatter/ct_scripts/simc/run_simc.sh c12thin_q_95.inp
+/home/jmatter/ct_scripts/simc/run_simc.sh h1_q_8.inp
