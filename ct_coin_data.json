@@ -108,7 +108,7 @@
             "hmsAngle"  : 45.1,
             "shmsP"     : 5.122,
             "hmsP"      : 2.131,
-            "target"    : "C12",
+            "target"    : "C12_both",
             "collimator": "pion",
             "runlist"   : "runs_C12_Q2_8",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
@@ -144,7 +144,7 @@
             "hmsAngle"  : 23.2,
             "shmsP"     : 5.925,
             "hmsP"      : 5.539,
-            "target"    : "C12",
+            "target"    : "C12_both",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_10",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
@@ -180,7 +180,7 @@
             "hmsAngle"  : 28.5,
             "shmsP"     : 7.001,
             "hmsP"      : 4.478,
-            "target"    : "C12",
+            "target"    : "C12_thick",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_12",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
@@ -192,7 +192,7 @@
             "hmsAngle"  : 39.3,
             "shmsP"     : 8.505,
             "hmsP"      : 2.982,
-            "target"    : "C12",
+            "target"    : "C12_thick",
             "collimator": "both",
             "runlist"   : "runs_C12_Q2_14",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
@@ -204,7 +204,7 @@
             "hmsAngle"  : 39.3,
             "shmsP"     : 8.505,
             "hmsP"      : 2.982,
-            "target"    : "C12",
+            "target"    : "C12_thick",
             "collimator": "pion",
             "runlist"   : "runs_C12_Q2_14_pion_collimator",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
@@ -216,7 +216,7 @@
             "hmsAngle"  : 39.3,
             "shmsP"     : 8.505,
             "hmsP"      : 2.982,
-            "target"    : "C12",
+            "target"    : "C12_thick",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_14_large_collimator",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
@@ -228,7 +228,7 @@
             "hmsAngle"  : 39.3,
             "shmsP"     : 8.505,
             "hmsP"      : 2.982,
-            "target"    : "C12",
+            "target"    : "C12_thick",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_14_beginning",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
@@ -240,7 +240,7 @@
             "hmsAngle"  : 39.3,
             "shmsP"     : 8.505,
             "hmsP"      : 2.982,
-            "target"    : "C12",
+            "target"    : "C12_thick",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_14_middle",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
@@ -252,7 +252,7 @@
             "hmsAngle"  : 39.3,
             "shmsP"     : 8.505,
             "hmsP"      : 2.982,
-            "target"    : "C12",
+            "target"    : "C12_thick",
             "collimator": "both",
             "runlist"   : "runs_C12_Q2_14_end",
             "rootfileTemplate" : "%s/coin_replay_production_%d_-1.root"
