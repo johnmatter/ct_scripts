@@ -4,7 +4,7 @@
 infile=$1
 
 # This uses /bin/expect to "simulate" user input to simc
-simc_expect_script=/home/jmatter/ct_scripts/simc/simc.exp
+simc_expect_script=/home/jmatter/ct_scripts/simc/run/simc.exp
 
 # We need to cd here to run simc
 simc_dir=/work/hallc/e1206107/jmatter/simc_gfortran

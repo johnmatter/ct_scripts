@@ -1,7 +1,7 @@
 {
     "jobs": [
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh c12_q_115.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_115.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12_q_115",
@@ -9,13 +9,13 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/c12_q_115.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/c12_q_115.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/c12_q_115.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/c12_q_115.out",
             "timeSecs": 14400,
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh c12_q_95.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_95.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12_q_95",
@@ -23,13 +23,13 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/c12_q_95.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/c12_q_95.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/c12_q_95.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/c12_q_95.out",
             "timeSecs": 14400,
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh h1_q_115.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_115.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "h1_q_115",
@@ -37,13 +37,13 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/h1_q_115.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/h1_q_115.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/h1_q_115.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/h1_q_115.out",
             "timeSecs": 14400,
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh h1_q_95.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_95.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "h1_q_95",
@@ -51,13 +51,13 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/h1_q_95.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/h1_q_95.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/h1_q_95.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/h1_q_95.out",
             "timeSecs": 14400,
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh c12_q_143.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_143.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12_q_143",
@@ -65,13 +65,13 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/c12_q_143.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/c12_q_143.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/c12_q_143.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/c12_q_143.out",
             "timeSecs": 14400,
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh c12thin_q_8.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12thin_q_8.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12thin_q_8",
@@ -79,13 +79,13 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/c12thin_q_8.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/c12thin_q_8.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/c12thin_q_8.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/c12thin_q_8.out",
             "timeSecs": 14400,
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh h1_q_143.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_143.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "h1_q_143",
@@ -93,13 +93,13 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/h1_q_143.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/h1_q_143.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/h1_q_143.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/h1_q_143.out",
             "timeSecs": 14400,
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh c12_q_8.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_8.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12_q_8",
@@ -107,13 +107,13 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/c12_q_8.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/c12_q_8.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/c12_q_8.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/c12_q_8.out",
             "timeSecs": 14400,
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh c12thin_q_95.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12thin_q_95.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12thin_q_95",
@@ -121,13 +121,13 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/c12thin_q_95.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/c12thin_q_95.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/c12thin_q_95.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/c12thin_q_95.out",
             "timeSecs": 14400,
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run_simc.sh h1_q_8.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_8.inp",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "h1_q_8",
@@ -135,8 +135,8 @@
             "project": "c-comm2017",
             "ramBytes": 2500000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/simc/swif_output/h1_q_8.err",
-            "stdout": "/home/jmatter/ct_scripts/simc/swif_output/h1_q_8.out",
+            "stderr": "/home/jmatter/ct_scripts/simc/run/swif_output/h1_q_8.err",
+            "stdout": "/home/jmatter/ct_scripts/simc/run/swif_output/h1_q_8.out",
             "timeSecs": 14400,
             "track": "analysis"
         }
