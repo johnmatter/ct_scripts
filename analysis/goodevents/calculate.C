@@ -9,8 +9,7 @@
 #include <vector>
 #include <map>
 
-// This is an example script showing typical things you might want to do
-// with the CTData and CTCuts classes in an analysis
+// Calculate number of good events for all kinematics and print to CSV
 int main() {
     // Load data and cuts
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
@@ -19,36 +18,43 @@ int main() {
     // Which kinematics?
     std::vector<TString> kinematics = data->GetNames();
 
-    // Which cuts?
-    TCut myCut = cuts->Get("hBetaCut") && cuts->Get("pBetaCut");
-
     // Store some kind of information
-    std::map<TString, Double_t> randomNumbers;
     std::map<TString, TH1F*> histograms;
     std::map<TString, Int_t> goodevents;
 
     // Where are we saving data?
     TString csvFilename = "output.csv";
-    TString pdfFilename = "output.pdf";
 
     // ------------------------------------------------------------------------
-    // Loop over kinematics and do something
+    // Loop over kinematics and calculate good events
     for (auto const &k : kinematics) {
         std::cout << "Processing " << k << std::endl;
-        // A random number
-        randomNumbers[k] = gRandom->Gaus(10,2);
+
+        // Which cut?
+        TCut cut = "initialize";
+        if (k.Contains("C12")) {
+            cut = cuts->Get("coinCutsC12");
+        }
+        if (k.Contains("LH2")) {
+            cut = cuts->Get("coinCutsLH2");
+        }
+        if (cut == "initialize") {
+            std::cerr << "Did not find cut for this kinematics: " << k << std::endl;
+            continue;
+        }
 
         // Draw a histogram
+        // We'll use HMS delta as a dummy variable
         TString branchName = "H.gtr.dp";
-        TString histoName = Form("%s_%d", k.Data(), branchName.Data());
-        Int_t bins = 100;
+        TString histoName = k;
+        Int_t bins = 20;
         Double_t lowBin = -10;
         Double_t hiBin  = -10;
         TString drawMe = Form("%s>>%s(%d,%f,%f)",
                                branchName.Data(), histoName.Data(),
                                bins, lowBin, hiBin);
 
-        data->GetChain(k, "T")->Draw(drawMe.Data(), myCut, "goff");
+        data->GetChain(k, "T")->Draw(drawMe.Data(), cut, "goff");
 
         histograms[k] = (TH1F*) gDirectory->Get(histoName.Data());
 
@@ -67,25 +73,20 @@ int main() {
     std::ofstream ofs;
     ofs.open(csvFilename.Data());
 
-    // open PDF; "filename.pdf["
-    TCanvas* c1 = new TCanvas("c1", "canvas", 640, 480);
-    c1->Print((pdfFilename+"[").Data());
-
     // print header
-    ofs << "kinematics,randnum,goodevents" << std::endl;
+    ofs << "kinematics,target,Q2,collimator,goodevents" << std::endl;
 
     for (auto const &k : kinematics) {
         std::cout << "Printing " << k << std::endl;
         //write to csv
-        ofs << k << "," << randomNumbers[k] << "," << goodevents[k] << std::endl;
-
-        // write page to PDF
-        c1->Print(pdfFilename.Data());
+        ofs << k
+            << "," << data->GetTarget(k)
+            << "," << data->GetQ2(k)
+            << "," << data->GetCollimator(k)
+            << "," << goodevents[k]
+            << std::endl;
     }
 
     // close csv
     ofs.close();
-
-    // close PDF; "filename.pdf]"
-    c1->Print((pdfFilename+"]").Data());
 }
