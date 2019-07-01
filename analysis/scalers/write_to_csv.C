@@ -12,7 +12,7 @@
 
 // Print bcm currents, charges, and pTRIG1 rate
 void write_to_csv() {
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass2_newtrack.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // Which kinematics
