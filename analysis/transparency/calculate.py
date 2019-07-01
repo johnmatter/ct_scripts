@@ -1,6 +1,6 @@
 #!/apps/bin/python3
 import pandas as pd
-from itertools import product
+from warnings import warn
 
 #------------------------------------------------------------------------------
 def main():
@@ -34,7 +34,6 @@ def main():
 
     # Read csvs into a Pandas dataframe
     ctData = loadCsvs(csvs)
-
     # Filter on kinematics
     # ctData = filterDataframe(ctData, kinematics)
 
@@ -46,13 +45,13 @@ def main():
     # Calculate transparency from read data
     ctData = calculateTransparency(ctData)
 
-    print(ctData)
+    # print(ctData)
 
     # Write transparency to csv for plotting in another application
-    writeCsv(ctData)
+    writeCsv(ctData, "transparency.csv")
 
 #------------------------------------------------------------------------------
-def loadCsvs(csvDictionary):
+def loadCsvs(csvs):
 
     #------------------------
     # Start with simc data
@@ -78,7 +77,7 @@ def loadCsvs(csvDictionary):
     # Loop over detector and add it
     for thisDetector in list(set(pidDf.detector)):
         # Get subset
-        detectorDf = pidDf[pidDf.detector == thisDetector]
+        detectorDf = pidDf[pidDf.detector == thisDetector].copy()
 
         # Rename 'efficiency' column to detector name
         detectorDf.rename({'efficiency': thisDetector}, axis=1, inplace=True)
@@ -140,9 +139,12 @@ def calculateTransparency(df):
     thickness="C12_thick"
     lh2 = df[(df.collimator==collim) & (df.Q2==q) & (df.target=="LH2")]
     c12 = df[(df.collimator==collim) & (df.Q2==q) & (df.target==thickness)]
-    print(q)
-    print(lh2)
-    print(c12)
+
+    if (len(lh2.index)!=1):
+        warn('Too many (len=%d) lh2 matches for: collimator=%s, Q^2=%f, C12=%s' % (len(lh2.index), collim, q, thickness))
+    if (len(c12.index)!=1):
+        warn('Too many (len=%d) c12 matches for: collimator=%s, Q^2=%f, C12=%s' % (len(lh2.index), collim, q, thickness))
+
     T = c12.yieldratio.values[0] / lh2.yieldratio.values[0]
     transparencies.append({"Q2": q, "C12": thickness, "collimator": collim, "transparency": T})
 
@@ -153,9 +155,12 @@ def calculateTransparency(df):
     thickness="C12_thick"
     lh2 = df[(df.collimator==collim) & (df.Q2==q) & (df.target=="LH2")]
     c12 = df[(df.collimator==collim) & (df.Q2==q) & (df.target==thickness)]
-    print(q)
-    print(lh2)
-    print(c12)
+
+    if (len(lh2.index)!=1):
+        warn('Too many (len=%d) lh2 matches for: collimator=%s, Q^2=%f, C12=%s' % (len(lh2.index), collim, q, thickness))
+    if (len(c12.index)!=1):
+        warn('Too many (len=%d) c12 matches for: collimator=%s, Q^2=%f, C12=%s' % (len(lh2.index), collim, q, thickness))
+
     T = c12.yieldratio.values[0] / lh2.yieldratio.values[0]
     transparencies.append({"Q2": q, "C12": thickness, "collimator": collim, "transparency": T})
 
@@ -166,9 +171,12 @@ def calculateTransparency(df):
     thickness="C12_thick"
     lh2 = df[(df.collimator==collim) & (df.Q2==q) & (df.target=="LH2")]
     c12 = df[(df.collimator==collim) & (df.Q2==q) & (df.target==thickness)]
-    print(q)
-    print(lh2)
-    print(c12)
+
+    if (len(lh2.index)!=1):
+        warn('Too many (len=%d) lh2 matches for: collimator=%s, Q^2=%f, C12=%s' % (len(lh2.index), collim, q, thickness))
+    if (len(c12.index)!=1):
+        warn('Too many (len=%d) c12 matches for: collimator=%s, Q^2=%f, C12=%s' % (len(lh2.index), collim, q, thickness))
+
     T = c12.yieldratio.values[0] / lh2.yieldratio.values[0]
     transparencies.append({"Q2": q, "C12": thickness, "collimator": collim, "transparency": T})
 
@@ -179,9 +187,12 @@ def calculateTransparency(df):
     thickness="C12_thick"
     lh2 = df[(df.collimator==collim) & (df.Q2==q) & (df.target=="LH2")]
     c12 = df[(df.collimator==collim) & (df.Q2==q) & (df.target==thickness)]
-    print(q)
-    print(lh2)
-    print(c12)
+
+    if (len(lh2.index)!=1):
+        warn('Too many (len=%d) lh2 matches for: collimator=%s, Q^2=%f, C12=%s' % (len(lh2.index), collim, q, thickness))
+    if (len(c12.index)!=1):
+        warn('Too many (len=%d) c12 matches for: collimator=%s, Q^2=%f, C12=%s' % (len(lh2.index), collim, q, thickness))
+
     T = c12.yieldratio.values[0] / lh2.yieldratio.values[0]
     transparencies.append({"Q2": q, "C12": thickness, "collimator": collim, "transparency": T})
 
@@ -190,8 +201,8 @@ def calculateTransparency(df):
     return transparencyDf
 
 #------------------------------------------------------------------------------
-def writeCsv(ctData):
-    print('write')
+def writeCsv(ctData, filename):
+    ctData.to_csv(filename)
 
 #------------------------------------------------------------------------------
 if __name__ == '__main__':
