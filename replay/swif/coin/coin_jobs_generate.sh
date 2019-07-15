@@ -4,7 +4,7 @@
 # Hopefully this will make re-replaying easy when changes are made
 # to hcana or hallc_replay.
 
-hcswif_dir=/home/jmatter/ctswif/
+hcswif_dir=/home/jmatter/swif/ctswif/
 runlist_dir=/home/jmatter/ct_scripts/runlists/coin
 for f in `ls $runlist_dir/runs_*Q2_*`; do
     f_base=`basename $f`
