@@ -30,11 +30,11 @@
         },
         {
             "name" : "pLH2EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss < 0.05 && abs(P.kin.secondary.pmiss) < 0.1\""
+            "cut"  : "\"P.kin.secondary.emiss < 0.05 && abs(TMath::Sign(1,P.kin.secondary.pmiss_z)*P.kin.secondary.pmiss) < 0.025\""
         },
         {
             "name" : "pC12EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.08 && abs(P.kin.secondary.pmiss) < 0.3\""
+            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.08 && abs(TMath::Sign(1,P.kin.secondary.pmiss_z)*P.kin.secondary.pmiss) < 0.3\""
         },
         {
             "name" : "hHodoTimeCut",
@@ -178,11 +178,11 @@
         },
         {
             "name" : "pScinShouldh",
-            "cut"  : "pScinShould && pPIDCut"
+            "cut"  : "pScinShould && pPIDCut && hPIDCut"
         },
         {
             "name" : "pScinDidh",
-            "cut"  : "pScinDid && pPIDCut"
+            "cut"  : "pScinDid && pPIDCut && hPIDCut"
         },
         {
             "name" : "hScinGood",
@@ -218,11 +218,11 @@
         },
         {
             "name" : "hScinShoulde",
-            "cut"  : "hScinShould && hNoTrackPID"
+            "cut"  : "hScinShould && hPIDCut && pPIDCut"
         },
         {
             "name" : "hScinDide",
-            "cut"  : "hScinDid && hNoTrackPID"
+            "cut"  : "hScinDid && hPIDCut && pPIDCut"
         },
         {
             "name" : "pNGCerShould",
