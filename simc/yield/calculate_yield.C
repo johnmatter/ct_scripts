@@ -24,10 +24,13 @@ void calculate_yield() {
     std::map<std::tuple<Int_t, TString, TString>, Double_t> normfac;
 
     std::map<TString, TCut> cuts;
-    cuts["C12_thick"] = "Em<0.08 && abs(Pm)<0.3 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
-    cuts["C12_thin"]  = "Em<0.08 && abs(Pm)<0.3 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
+    // cuts["C12_thick"] = "Em<0.08 && abs(Pm)<0.3 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
+    // cuts["C12_thin"]  = "Em<0.08 && abs(Pm)<0.3 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
     // cuts["LH2"]       = "Em<0.1 && abs(Pm)<0.1 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
-    cuts["LH2"]       = "Em<0.05 && abs(Pm)<0.1 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
+    // cuts["LH2"]       = "Em<0.05 && abs(Pm)<0.1 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
+    cuts["C12_thick"] = "Em<0.08 && abs(Pm)<0.3";
+    cuts["C12_thin"]  = "Em<0.08 && abs(Pm)<0.3";
+    cuts["LH2"]       = "Em<0.1 && abs(Pm)<0.1";
 
     std::map<TString, TString> targetFilenameMap;
     targetFilenameMap["C12_thick"]="c12";
@@ -138,7 +141,7 @@ void calculate_yield() {
 
                 cutStr = Form("(%s)*(%s)", weightStr.Data(), cuts[target].GetTitle());
 
-                T->Draw(drawMe.Data(), weightStr.Data(), "goff");
+                T->Draw(drawMe.Data(), cutStr.Data(), "goff");
                 histo = (TH1F*) gDirectory->Get(histoname.Data());
 
                 // Get yield from integral. Bin=0 underflow. Bin n+1=overflow
