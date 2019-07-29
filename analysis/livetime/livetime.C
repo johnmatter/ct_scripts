@@ -14,13 +14,13 @@
 void livetime(TString spectrometer) {
     // ------------------------------------------------------------------------
     // Load our data and cuts
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_edtmdecode.json");
 
     // Which kinematics
     std::vector<TString> kinematics = data->GetNames();
 
     // CSV to save
-    TString csvFilename = "livetime.csv";
+    TString csvFilename = Form("livetime_%s.csv", spectrometer.Data());
 
     // Needed for reading data
     TString rootFilename;
@@ -28,40 +28,38 @@ void livetime(TString spectrometer) {
     TTree *T, *TS;
 
     // Store scaler reads and decoded data
-    std::map<TString, Double_t> scalerTotalBCM4A;
-    std::map<TString, Double_t> scalerTotalBCM4B;
-    std::map<TString, Double_t> scalerRateBCM4A;
-    std::map<TString, Double_t> scalerRateBCM4B;
     std::map<TString, Double_t> thisRead;
     std::map<TString, Double_t> prevRead;
     std::map<TString, Double_t> value;
 
+    // Key is <run, scaler>
+    std::map<std::tuple<Int_t, TString>, Double_t> scalerTotal;
+
     // Flags for whether or not event was above current threshold
-    std::vector<Bool_t> eventFlagBCM4A;
-    std::vector<Bool_t> eventFlagBCM4B;
+    std::vector<Bool_t> eventFlag;
 
     // Accepted triggers
-    std::map<TString, Int_t> acceptedTrigsBCM4A;
-    std::map<TString, Int_t> acceptedTrigsBCM4B;
+    // Key is <run, trigger, description>
+    std::map<std::tuple<Int_t, TString, TString>, Int_t> acceptedTrigs;
 
     // Scaler read's upper limit
     std::vector<Int_t> scalerEventNumber;
 
     // Scalers to read
     std::vector<TString> scalers;
-    TString bcm4A;
-    TString bcm4B;
+    TString bcm, bcmQ;
     TString timer;
     TString hodoTrig;
     TString hodoScaler;
     TString edtmScaler;
     if (spectrometer=="HMS") {
+        bcm = "H.BCM4A.scalerCurrent";
+        bcmQ = "H.BCM4A.scalerCharge",
+        timer = "H.1MHz.scalerTime";
+        hodoTrig = "hTRIG1";
+        hodoScaler = "H.hTRIG1.scaler";
+        edtmScaler = "H.EDTM.scaler";
         scalers = {
-                   "H.BCM4A.scalerCharge",
-                   "H.BCM4A.scalerCurrent",
-                   "H.BCM4B.scalerCharge",
-                   "H.BCM4B.scalerCurrent",
-                   "H.1MHz.scalerTime",
                    "H.S1X.scaler",    // S1X
                    "H.hTRIG1.scaler", // HMS 3/4
                    "H.hTRIG2.scaler", // HMS EL-REAL
@@ -70,22 +68,20 @@ void livetime(TString spectrometer) {
                    "H.hTRIG5.scaler", // HMS ?
                    "H.hTRIG6.scaler", // HMS ?
                    "H.EDTM.scaler",   // HMS EDTM
+                   bcm,
+                   bcmQ,
+                   timer,
                    "evNumber"
                   };
-        bcm4A = "H.BCM4A.scalerCurrent";
-        bcm4B = "H.BCM4B.scalerCurrent";
-        timer = "H.1MHz.scalerTime";
+    }
+    if (spectrometer=="SHMS") {
+        bcm = "P.BCM4A.scalerCurrent";
+        bcmQ = "P.BCM4A.scalerCharge",
+        timer = "P.1MHz.scalerTime";
         hodoTrig = "pTRIG1";
         hodoScaler = "P.pTRIG1.scaler";
         edtmScaler = "P.EDTM.scaler";
-    }
-    if (spectrometer=="SHMS") {
         scalers = {
-                   "P.BCM4A.scalerCharge",
-                   "P.BCM4A.scalerCurrent",
-                   "P.BCM4B.scalerCharge",
-                   "P.BCM4B.scalerCurrent",
-                   "P.1MHz.scalerTime",
                    "P.S1X.scaler",    // S1X
                    "P.pTRIG1.scaler", // SHMS 3/4
                    "P.pTRIG2.scaler", // SHMS EL-REAL
@@ -94,14 +90,11 @@ void livetime(TString spectrometer) {
                    "P.pTRIG5.scaler", // SHMS ?
                    "P.pTRIG6.scaler", // SHMS ?
                    "P.EDTM.scaler",   // SHMS EDTM
+                   bcm,
+                   bcmQ,
+                   timer,
                    "evNumber"
                   };
-        bcm4A = "P.BCM4A.scalerCurrent";
-        bcm4B = "P.BCM4B.scalerCurrent";
-        timer = "P.1MHz.scalerTime";
-        hodoTrig = "hTRIG1";
-        hodoScaler = "H.hTRIG1.scaler";
-        edtmScaler = "H.EDTM.scaler";
     }
 
     // Current threshold for trips in uA
@@ -109,10 +102,8 @@ void livetime(TString spectrometer) {
     Double_t currentThreshold = 10.0;
 
     // Data we need from T
-    std::vector<TString> branches;
-    branches = {
-                // "g.evtyp",
-                // "g.evnum",
+    std::vector<TString> trigBranches;
+    trigBranches = {
                 "T.coin.hTRIG1_ROC1_tdcTimeRaw",
                 "T.coin.hTRIG2_ROC1_tdcTimeRaw",
                 "T.coin.hTRIG3_ROC1_tdcTimeRaw",
@@ -137,8 +128,18 @@ void livetime(TString spectrometer) {
                 "T.coin.pTRIG4_ROC2_tdcTimeRaw",
                 "T.coin.pTRIG5_ROC2_tdcTimeRaw",
                 "T.coin.pTRIG6_ROC2_tdcTimeRaw",
+                };
+
+    std::vector<TString> edtmBranches;
+    edtmBranches = {
                 "T.coin.hEDTM_tdcTimeRaw",
-                "T.coin.pEDTM_tdcTimeRaw",
+                "T.coin.pEDTM_tdcTimeRaw"
+                };
+
+    std::vector<TString> dataBranches;
+    dataBranches = {
+                // "g.evtyp",
+                // "g.evnum",
                 "H.cal.etottracknorm",
                 "H.cer.npeSum",
                 "P.ngcer.npeSum",
@@ -148,40 +149,33 @@ void livetime(TString spectrometer) {
                 "H.dc.ntrack"
                };
 
-    std::map<Int_t, Double_t> cpuLTBCM4A;
-    std::map<Int_t, Double_t> trigLTBCM4A;
-    std::map<Int_t, Int_t> nHodoTrigsBCM4A;
-    std::map<Int_t, Int_t> nhEDTMTrigsBCM4A;
-    std::map<Int_t, Int_t> npEDTMTrigsBCM4A;
-    std::map<Int_t, Int_t> scalerCountHodoBCM4A;
-    std::map<Int_t, Int_t> scalerCountEDTMBCM4A;
-    std::map<Int_t, Double_t> cpuLTBCM4B;
-    std::map<Int_t, Double_t> trigLTBCM4B;
-    std::map<Int_t, Int_t> nHodoTrigsBCM4B;
-    std::map<Int_t, Int_t> nhEDTMTrigsBCM4B;
-    std::map<Int_t, Int_t> npEDTMTrigsBCM4B;
-    std::map<Int_t, Int_t> scalerCountHodoBCM4B;
-    std::map<Int_t, Int_t> scalerCountEDTMBCM4B;
-
     // ------------------------------------------------------------------------
-    // Calculate live time
+    // Count triggers, calculate livetime
     for (auto const &k : kinematics) {
+        // We didn't have EDTM for Q^2=8 GeV^2 data, so skip for now
+        // There are ways to do this without the EDTM, but I don't have it
+        // implemented in this script yet.
+        if (data->GetQ2(k)==8) {
+            continue;
+        }
+
         for (auto const &run : data->GetRuns(k)) {
             std::cout << "Run: " << run << "--------------------" << std::endl;
 
+            // ----------------------------------------------------------------
+            // Bookkeeping
+
             // Initialize scalers, branches, counts, etc.
             for (auto const &scaler: scalers) {
-                thisRead[scaler]  = 0;
+                thisRead[scaler] = 0;
                 prevRead[scaler] = 0;
-                scalerTotalBCM4A[scaler]  = 0;
-                scalerTotalBCM4B[scaler]  = 0;
+                scalerTotal[std::make_tuple(run,scaler)] = 0;
+                for (std::map<tuple<Int_t, TString, TString>, Int_t>::iterator it=acceptedTrigs.begin(); it!=acceptedTrigs.end(); it++) {
+                    acceptedTrigs[it->first] = 0;
+                }
             }
-            eventFlagBCM4A.clear();
-            eventFlagBCM4B.clear();
+            eventFlag.clear();
             scalerEventNumber.clear();
-            acceptedTrigsBCM4A["EDTM"]=0;
-            acceptedTrigsBCM4A["hTRIG1"]=0;
-            acceptedTrigsBCM4A["pTRIG1"]=0;
 
             // Get trees for this run from the rootfile
             rootFilename = Form(data->GetRootfileTemplate(k),
@@ -196,19 +190,25 @@ void livetime(TString spectrometer) {
                 TS = (TTree*) f->Get("TSP");
             }
 
-            // Set branch addresses for our scalers
+            // Set branch addresses
             for (auto const &scaler: scalers) {
                 TS->SetBranchAddress(scaler, &(thisRead[scaler]));
             }
-            // Set branch addresses for our data
-            for (auto const &branch: branches) {
+            for (auto const &branch: trigBranches) {
+                T->SetBranchAddress(branch, &(value[branch]));
+            }
+            for (auto const &branch: edtmBranches) {
+                T->SetBranchAddress(branch, &(value[branch]));
+            }
+            for (auto const &branch: dataBranches) {
                 T->SetBranchAddress(branch, &(value[branch]));
             }
 
+            // ----------------------------------------------------------------
             // Loop over scalers and count triggers
             for (int i=0; i<TS->GetEntries(); i++) {
-                if (i%200==0) {
-                    std::cout << "Scaler progress: " << Double_t(i)/TS->GetEntries() << "%" << std::endl;
+                if (i%1000==0) {
+                    std::cout << "Scaler progress: " << 100*Double_t(i)/TS->GetEntries() << "%" << std::endl;
                 }
                 TS->GetEntry(i);
 
@@ -217,81 +217,42 @@ void livetime(TString spectrometer) {
 
                 // If current above threshold, increment scalerTotal by an amount
                 // equal to the difference between this read and the previous one
-                // BCM4A
-                eventFlagBCM4A.push_back(thisRead[bcm4A] > currentThreshold);
-                if (eventFlagBCM4A[i]) {
+                eventFlag.push_back(thisRead[bcm] > currentThreshold);
+                if (eventFlag[i]) {
                     for (auto const &scaler: scalers) {
-                        scalerTotalBCM4A[scaler] += (thisRead[scaler] - prevRead[scaler]);
-                    }
-                }
-                // BCM4B
-                eventFlagBCM4B.push_back(thisRead[bcm4A] > currentThreshold);
-                if (eventFlagBCM4B[i]) {
-                    for (auto const &scaler: scalers) {
-                        scalerTotalBCM4B[scaler] += (thisRead[scaler] - prevRead[scaler]);
+                        scalerTotal[std::make_tuple(run,scaler)] += (thisRead[scaler] - prevRead[scaler]);
                     }
                 }
             }
+            std::cout << "Scaler progress: 100%" << std::endl;
 
-            // Calculate rates
-            for (auto const &scaler: scalers) {
-                scalerRateBCM4A[scaler] = scalerTotalBCM4A[scaler] / scalerTotalBCM4A[timer];
-                scalerRateBCM4B[scaler] = scalerTotalBCM4B[scaler] / scalerTotalBCM4B[timer];
-            }
-
-            // Loop over data and count triggers
-            Bool_t nohEDTM, hEDTM, nopEDTM, pEDTM,
-                   hTRIG1, hTRIG2, hTRIG3, hTRIG4, hTRIG5, hTRIG6,
-                   pTRIG1, pTRIG2, pTRIG3, pTRIG4, pTRIG5, pTRIG6,
-                   hcer, pcer, hcal, ptrack, htrack;
+            // ----------------------------------------------------------------
+            // Loop over data and count triggers.
             // Need to keep track of scaler reads for current trips
             Int_t scalerRead = 0;
+            TString description;
             for (int i=0; i<T->GetEntries(); i++) {
-                if (i%500==0) {
+                if (i%2000==0) {
                     std::cout << "Data progress: " << 100*Double_t(i)/T->GetEntries() << "%" << std::endl;
                 }
-                // Cuts
-                nohEDTM  = value["T.coin.hEDTM_tdcTimeRaw"]==0;
-                hEDTM    = value["T.coin.hEDTM_tdcTimeRaw"]>0;
-                nopEDTM  = value["T.coin.pEDTM_tdcTimeRaw"]==0;
-                pEDTM    = value["T.coin.pEDTM_tdcTimeRaw"]>0;
-                hTRIG1  = value["T.coin.hTRIG1_tdcTimeRaw"]>0;
-                pTRIG1  = value["T.coin.pTRIG1_tdcTimeRaw"]>0;
-                hcer    = value["H.cer.npeSum"] > 0.0;
-                pcer    = value["P.ngcer.npeSum"] > 0.0;
-                hcal    = value["H.cal.etottracknorm"] > 0.0;
-                htrack  = value["H.dc.ntrack"] > 0;
-                ptrack  = value["P.dc.ntrack"] > 0;
+                T->GetEntry(i);
 
                 // Increment counts only if current not tripped
-                // BCM4A
-                if (eventFlagBCM4A[scalerRead]) {
-                    if (hEDTM) {
-                        acceptedTrigsBCM4A["hEDTM"]++;
-                    }
-                    if (pEDTM) {
-                        acceptedTrigsBCM4A["pEDTM"]++;
-                    }
-                    if (hTRIG1 && nohEDTM && nopEDTM) {
-                        acceptedTrigsBCM4A["hTRIG1"]++;
-                    }
-                    if (pTRIG1 && nohEDTM && nopEDTM) {
-                        acceptedTrigsBCM4A["pTRIG1"]++;
-                    }
-                }
-                // BCM4B
-                if (eventFlagBCM4B[scalerRead]) {
-                    if (hEDTM) {
-                        acceptedTrigsBCM4B["hEDTM"]++;
-                    }
-                    if (pEDTM) {
-                        acceptedTrigsBCM4B["pEDTM"]++;
-                    }
-                    if (hTRIG1 && nohEDTM && nopEDTM) {
-                        acceptedTrigsBCM4B["hTRIG1"]++;
-                    }
-                    if (pTRIG1 && nohEDTM && nopEDTM) {
-                        acceptedTrigsBCM4B["pTRIG1"]++;
+                if (eventFlag[scalerRead]) {
+                    for (auto const &edtm: edtmBranches) {
+                        // EDTM
+                        if (value[edtm]>0) {
+                            description = "accepted EDTM";
+                            acceptedTrigs[std::make_tuple(run, edtm, description)]++;
+                        }
+
+                        // trig and !EDTM
+                        for (auto const &trig: trigBranches) {
+                            if (value[trig]>0 && value[edtm]==0) {
+                                description = Form("!%s", edtm.Data());
+                                acceptedTrigs[std::make_tuple(run, trig, description)]++;
+                            }
+                        }
                     }
                 }
 
@@ -302,26 +263,14 @@ void livetime(TString spectrometer) {
                     scalerRead++;
                 }
             }
+            std::cout << "Data progress: 100%" << std::endl;
 
-            // The Goal! ------------------------
+            // ----------------------------------------------------------------
             // Calculate live time
-            // BCM4A
-            nHodoTrigsBCM4A[run] = acceptedTrigsBCM4A[hodoTrig];
-            nhEDTMTrigsBCM4A[run] = acceptedTrigsBCM4A["hEDTM"];
-            npEDTMTrigsBCM4A[run] = acceptedTrigsBCM4A["pEDTM"];
-            scalerCountHodoBCM4A[run] = scalerTotalBCM4A[hodoScaler];
-            scalerCountEDTMBCM4A[run] = scalerTotalBCM4A[edtmScaler];
-            cpuLTBCM4A[run]  = acceptedTrigsBCM4A[hodoTrig] / (scalerTotalBCM4A[hodoScaler] - scalerTotalBCM4A[edtmScaler]);
-            trigLTBCM4A[run] = acceptedTrigsBCM4A["EDTM"] / scalerTotalBCM4A[edtmScaler];
-            // BCM4B
-            nHodoTrigsBCM4B[run] = acceptedTrigsBCM4B[hodoTrig];
-            nhEDTMTrigsBCM4B[run] = acceptedTrigsBCM4B["hEDTM"];
-            npEDTMTrigsBCM4B[run] = acceptedTrigsBCM4B["pEDTM"];
-            scalerCountHodoBCM4B[run] = scalerTotalBCM4B[hodoScaler];
-            scalerCountEDTMBCM4B[run] = scalerTotalBCM4B[edtmScaler];
-            cpuLTBCM4B[run]  = acceptedTrigsBCM4B[hodoTrig] / (scalerTotalBCM4B[hodoScaler] - scalerTotalBCM4B[edtmScaler]);
-            trigLTBCM4B[run] = acceptedTrigsBCM4B[hodoTrig] / scalerTotalBCM4B[edtmScaler];
+            // cpuLT[run]  = acceptedTrigs[hodoTrig] / (scalerTotal[hodoScaler] - scalerTotal[edtmScaler]);
+            // trigLT[run] = acceptedTrigs[hodoTrig] / scalerTotal[edtmScaler];
 
+            // ----------------------------------------------------------------
             // Cleanup
             // Deleting the TFile frees the memory taken up by any objects Get()-ed form it
             f->Close();
@@ -337,38 +286,42 @@ void livetime(TString spectrometer) {
     ofs.open(csvFilename.Data());
 
     // Print header
-    ofs << "kinematics,target,Q2,collimator,run,spectrometer,"
-        << "nHodoTrigsBCM4A,nhEDTMTrigsBCM4A,npEDTMTrigsBCM4A,"
-        << "scalerCountHodoBCM4A,scalerCountEDTMBCM4A,cpuLTBCM4A,"
-        << "nHodoTrigsBCM4B,nhEDTMTrigsBCM4B,npEDTMTrigsBCM4B,"
-        << "scalerCountHodoBCM4B,scalerCountEDTMBCM4B,cpuLTBCM4B"
-        << std::endl;
 
     // Loop over kinematics
     for (auto const &k : kinematics) {
         for (auto const &run : data->GetRuns(k)) {
-            ofs        << k
-                << "," << data->GetTarget(k)
-                << "," << data->GetQ2(k)
-                << "," << data->GetCollimator(k)
-                << "," << spectrometer
-                << "," << run
-                // BCM4A
-                << "," << nHodoTrigsBCM4A[run]
-                << "," << nhEDTMTrigsBCM4A[run]
-                << "," << npEDTMTrigsBCM4A[run]
-                << "," << scalerCountHodoBCM4A[run]
-                << "," << scalerCountEDTMBCM4A[run]
-                << "," << cpuLTBCM4A[run]
-                << "," << trigLTBCM4A[run]
-                // BCM4B
-                << "," << nHodoTrigsBCM4B[run]
-                << "," << nhEDTMTrigsBCM4B[run]
-                << "," << npEDTMTrigsBCM4B[run]
-                << "," << scalerCountHodoBCM4B[run]
-                << "," << scalerCountEDTMBCM4B[run]
-                << "," << cpuLTBCM4B[run]
-                << "," << trigLTBCM4B[run]
+            // Print scaler counts
+            for (auto const &scaler: scalers) {
+                // Examples:
+                // LH2_Q2_8,LH2,8,pion,H.hTRIG1.scaler,scaler,3287568287652
+                ofs << k                      << ","
+                    << data->GetTarget(k)     << ","
+                    << data->GetQ2(k)         << ","
+                    << data->GetCollimator(k) << ","
+                    << run                    << ","
+                    << scaler                 << ","
+                    << "scaler"               << ","
+                    << scalerTotal[std::make_tuple(run,scaler)]
+                    << std::endl;
+            }
+        }
+        // Print accepted trigger counts
+        // This is outside the loop over runs because I used "description" and run as part of the tuple key
+        // It was easier in this moment to just loop using an iterator (which contains run).
+        // TODO: fix weird acceptedTrigs map
+        for (std::map<tuple<Int_t, TString, TString>, Int_t>::iterator it=acceptedTrigs.begin(); it!=acceptedTrigs.end(); it++) {
+            // Examples:
+            // LH2_Q2_8,LH2,8,pion,T.coin.hTRIG1_ROC2_tdcTimeRaw,!hEDTM,3568287652
+            // LH2_Q2_8,LH2,8,pion,T.coin.hTRIG1_ROC2_tdcTimeRaw,!hEDTM,3568287652
+            acceptedTrigs[it->first] = 0;
+            ofs << k                      << ","
+                << data->GetTarget(k)     << ","
+                << data->GetQ2(k)         << ","
+                << data->GetCollimator(k) << ","
+                << std::get<0>(it->first) << ","
+                << std::get<1>(it->first) << ","
+                << std::get<2>(it->first) << ","
+                << acceptedTrigs[it->first]
                 << std::endl;
         }
     }

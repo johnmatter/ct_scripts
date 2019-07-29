@@ -25,4 +25,4 @@ source $replay_setup
 analysis_dir=$(dirname $1)
 echo cd to $analysis_dir
 cd $analysis_dir
-hcana -q -b "$1++(\"$2\")"
+hcana -q -b "$1+(\"$2\")"

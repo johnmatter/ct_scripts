@@ -1,0 +1,19 @@
+{
+    "jobs": [
+        {
+            "command": '/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/livetime/plot_EDTM_vs_others.C',
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "ct_coin_edtm_plot",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/livetime/edtm_plot.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/livetime/edtm_plot.out",
+            "timeSecs": 36000,
+            "track": "analysis"
+        }
+    ],
+    "name": "ct_coin_edtm_plot"
+}
