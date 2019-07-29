@@ -35,7 +35,7 @@ void tracking() {
     ofs.open(csvFilename.Data());
 
     // Print header
-    TString printme = Form("kinematics,target,Q2,collimator,cut,should,did");
+    TString printme = Form("kinematics,target,Q2,collimator,cut,should,did,ratio");
     ofs << printme << std::endl;
     std::cout << printme << std::endl;
 
@@ -67,9 +67,9 @@ void tracking() {
         // Get counts
         nShould = hShould->Integral(1,2);
         nDid = hDid->Integral(1,2);
-        printme = Form("%s,%s,%.1f,%s,%s,%d,%d",
+        printme = Form("%s,%s,%.1f,%s,%s,%d,%d,%f",
                         k.Data(), data->GetTarget(k).Data(), data->GetQ2(k), data->GetCollimator(k).Data(),
-                        name.Data(), nShould, nDid);
+                        name.Data(), nShould, nDid, double(nDid)/nShould);
         ofs << printme << std::endl;
         std::cout << printme << std::endl;
 
@@ -91,9 +91,9 @@ void tracking() {
         // Get counts
         nShould = hShould->Integral(1,2);
         nDid = hDid->Integral(1,2);
-        printme = Form("%s,%s,%.1f,%s,%s,%d,%d",
+        printme = Form("%s,%s,%.1f,%s,%s,%d,%d,%f",
                         k.Data(), data->GetTarget(k).Data(), data->GetQ2(k), data->GetCollimator(k).Data(),
-                        name.Data(), nShould, nDid);
+                        name.Data(), nShould, nDid, double(nDid)/nShould);
         ofs << printme << std::endl;
         std::cout << printme << std::endl;
 
@@ -115,9 +115,9 @@ void tracking() {
         // Get counts
         nShould = hShould->Integral(1,2);
         nDid = hDid->Integral(1,2);
-        printme = Form("%s,%s,%.1f,%s,%s,%d,%d",
+        printme = Form("%s,%s,%.1f,%s,%s,%d,%d,%f",
                         k.Data(), data->GetTarget(k).Data(), data->GetQ2(k), data->GetCollimator(k).Data(),
-                        name.Data(), nShould, nDid);
+                        name.Data(), nShould, nDid, double(nDid)/nShould);
         ofs << printme << std::endl;
         std::cout << printme << std::endl;
 
@@ -139,9 +139,9 @@ void tracking() {
         // Get counts
         nShould = hShould->Integral(1,2);
         nDid = hDid->Integral(1,2);
-        printme = Form("%s,%s,%.1f,%s,%s,%d,%d",
+        printme = Form("%s,%s,%.1f,%s,%s,%d,%d,%f",
                         k.Data(), data->GetTarget(k).Data(), data->GetQ2(k), data->GetCollimator(k).Data(),
-                        name.Data(), nShould, nDid);
+                        name.Data(), nShould, nDid, double(nDid)/nShould);
         ofs << printme << std::endl;
         std::cout << printme << std::endl;
 
@@ -163,9 +163,9 @@ void tracking() {
         // Get counts
         nShould = hShould->Integral(1,2);
         nDid = hDid->Integral(1,2);
-        printme = Form("%s,%s,%.1f,%s,%s,%d,%d",
+        printme = Form("%s,%s,%.1f,%s,%s,%d,%d,%f",
                         k.Data(), data->GetTarget(k).Data(), data->GetQ2(k), data->GetCollimator(k).Data(),
-                        name.Data(), nShould, nDid);
+                        name.Data(), nShould, nDid, double(nDid)/nShould);
         ofs << printme << std::endl;
         std::cout << printme << std::endl;
     }
