@@ -1,0 +1,33 @@
+{
+    "jobs": [
+        {
+            "command": '/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/per_run/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/per_run/tracking.C SHMS',
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "ct_coin_tracking_shms",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/per_run/tracking_shms.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/per_run/tracking_shms.out",
+            "timeSecs": 36000,
+            "track": "analysis"
+        },
+        {
+            "command": '/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/per_run/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/per_run/tracking.C HMS',
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "ct_coin_tracking_hms",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/per_run/tracking_hms.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/per_run/tracking_hms.out",
+            "timeSecs": 36000,
+            "track": "analysis"
+        }
+    ],
+    "name": "ct_coin_tracking"
+}
