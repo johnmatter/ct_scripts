@@ -19,7 +19,7 @@
 // Each detector's efficiency vs delta plot is saved in a PDF.
 // A summary of the scalar event-weighted efficiencies are saved as a CSV.
 int main() {
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass3.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // Efficiency infrastructure
@@ -67,7 +67,7 @@ int main() {
             efficiencyCalculators0D[key_0D] = new Efficiency0D(key_0D.Data());
 
             // Set appropriate scan branch by spectrometer
-            // The first character should be either p or h, denoting SHMS or HMS
+            // The first character of detector name, d, should be either p or h, denoting SHMS or HMS
             TString scanBranch;
             Int_t scanBins;
             Double_t scanLo;
@@ -87,6 +87,7 @@ int main() {
                     break;
             }
             efficiencyCalculators0D[key_0D]->SetScanBranch(scanBranch);
+            efficiencyCalculators0D[key_0D]->SetScanRange(scanLo, scanHi);
             efficiencyCalculators1D[key_1D]->SetScanBranch(scanBranch);
             efficiencyCalculators1D[key_1D]->SetScanRange(scanBins, scanLo, scanHi);
 
