@@ -34,18 +34,17 @@ def main():
 
     # Read csvs into a Pandas dataframe
     ctData = loadCsvs(csvs)
+
     # Filter on kinematics
-    # ctData = filterDataframe(ctData, kinematics)
+    ctData = filterDataframe(ctData, kinematics)
 
     # Calculate transparency from read data
     ctData = calculateRatio(ctData)
 
-    print(ctData)
-
     # Calculate transparency from read data
-    ctData = calculateTransparency(ctData)
+    # ctData = calculateTransparency(ctData)
 
-    # print(ctData)
+    print(ctData)
 
     # Write transparency to csv for plotting in another application
     writeCsv(ctData, "transparency.csv")
@@ -85,7 +84,7 @@ def loadCsvs(csvs):
         detectorDf = detectorDf[keepColumns]
 
         # Add to ctData
-        # This will add some duplicate columns; I give them a prefix and then drop them
+        # This will add some duplicate columns; I give them a suffix and then drop them.
         # This isn't ideal, but because we're working with small amounts of data,
         # it isn't a problem.
         ctData = ctData.merge(detectorDf, how='inner', on=['Q2', 'target', 'collimator'], suffixes=('', '_DROPME'))
@@ -106,7 +105,7 @@ def loadCsvs(csvs):
 #------------------------------------------------------------------------------
 def filterDataframe(ctData, allKinematics):
     # Initialize list of False-es with same length as ctData
-    keepIndex = (pidDf.Q2 == -1)
+    keepIndex = (ctData.Q2 == -1)
 
     # Loop over allKinematics
     # Find matching row(s)
@@ -115,7 +114,7 @@ def filterDataframe(ctData, allKinematics):
         collim = kinematics['collimator']
         target = kinematics['target']
         Q2     = kinematics['Q2']
-        thisIndex = (pidDf.collimator==collim) & (pidDf.target==target) & (pidDf.Q2==Q2)
+        thisIndex = (ctData.collimator==collim) & (ctData.target==target) & (ctData.Q2==Q2)
         keepIndex = (keepIndex | thisIndex)
 
     return ctData[keepIndex]
@@ -202,7 +201,7 @@ def calculateTransparency(df):
 
 #------------------------------------------------------------------------------
 def writeCsv(ctData, filename):
-    ctData.to_csv(filename)
+    ctData.to_csv(filename, index=False)
 
 #------------------------------------------------------------------------------
 if __name__ == '__main__':
