@@ -9,6 +9,7 @@
 #include <TString.h>
 #include <TFile.h>
 #include <TTree.h>
+#include <TPaveLabel.h>
 
 #include <CTData.h>
 
@@ -148,7 +149,7 @@ void livetime() {
     std::map<TString, Int_t> tdcTimeWindowMin;
     std::map<TString, Int_t> tdcTimeWindowMax;
     for (int i=0; i<t_coin_tdcNames.size(); i++) {
-        TString tdc = t_coin_tdcNames[i];
+        TString tdc = Form("T.coin.%s_tdcTimeRaw",t_coin_tdcNames[i].Data());
 
         // TDC time window min
         if (i<t_coin_TdcTimeWindowMin.size()) {
@@ -224,8 +225,10 @@ void livetime() {
         // There are ways to do this without the EDTM, but I don't have it
         // implemented in this script yet.
         if (data->GetQ2(k)==8) {
+            std::cout << "Skip " << k << std::endl;
             continue;
         }
+        std::cout << "Begin " << k << std::endl;
 
         for (auto const &run : data->GetRuns(k)) {
             std::cout << "Run: " << run << "--------------------" << std::endl;
@@ -323,9 +326,9 @@ void livetime() {
                         // Check if inside the time window
                         if ((value[trig]>tdcTimeWindowMin[trig]) && (value[trig]<tdcTimeWindowMax[trig])) {
                             // Fill cut histo summed over runs for this kinematics
-                            histosPerKinematics[std::make_tuple(k, trig, "open")]->Fill(value[trig]);
+                            histosPerKinematics[std::make_tuple(k, trig, "cut")]->Fill(value[trig]);
                             // Fill cut histo for this run
-                            histosPerRun[std::make_tuple(k, run, trig, "open")]->Fill(value[trig]);
+                            histosPerRun[std::make_tuple(k, run, trig, "cut")]->Fill(value[trig]);
                         }
                     }
                 }
@@ -402,11 +405,19 @@ void livetime() {
     ofs.close();
 
     //-------------------------------------------------------------------------------------------------------------------------
+    // Write histos to disk
+    f = new TFile("histos.root");
+    f->Write();
+
+    //-------------------------------------------------------------------------------------------------------------------------
     // Print histos
     TH1F *histoOpen, *histoCut;
     TLine *windowMinMarker, *windowMaxMarker;
+    TPaveLabel*text;
     TString pdfFilename;
-    TCanvas* canvas = new TCanvas("canvas", "compare", 640, 480);
+    TString thisWindowLabel;
+    Double_t x1, y1, x2, y2;
+    TCanvas* canvas = new TCanvas("canvas", "compare", 700, 500);
 
     // Create one file for histos summed over all runs in a kinematic setting
     pdfFilename = "/home/jmatter/ct_scripts/analysis/livetime/histos_per_kinematics.pdf";
@@ -443,6 +454,16 @@ void livetime() {
             windowMaxMarker->SetLineStyle(7);
             windowMaxMarker->Draw();
 
+            // Label indicating window max/min
+            thisWindowLabel = Form("tdc window: (%d,%d)", tdcTimeWindowMin[branch], tdcTimeWindowMax[branch]);
+            x1 = 0;
+            x2 = canvas->GetUxmax()/4;
+            y1 = canvas->GetUymax() - (canvas->GetUymax()-canvas->GetUymin())*.05;
+            y2 = canvas ->GetUymax();
+            text = new TPaveLabel(x1, y1, x2, y2, thisWindowLabel.Data(), "brNDC");
+            text->Draw();
+            canvas->Update();
+
             canvas->Print(pdfFilename.Data());
 
             delete windowMaxMarker;
@@ -453,7 +474,7 @@ void livetime() {
 
     // Create one file with one page per run
     pdfFilename = "/home/jmatter/ct_scripts/analysis/livetime/histos_per_run.pdf";
-    canvas->Print((pdfFilename+"]").Data());
+    canvas->Print((pdfFilename+"[").Data());
     for (auto const &branch: trigBranches) {
         for (auto const &k : kinematics) {
             for (auto const &run : data->GetRuns(k)) {
@@ -486,6 +507,16 @@ void livetime() {
                 windowMaxMarker->SetLineColor(kGreen);
                 windowMaxMarker->SetLineStyle(7);
                 windowMaxMarker->Draw();
+
+                // Label indicating window max/min
+                thisWindowLabel = Form("tdc window: (%d,%d)", tdcTimeWindowMin[branch], tdcTimeWindowMax[branch]);
+                x1 = 0;
+                x2 = canvas->GetUxmax()/4;
+                y1 = canvas->GetUymax() - (canvas->GetUymax()-canvas->GetUymin())*.05;
+                y2 = canvas ->GetUymax();
+                text = new TPaveLabel(x1, y1, x2, y2, thisWindowLabel.Data(), "brNDC");
+                text->Draw();
+                canvas->Update();
 
                 canvas->Print(pdfFilename.Data());
 
