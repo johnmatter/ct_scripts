@@ -50,8 +50,7 @@ void plot_cuts() {
     //-------------------------------------------------------------------------------------------------------------------------
     // TODO: somehow read this info from the param file itself
     // This is my tcoin.param, with cuts set by Deepak.
-    // These are parallel arrays. They should have the same number of elements, but for some reason they do not.
-    // TODO: Is it safe to assume that hcana uses open windows if you don't specify limits?
+    // Default window in hcana is [0,10000]
     std::vector<TString> t_coin_adcNames = {
                             "hASUM", "hBSUM", "hCSUM", "hDSUM", "hPSHWR", "hSHWR", "hAER", "hCER", "hFADC_TREF_ROC1", "pAER",
                             "pHGCER", "pNGCER", "pPSHWR", "pFADC_TREF_ROC2", "pHGCER_MOD", "pNGCER_MOD", "pHEL_NEG", "pHEL_POS", "pHEL_MPS"};
@@ -61,13 +60,13 @@ void plot_cuts() {
                             "hDCREF4", "hTRIG1_ROC1", "hTRIG2_ROC1", "hTRIG3_ROC1", "hTRIG4_ROC1", "hTRIG5_ROC1", "hTRIG6_ROC1", "pTRIG1_ROC1", "pTRIG2_ROC1", "pTRIG3_ROC1",
                             "pTRIG4_ROC1", "pTRIG5_ROC1", "pTRIG6_ROC1", "pT1", "pT2", "p1X", "p1Y", "p2X", "p2Y", "p1T",
                             "p2T", "pT3", "pAER", "pHGCER", "pNGCER", "pDCREF1", "pDCREF2", "pDCREF3", "pDCREF4", "pDCREF5",
-                            "pDCREF6", "pDCREF7", "pDCREF8", "pDCREF9", "pDCREF10", "pEDTM", "", "pPRLO", "", "pPRHI",
-                            "", "pTRIG1_ROC2", "pTRIG2_ROC2", "pTRIG3_ROC2", "pTRIG4_ROC2", "pTRIG5_ROC2", "pTRIG6_ROC2", "hTRIG1_ROC2", "hTRIG2_ROC2", "hTRIG3_ROC2",
-                            "hTRIG4_ROC2", "hTRIG5_ROC2", "hTRIG6_ROC2", "pSTOF_ROC2", "pEL_LO_LO_ROC2", "pEL_LO_ROC2", "pEL_HI_ROC2", "pEL_REAL_ROC2", "pEL_CLEAN_ROC2", "hSTOF_ROC2",
-                            "hEL_LO_LO_ROC2", "hEL_LO_ROC2", "hEL_HI_ROC2", "hEL_REAL_ROC2", "hEL_CLEAN_ROC2", "pSTOF_ROC1", "pEL_LO_LO_ROC1", "pEL_LO_ROC1", "pEL_HI_ROC1", "pEL_REAL_ROC1",
-                            "pEL_CLEAN_ROC1", "hSTOF_ROC1", "hEL_LO_LO_ROC1", "hEL_LO_ROC1", "hEL_HI_ROC1", "hEL_REAL_ROC1", "hEL_CLEAN_ROC1", "pPRE40_ROC1", "pPRE100_ROC1", "pPRE150_ROC1",
-                            "pPRE200_ROC1", "hPRE40_ROC1", "hPRE100_ROC1", "hPRE150_ROC1", "hPRE200_ROC1", "pPRE40_ROC2", "pPRE100_ROC2", "pPRE150_ROC2", "pPRE200_ROC2", "hPRE40_ROC2",
-                            "hPRE100_ROC2", "hPRE150_ROC2", "hPRE200_ROC2", "hDCREF5", "hT3", "pRF", "hHODO_RF", "pHODO_RF"};
+                            "pDCREF6", "pDCREF7", "pDCREF8", "pDCREF9", "pDCREF10", "pEDTM", "pPRLO", "pPRHI", "pTRIG1_ROC2", "pTRIG2_ROC2",
+                            "pTRIG3_ROC2", "pTRIG4_ROC2", "pTRIG5_ROC2", "pTRIG6_ROC2", "hTRIG1_ROC2", "hTRIG2_ROC2", "hTRIG3_ROC2", "hTRIG4_ROC2", "hTRIG5_ROC2", "hTRIG6_ROC2",
+                            "pSTOF_ROC2", "pEL_LO_LO_ROC2", "pEL_LO_ROC2", "pEL_HI_ROC2", "pEL_REAL_ROC2", "pEL_CLEAN_ROC2", "hSTOF_ROC2", "hEL_LO_LO_ROC2", "hEL_LO_ROC2", "hEL_HI_ROC2",
+                            "hEL_REAL_ROC2", "hEL_CLEAN_ROC2", "pSTOF_ROC1", "pEL_LO_LO_ROC1", "pEL_LO_ROC1", "pEL_HI_ROC1", "pEL_REAL_ROC1", "pEL_CLEAN_ROC1", "hSTOF_ROC1", "hEL_LO_LO_ROC1",
+                            "hEL_LO_ROC1", "hEL_HI_ROC1", "hEL_REAL_ROC1", "hEL_CLEAN_ROC1", "pPRE40_ROC1", "pPRE100_ROC1", "pPRE150_ROC1", "pPRE200_ROC1", "hPRE40_ROC1", "hPRE100_ROC1",
+                            "hPRE150_ROC1", "hPRE200_ROC1", "pPRE40_ROC2", "pPRE100_ROC2", "pPRE150_ROC2", "pPRE200_ROC2", "hPRE40_ROC2", "hPRE100_ROC2", "hPRE150_ROC2", "hPRE200_ROC2",
+                            "hDCREF5", "hT3", "pRF", "hHODO_RF", "pHODO_RF"};
 
     std::vector<Int_t> t_coin_TdcTimeWindowMin = {
                             0, 0, 0, 0, 0, 0, 1500, 0, 0, 0,
@@ -116,7 +115,7 @@ void plot_cuts() {
         if (i<t_coin_TdcTimeWindowMax.size()) {
             tdcTimeWindowMax[tdc] = t_coin_TdcTimeWindowMax[i];
         } else {
-            tdcTimeWindowMax[tdc] = 100000;
+            tdcTimeWindowMax[tdc] = 10000;
             std::cout << "Index for " << tdc << " in t_coin_tdcNames beyond bounds of t_coin_TdcTimeWindowMax. Using " << tdcTimeWindowMax[tdc] << std::endl;
         }
     }
