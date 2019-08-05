@@ -118,7 +118,7 @@
         },
         {
             "name" : "hPiPID",
-            "cut"  : "\"H.cal.etottracknorm<0.8 && H.cer.npeSum<0.1\""
+            "cut"  : "\"H.cal.etottracknorm<0.8 && H.cer.npeSum==0\""
         },
         {
             "name" : "hPi",
@@ -126,7 +126,7 @@
         },
         {
             "name" : "hElecPID",
-            "cut"  : "hCerCut && hCalCut"
+            "cut"  : "\"H.cer.npeSum>9\" && hCalCut"
         },
         {
             "name" : "hElec",
