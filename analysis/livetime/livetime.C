@@ -10,6 +10,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TPaveLabel.h>
+#include <TPaveStats.h>
 
 #include <CTData.h>
 
@@ -23,7 +24,8 @@ void livetime() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_edtmdecode.json");
 
     // Which kinematics
-    std::vector<TString> kinematics = data->GetNames();
+    // std::vector<TString> kinematics = data->GetNames();
+    std::vector<TString> kinematics = {"C12_Q2_10_thick"};
 
     // CSV to save
     TString csvFilename = "livetime.csv";
@@ -48,6 +50,10 @@ void livetime() {
     // Key is <run, trigger, description>
     std::map<std::tuple<Int_t, TString, TString>, Int_t> acceptedTrigs;
 
+    // Livetimes
+    // Key is <run, lt> where lt is one of  {"edtm", "cpu", "phys"}
+    std::map<std::tuple<Int_t, TString>, Double_t> livetime;
+
     // Scaler read's upper limit
     std::vector<Int_t> scalerEventNumber;
 
@@ -55,18 +61,18 @@ void livetime() {
     TString bcm = "P.BCM4A.scalerCurrent";
     TString bcmQ = "P.BCM4A.scalerCharge";
     TString timer = "P.1MHz.scalerTime";
-    TString hodoTrig = "pTRIG1";
-    TString hodoScaler = "P.pTRIG1.scaler";
+    TString physBranch = "T.coin.pTRIG6_RC2_tdcTimeRaw";
+    TString physScaler = "P.pTRIG1.scaler";
     TString edtmScaler = "P.EDTM.scaler";
     std::vector<TString> scalers = {
                "P.pTRIG1.scaler", // SHMS 3/4
                "P.pTRIG4.scaler", // HMS  3/4
                "P.pTRIG6.scaler", // SHMS 3/4 & HMS 3/4 coincidence
                "P.EDTM.scaler",   // EDTM
-               bcm,
-               bcmQ,
-               timer,
-               "evNumber"
+               bcm,               // Merely for bookkeeping. The csv value is meaningless.
+               bcmQ,              // This one is actually useful.
+               timer,             // You can use this to get average current though.
+               "evNumber"         // Currently, this total will be wrong in the csv.
               };
 
     // Current threshold for trips in uA
@@ -108,13 +114,13 @@ void livetime() {
                             "hDCREF4", "hTRIG1_ROC1", "hTRIG2_ROC1", "hTRIG3_ROC1", "hTRIG4_ROC1", "hTRIG5_ROC1", "hTRIG6_ROC1", "pTRIG1_ROC1", "pTRIG2_ROC1", "pTRIG3_ROC1",
                             "pTRIG4_ROC1", "pTRIG5_ROC1", "pTRIG6_ROC1", "pT1", "pT2", "p1X", "p1Y", "p2X", "p2Y", "p1T",
                             "p2T", "pT3", "pAER", "pHGCER", "pNGCER", "pDCREF1", "pDCREF2", "pDCREF3", "pDCREF4", "pDCREF5",
-                            "pDCREF6", "pDCREF7", "pDCREF8", "pDCREF9", "pDCREF10", "pEDTM", "", "pPRLO", "", "pPRHI",
-                            "", "pTRIG1_ROC2", "pTRIG2_ROC2", "pTRIG3_ROC2", "pTRIG4_ROC2", "pTRIG5_ROC2", "pTRIG6_ROC2", "hTRIG1_ROC2", "hTRIG2_ROC2", "hTRIG3_ROC2",
-                            "hTRIG4_ROC2", "hTRIG5_ROC2", "hTRIG6_ROC2", "pSTOF_ROC2", "pEL_LO_LO_ROC2", "pEL_LO_ROC2", "pEL_HI_ROC2", "pEL_REAL_ROC2", "pEL_CLEAN_ROC2", "hSTOF_ROC2",
-                            "hEL_LO_LO_ROC2", "hEL_LO_ROC2", "hEL_HI_ROC2", "hEL_REAL_ROC2", "hEL_CLEAN_ROC2", "pSTOF_ROC1", "pEL_LO_LO_ROC1", "pEL_LO_ROC1", "pEL_HI_ROC1", "pEL_REAL_ROC1",
-                            "pEL_CLEAN_ROC1", "hSTOF_ROC1", "hEL_LO_LO_ROC1", "hEL_LO_ROC1", "hEL_HI_ROC1", "hEL_REAL_ROC1", "hEL_CLEAN_ROC1", "pPRE40_ROC1", "pPRE100_ROC1", "pPRE150_ROC1",
-                            "pPRE200_ROC1", "hPRE40_ROC1", "hPRE100_ROC1", "hPRE150_ROC1", "hPRE200_ROC1", "pPRE40_ROC2", "pPRE100_ROC2", "pPRE150_ROC2", "pPRE200_ROC2", "hPRE40_ROC2",
-                            "hPRE100_ROC2", "hPRE150_ROC2", "hPRE200_ROC2", "hDCREF5", "hT3", "pRF", "hHODO_RF", "pHODO_RF"};
+                            "pDCREF6", "pDCREF7", "pDCREF8", "pDCREF9", "pDCREF10", "pEDTM", "pPRLO", "pPRHI", "pTRIG1_ROC2", "pTRIG2_ROC2",
+                            "pTRIG3_ROC2", "pTRIG4_ROC2", "pTRIG5_ROC2", "pTRIG6_ROC2", "hTRIG1_ROC2", "hTRIG2_ROC2", "hTRIG3_ROC2", "hTRIG4_ROC2", "hTRIG5_ROC2", "hTRIG6_ROC2",
+                            "pSTOF_ROC2", "pEL_LO_LO_ROC2", "pEL_LO_ROC2", "pEL_HI_ROC2", "pEL_REAL_ROC2", "pEL_CLEAN_ROC2", "hSTOF_ROC2", "hEL_LO_LO_ROC2", "hEL_LO_ROC2", "hEL_HI_ROC2",
+                            "hEL_REAL_ROC2", "hEL_CLEAN_ROC2", "pSTOF_ROC1", "pEL_LO_LO_ROC1", "pEL_LO_ROC1", "pEL_HI_ROC1", "pEL_REAL_ROC1", "pEL_CLEAN_ROC1", "hSTOF_ROC1", "hEL_LO_LO_ROC1",
+                            "hEL_LO_ROC1", "hEL_HI_ROC1", "hEL_REAL_ROC1", "hEL_CLEAN_ROC1", "pPRE40_ROC1", "pPRE100_ROC1", "pPRE150_ROC1", "pPRE200_ROC1", "hPRE40_ROC1", "hPRE100_ROC1",
+                            "hPRE150_ROC1", "hPRE200_ROC1", "pPRE40_ROC2", "pPRE100_ROC2", "pPRE150_ROC2", "pPRE200_ROC2", "hPRE40_ROC2", "hPRE100_ROC2", "hPRE150_ROC2", "hPRE200_ROC2",
+                            "hDCREF5", "hT3", "pRF", "hHODO_RF", "pHODO_RF"};
 
     std::vector<Int_t> t_coin_TdcTimeWindowMin = {
                             0, 0, 0, 0, 0, 0, 1500, 0, 0, 0,
@@ -157,14 +163,16 @@ void livetime() {
         } else {
             tdcTimeWindowMin[tdc] = 0;
             std::cout << "Index for " << tdc << " in t_coin_tdcNames beyond bounds of t_coin_TdcTimeWindowMin. Using " << tdcTimeWindowMin[tdc] << std::endl;
+            std::cout << "CHECK YOUR VECTORS" << std::endl;
         }
 
         // TDC time window max
         if (i<t_coin_TdcTimeWindowMax.size()) {
             tdcTimeWindowMax[tdc] = t_coin_TdcTimeWindowMax[i];
         } else {
-            tdcTimeWindowMax[tdc] = 100000;
+            tdcTimeWindowMax[tdc] = 10000;
             std::cout << "Index for " << tdc << " in t_coin_tdcNames beyond bounds of t_coin_TdcTimeWindowMax. Using " << tdcTimeWindowMax[tdc] << std::endl;
+            std::cout << "CHECK YOUR VECTORS" << std::endl;
         }
     }
 
@@ -204,16 +212,32 @@ void livetime() {
             // Create histo for runs
             for (auto const &run : data->GetRuns(k)) {
                 histoName = Form("%s_run%d_%s_open", k.Data(), run, branch.Data());
-                histoTitle = Form("%s run %d;%s;Counts", k.Data(), run, branch.Data());
+                histoTitle = Form("%s: run %d;%s;Counts", k.Data(), run, branch.Data());
                 histosPerRun[std::make_tuple(k,run,branch,"open")] = new TH1F(histoName.Data(),
                                                                       histoTitle.Data(),
                                                                       nBins, xMin, xMax);
 
                 histoName = Form("%s_run%d_%s_cut", k.Data(), run, branch.Data());
-                histoTitle = Form("%s run %d;%s;Counts", k.Data(), run, branch.Data());
+                histoTitle = Form("%s: run %d;%s;Counts", k.Data(), run, branch.Data());
                 histosPerRun[std::make_tuple(k,run,branch,"cut")] = new TH1F(histoName.Data(),
                                                                       histoTitle.Data(),
                                                                       nBins, xMin, xMax);
+            }
+        }
+    }
+
+    // Initialize trig counters for all keys to be used in this analysis
+    TString description;
+    for (auto const &k: kinematics) {
+        for (auto const &run : data->GetRuns(k)) {
+            // EDTM
+            description = "accepted EDTM";
+            acceptedTrigs[std::make_tuple(run, edtmBranch, description)] = 0;
+
+            // trig and !EDTM
+            for (auto const &trig: trigBranches) {
+                description = Form("!%s", edtmBranch.Data());
+                acceptedTrigs[std::make_tuple(run, trig, description)] = 0;
             }
         }
     }
@@ -241,9 +265,9 @@ void livetime() {
                 thisRead[scaler] = 0;
                 prevRead[scaler] = 0;
                 scalerTotal[std::make_tuple(run,scaler)] = 0;
-                for (std::map<tuple<Int_t, TString, TString>, Int_t>::iterator it=acceptedTrigs.begin(); it!=acceptedTrigs.end(); it++) {
-                    acceptedTrigs[it->first] = 0;
-                }
+                // for (std::map<tuple<Int_t, TString, TString>, Int_t>::iterator it=acceptedTrigs.begin(); it!=acceptedTrigs.end(); it++) {
+                //     acceptedTrigs[it->first] = 0;
+                // }
             }
             eventFlag.clear();
             scalerEventNumber.clear();
@@ -275,7 +299,7 @@ void livetime() {
             // Loop over scalers and count triggers
             for (int i=0; i<TS->GetEntries(); i++) {
                 if (i%1000==0) {
-                    std::cout << "Scaler progress: " << 100*Double_t(i)/TS->GetEntries() << "%" << std::endl;
+                    std::cout << "Scaler progress: " << setprecision(3) << 100*Double_t(i)/TS->GetEntries() << "%" << std::endl;
                 }
                 TS->GetEntry(i);
 
@@ -287,26 +311,47 @@ void livetime() {
                 eventFlag.push_back(thisRead[bcm] > currentThreshold);
                 if (eventFlag[i]) {
                     for (auto const &scaler: scalers) {
-                        scalerTotal[std::make_tuple(run,scaler)] += (thisRead[scaler] - prevRead[scaler]);
+                        Double_t increment = (thisRead[scaler] - prevRead[scaler]);
+
+                        // // Debug cout
+                        // std::cout << Form("\n%-24s %d: %10.1f += ((%-10.0f-%-10.0f)=(%-6.0f))\n",
+                        //                    scaler.Data(),
+                        //                    i,
+                        //                    scalerTotal[std::make_tuple(run,scaler)],
+                        //                    thisRead[scaler],
+                        //                    prevRead[scaler],
+                        //                    increment);
+
+                        scalerTotal[std::make_tuple(run,scaler)] += (increment);
                     }
+                }
+
+                // Store this scaler read for the next read
+                for (auto const &scaler: scalers) {
+                    prevRead[scaler] = thisRead[scaler];
                 }
             }
             std::cout << "Scaler progress: 100%" << std::endl;
+
+            // // Debug cout
+            // for (auto const &scaler: scalers) {
+            //     std::cout << Form("%-24s total = %10.0f\n", scaler.Data(), scalerTotal[std::make_tuple(run,scaler)]);
+            // }
 
             // ----------------------------------------------------------------
             // Loop over data and count triggers.
             // Need to keep track of scaler reads for current trips
             Int_t scalerRead = 0;
-            TString description;
             for (int i=0; i<T->GetEntries(); i++) {
                 if (i%2000==0) {
-                    std::cout << "Data progress: " << 100*Double_t(i)/T->GetEntries() << "%" << std::endl;
+                    std::cout << "Data progress: " << setprecision(3) << 100*Double_t(i)/T->GetEntries() << "%" << std::endl;
                 }
                 T->GetEntry(i);
 
-                // If current not tripped, increment counts and fill histograms
+                // If current not tripped (according to scaler read above), increment counts and fill histograms
                 if (eventFlag[scalerRead]) {
                     // EDTM
+                    // std::cout << Form("%-32s %f in (%d, %d)?\n", edtmBranch.Data(), value[edtmBranch], tdcTimeWindowMin[edtmBranch], tdcTimeWindowMax[edtmBranch]);
                     if (value[edtmBranch]>0) {
                         description = "accepted EDTM";
                         acceptedTrigs[std::make_tuple(run, edtmBranch, description)]++;
@@ -314,17 +359,23 @@ void livetime() {
 
                     // trig and !EDTM
                     for (auto const &trig: trigBranches) {
-                        if (value[trig]>0 && value[edtmBranch]==0) {
-                            description = Form("!%s", edtmBranch.Data());
-                            acceptedTrigs[std::make_tuple(run, trig, description)]++;
-                        }
                         // Fill open histo summed over runs for this kinematics
                         histosPerKinematics[std::make_tuple(k, trig, "open")]->Fill(value[trig]);
                         // Fill open histo for this run
                         histosPerRun[std::make_tuple(k, run, trig, "open")]->Fill(value[trig]);
 
-                        // Check if inside the time window
-                        if ((value[trig]>tdcTimeWindowMin[trig]) && (value[trig]<tdcTimeWindowMax[trig])) {
+                        // Check if not an edtm trigger
+                        // std::cout << Form("event %d: %-32s %f in (%d, %d)?\n", i, trig.Data(), value[trig], tdcTimeWindowMin[trig], tdcTimeWindowMax[trig]);
+                        if (value[edtmBranch]==0 && value[trig]>0) {
+                            // Increment count of accepted triggers
+                            description = "!EDTM";
+                            acceptedTrigs[std::make_tuple(run, trig, description)]++;
+                        }
+
+                        // Check if inside the time window and not an edtm trigger
+                        // std::cout << Form("event %d: %-32s %f in (%d, %d)?\n", i, trig.Data(), value[trig], tdcTimeWindowMin[trig], tdcTimeWindowMax[trig]);
+                        if ((value[edtmBranch])==0 &&
+                            (value[trig]>tdcTimeWindowMin[trig]) && (value[trig]<tdcTimeWindowMax[trig])) {
                             // Fill cut histo summed over runs for this kinematics
                             histosPerKinematics[std::make_tuple(k, trig, "cut")]->Fill(value[trig]);
                             // Fill cut histo for this run
@@ -344,8 +395,11 @@ void livetime() {
 
             // ----------------------------------------------------------------
             // Calculate live time
-            // cpuLT[run]  = acceptedTrigs[hodoTrig] / (scalerTotal[hodoScaler] - scalerTotal[edtmScaler]);
-            // trigLT[run] = acceptedTrigs[hodoTrig] / scalerTotal[edtmScaler];
+            // scalerTotal is a Double_t so we should be fine without recasting anything
+            livetime[std::make_tuple(run,"edtm")] = acceptedTrigs[std::make_tuple(run,edtmBranch,"EDTM")] / scalerTotal[std::make_tuple(run,edtmScaler)];
+            livetime[std::make_tuple(run,"cpu")]  = acceptedTrigs[std::make_tuple(run,physBranch,"!EDTM")] / scalerTotal[std::make_tuple(run,physScaler)];
+            livetime[std::make_tuple(run,"phys")] = (acceptedTrigs[std::make_tuple(run,physBranch,"!EDTM")]-acceptedTrigs[std::make_tuple(run,edtmBranch,"EDTM")])
+                                                    / (scalerTotal[std::make_tuple(run,physScaler)]-scalerTotal[std::make_tuple(run,edtmScaler)]);
 
             // ----------------------------------------------------------------
             // Cleanup
@@ -363,11 +417,20 @@ void livetime() {
     ofs.open(csvFilename.Data());
 
     // Print header
+    ofs << "kinematics"           << ","
+        << "target"               << ","
+        << "Q2"                   << ","
+        << "collimator"           << ","
+        << "run"                  << ","
+        << "branch"               << ","
+        << "description"          << ","
+        << "count"
+        << std::endl;
 
     // Loop over kinematics
     for (auto const &k : kinematics) {
+        // Print scaler counts
         for (auto const &run : data->GetRuns(k)) {
-            // Print scaler counts
             for (auto const &scaler: scalers) {
                 // Examples:
                 // LH2_Q2_8,LH2,8,pion,H.hTRIG1.scaler,scaler,3287568287652
@@ -382,6 +445,7 @@ void livetime() {
                     << std::endl;
             }
         }
+
         // Print accepted trigger counts
         // This is outside the loop over runs because I used "description" and run as part of the tuple key
         // It was easier in this moment to just loop using an iterator (which contains run).
@@ -389,8 +453,6 @@ void livetime() {
         for (std::map<tuple<Int_t, TString, TString>, Int_t>::iterator it=acceptedTrigs.begin(); it!=acceptedTrigs.end(); it++) {
             // Examples:
             // LH2_Q2_8,LH2,8,pion,T.coin.hTRIG1_ROC2_tdcTimeRaw,!hEDTM,3568287652
-            // LH2_Q2_8,LH2,8,pion,T.coin.hTRIG1_ROC2_tdcTimeRaw,!hEDTM,3568287652
-            acceptedTrigs[it->first] = 0;
             ofs << k                      << ","
                 << data->GetTarget(k)     << ","
                 << data->GetQ2(k)         << ","
@@ -401,12 +463,29 @@ void livetime() {
                 << acceptedTrigs[it->first]
                 << std::endl;
         }
+
+        // Print livetimes
+        for (auto const &run : data->GetRuns(k)) {
+            for (TString lt: {"phys","edtm","cpu"}) {
+                // Examples:
+                // LH2_Q2_8,LH2,8,pion,H.hTRIG1.scaler,scaler,3287568287652
+                ofs << k                      << ","
+                    << data->GetTarget(k)     << ","
+                    << data->GetQ2(k)         << ","
+                    << data->GetCollimator(k) << ","
+                    << run                    << ","
+                    << lt                     << ","
+                    << "livetime"             << ","
+                    << scalerTotal[std::make_tuple(run,lt)]
+                    << std::endl;
+            }
+        }
     }
     ofs.close();
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Write histos to disk
-    f = new TFile("histos.root");
+    f = new TFile("histos.root","RECREATE");
     f->Write();
 
     //-------------------------------------------------------------------------------------------------------------------------
@@ -416,7 +495,6 @@ void livetime() {
     TPaveLabel*text;
     TString pdfFilename;
     TString thisWindowLabel;
-    Double_t x1, y1, x2, y2;
     TCanvas* canvas = new TCanvas("canvas", "compare", 700, 500);
 
     // Create one file for histos summed over all runs in a kinematic setting
@@ -456,13 +534,18 @@ void livetime() {
 
             // Label indicating window max/min
             thisWindowLabel = Form("tdc window: (%d,%d)", tdcTimeWindowMin[branch], tdcTimeWindowMax[branch]);
-            x1 = 0;
-            x2 = canvas->GetUxmax()/4;
-            y1 = canvas->GetUymax() - (canvas->GetUymax()-canvas->GetUymin())*.05;
-            y2 = canvas ->GetUymax();
-            text = new TPaveLabel(x1, y1, x2, y2, thisWindowLabel.Data(), "brNDC");
+            text = new TPaveLabel(0.125, 0.64, 0.3, 0.68, thisWindowLabel.Data(), "brNDC");
             text->Draw();
+            canvas->Modified();
             canvas->Update();
+
+            gPad->Update();
+            TPaveStats *st = (TPaveStats*)histoOpen->FindObject("stats");
+            st->SetX1NDC(0.125);
+            st->SetX2NDC(0.250);
+            st->SetY1NDC(0.700);
+            st->SetY2NDC(0.890);
+            st->Draw();
 
             canvas->Print(pdfFilename.Data());
 
@@ -510,13 +593,18 @@ void livetime() {
 
                 // Label indicating window max/min
                 thisWindowLabel = Form("tdc window: (%d,%d)", tdcTimeWindowMin[branch], tdcTimeWindowMax[branch]);
-                x1 = 0;
-                x2 = canvas->GetUxmax()/4;
-                y1 = canvas->GetUymax() - (canvas->GetUymax()-canvas->GetUymin())*.05;
-                y2 = canvas ->GetUymax();
-                text = new TPaveLabel(x1, y1, x2, y2, thisWindowLabel.Data(), "brNDC");
+                text = new TPaveLabel(0.125, 0.64, 0.3, 0.68, thisWindowLabel.Data(), "brNDC");
                 text->Draw();
+                canvas->Modified();
                 canvas->Update();
+
+                gPad->Update();
+                TPaveStats *st = (TPaveStats*) histoOpen->FindObject("stats");
+                st->SetX1NDC(0.125);
+                st->SetX2NDC(0.250);
+                st->SetY1NDC(0.700);
+                st->SetY2NDC(0.890);
+                st->Draw();
 
                 canvas->Print(pdfFilename.Data());
 
