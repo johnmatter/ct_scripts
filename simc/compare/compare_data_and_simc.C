@@ -49,8 +49,7 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     std::map<TString, TCut> simcCuts;
     simcCuts["C12_thick"] = "Em<0.08 && abs(Pm)<0.3 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
     simcCuts["C12_thin"]  = "Em<0.08 && abs(Pm)<0.3 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
-    // simcCuts["LH2"]       = "Em<0.1 && abs(Pm)<0.1 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
-    simcCuts["LH2"]       = "Em<0.05 && abs(Pm)<0.1 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
+    simcCuts["LH2"]       = "Em<0.05 && abs(Pm)<0.025 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
 
     std::map<TString, TString> targetFilenameMap;
     targetFilenameMap["C12_thick"]="c12";
@@ -68,7 +67,7 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
 
     TString normfacFile = "/home/jmatter/ct_scripts/simc/yield/normfac.csv";
 
-    TString pdfFilename = "/home/jmatter/ct_scripts/simc/compare/histos.pdf";
+    TString pdfFilename = "/home/jmatter/ct_scripts/simc/compare/simc_vs_data.pdf";
 
     //-------------------------------------------------------------------------------------------------------------------------
     // What branches do we want to plot?
@@ -84,165 +83,174 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     std::map<TString, Bool_t> logy;
 
     // Pmiss
-    branchDescription = "P_m";
+    branchDescription = "Pm_with_sign";
     branchDescriptions.push_back(branchDescription);
-    nBins[branchDescription] = 60;
+    nBins[branchDescription] = 100;
     loBin[branchDescription] = -0.3;
     hiBin[branchDescription] = +0.3;
     simcBranch[branchDescription] = "TMath::Sign(1,Pmpar)*Pm";
     dataBranch[branchDescription] = "TMath::Sign(1,P.kin.secondary.pmiss_z)*P.kin.secondary.pmiss";
     logy[branchDescription] = false;
 
-    // // Pmiss
-    // branchDescription = "Pmiss";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = 0.0;
-    // hiBin[branchDescription] = 0.5;
-    // simcBranch[branchDescription] = "Pm";
-    // dataBranch[branchDescription] = "P.kin.secondary.pmiss";
-    // logy[branchDescription] = false;
+    // Pmiss_zoom
+    branchDescription = "Pm_with_sign_zoom";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 100;
+    loBin[branchDescription] = -0.03;
+    hiBin[branchDescription] = +0.03;
+    simcBranch[branchDescription] = "TMath::Sign(1,Pmpar)*Pm";
+    dataBranch[branchDescription] = "TMath::Sign(1,P.kin.secondary.pmiss_z)*P.kin.secondary.pmiss";
+    logy[branchDescription] = false;
 
-    // // Pmiss_z
-    // branchDescription = "PmissZ";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -1.0;
-    // hiBin[branchDescription] = +1.0;
-    // simcBranch[branchDescription] = "Pm";
-    // dataBranch[branchDescription] = "P.kin.secondary.pmiss_z";
-    // logy[branchDescription] = false;
+    // Pmiss
+    branchDescription = "Pmiss";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 100;
+    loBin[branchDescription] = 0.0;
+    hiBin[branchDescription] = 0.3;
+    simcBranch[branchDescription] = "Pm";
+    dataBranch[branchDescription] = "P.kin.secondary.pmiss";
+    logy[branchDescription] = false;
 
-    // // Pmiss_par
-    // branchDescription = "PmissPar";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -1.0;
-    // hiBin[branchDescription] = +1.0;
-    // simcBranch[branchDescription] = "Pmpar";
-    // dataBranch[branchDescription] = "P.kin.secondary.?";
-    // logy[branchDescription] = false;
+    // Pmiss_zoom
+    branchDescription = "Pmiss_zoom";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 100;
+    loBin[branchDescription] = 0.0;
+    hiBin[branchDescription] = 0.03;
+    simcBranch[branchDescription] = "Pm";
+    dataBranch[branchDescription] = "P.kin.secondary.pmiss";
+    logy[branchDescription] = false;
 
-    // // Emiss
-    // branchDescription = "Emiss";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -0.2;
-    // hiBin[branchDescription] = +0.2;
-    // simcBranch[branchDescription] = "Em";
-    // dataBranch[branchDescription] = "P.kin.secondary.emiss";
-    // logy[branchDescription] = false;
+    // Pmiss_z
+    branchDescription = "PmissZ";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 100;
+    loBin[branchDescription] = -0.3;
+    hiBin[branchDescription] = +0.3;
+    simcBranch[branchDescription] = "Pmpar";
+    dataBranch[branchDescription] = "P.kin.secondary.pmiss_z";
+    logy[branchDescription] = false;
 
-    // // Emiss_nuc
-    // branchDescription = "Emiss_nuc";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -0.2;
-    // hiBin[branchDescription] = +0.2;
-    // simcBranch[branchDescription] = "Em";
-    // dataBranch[branchDescription] = "P.kin.secondary.emiss_nuc";
-    // logy[branchDescription] = false;
+    // Emiss
+    branchDescription = "Emiss";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 100;
+    loBin[branchDescription] = -0.05;
+    hiBin[branchDescription] = +0.05;
+    simcBranch[branchDescription] = "Em";
+    dataBranch[branchDescription] = "P.kin.secondary.emiss";
+    logy[branchDescription] = false;
 
-    // // W
-    // branchDescription = "W";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -2;
-    // hiBin[branchDescription] = +2;
-    // simcBranch[branchDescription] = "W";
-    // dataBranch[branchDescription] = "P.kin.primary.W";
-    // logy[branchDescription] = false;
+    // Emiss_nuc
+    branchDescription = "Emiss_nuc";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 100;
+    loBin[branchDescription] = -0.2;
+    hiBin[branchDescription] = +0.1;
+    simcBranch[branchDescription] = "Em";
+    dataBranch[branchDescription] = "P.kin.secondary.emiss_nuc";
+    logy[branchDescription] = false;
 
-    // // Q2
-    // branchDescription = "Q2";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 100;
-    // loBin[branchDescription] = 5;
-    // hiBin[branchDescription] = 20;
-    // simcBranch[branchDescription] = "Q2";
-    // dataBranch[branchDescription] = "P.kin.primary.Q2";
-    // logy[branchDescription] = false;
+    // W
+    branchDescription = "W";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 100;
+    loBin[branchDescription] = 0.5;
+    hiBin[branchDescription] = 1.5;
+    simcBranch[branchDescription] = "W";
+    dataBranch[branchDescription] = "H.kin.primary.W";
+    logy[branchDescription] = false;
 
-    // // hsdelta
-    // branchDescription = "HMSDelta";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -10;
-    // hiBin[branchDescription] = +10;
-    // simcBranch[branchDescription] = "hsdelta";
-    // dataBranch[branchDescription] = "H.gtr.dp";
-    // logy[branchDescription] = false;
+    // Q2
+    branchDescription = "Q2";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 100;
+    loBin[branchDescription] = 5;
+    hiBin[branchDescription] = 20;
+    simcBranch[branchDescription] = "Q2";
+    dataBranch[branchDescription] = "H.kin.primary.Q2";
+    logy[branchDescription] = false;
 
-    // // hsytar
-    // branchDescription = "HMSytar";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -10;
-    // hiBin[branchDescription] = +10;
-    // simcBranch[branchDescription] = "hsytar";
-    // dataBranch[branchDescription] = "H.gtr.ph";
-    // logy[branchDescription] = false;
+    // hsdelta
+    branchDescription = "HMSDelta";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 50;
+    loBin[branchDescription] = -10;
+    hiBin[branchDescription] = +10;
+    simcBranch[branchDescription] = "hsdelta";
+    dataBranch[branchDescription] = "H.gtr.dp";
+    logy[branchDescription] = false;
 
-    // // hsxptar
-    // branchDescription = "HMSxptar";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -0.1;
-    // hiBin[branchDescription] = +0.1;
-    // simcBranch[branchDescription] = "hsxptar";
-    // dataBranch[branchDescription] = "H.gtr.th";
-    // logy[branchDescription] = false;
+    // hsytar
+    branchDescription = "HMSytar";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 50;
+    loBin[branchDescription] = -5;
+    hiBin[branchDescription] = +5;
+    simcBranch[branchDescription] = "hsytar";
+    dataBranch[branchDescription] = "H.gtr.y";
+    logy[branchDescription] = false;
 
-    // // hsyptar
-    // branchDescription = "HMSyptar";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -0.1;
-    // hiBin[branchDescription] = +0.1;
-    // simcBranch[branchDescription] = "hsyptar";
-    // dataBranch[branchDescription] = "H.gtr.ph";
-    // logy[branchDescription] = false;
+    // hsxptar
+    branchDescription = "HMSxptar";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 50;
+    loBin[branchDescription] = -0.1;
+    hiBin[branchDescription] = +0.1;
+    simcBranch[branchDescription] = "hsxptar";
+    dataBranch[branchDescription] = "H.gtr.th";
+    logy[branchDescription] = false;
 
-    // // ssdelta
-    // branchDescription = "SHMSDelta";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -10;
-    // hiBin[branchDescription] = +10;
-    // simcBranch[branchDescription] = "ssdelta";
-    // dataBranch[branchDescription] = "P.gtr.dp";
-    // logy[branchDescription] = false;
+    // hsyptar
+    branchDescription = "HMSyptar";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 50;
+    loBin[branchDescription] = -0.1;
+    hiBin[branchDescription] = +0.1;
+    simcBranch[branchDescription] = "hsyptar";
+    dataBranch[branchDescription] = "H.gtr.ph";
+    logy[branchDescription] = false;
 
-    // // ssytar
-    // branchDescription = "SHMSytar";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -10;
-    // hiBin[branchDescription] = +10;
-    // simcBranch[branchDescription] = "hsytar";
-    // simcBranch[branchDescription] = "ssytar";
-    // dataBranch[branchDescription] = "P.gtr.ph";
-    // logy[branchDescription] = false;
+    // ssdelta
+    branchDescription = "SHMSDelta";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 50;
+    loBin[branchDescription] = -10;
+    hiBin[branchDescription] = +10;
+    simcBranch[branchDescription] = "ssdelta";
+    dataBranch[branchDescription] = "P.gtr.dp";
+    logy[branchDescription] = false;
 
-    // // ssxptar
-    // branchDescription = "SHMSxptar";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -0.1;
-    // hiBin[branchDescription] = +0.1;
-    // simcBranch[branchDescription] = "ssxptar";
-    // dataBranch[branchDescription] = "P.gtr.th";
-    // logy[branchDescription] = false;
+    // ssytar
+    branchDescription = "SHMSytar";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 50;
+    loBin[branchDescription] = -5;
+    hiBin[branchDescription] = +5;
+    simcBranch[branchDescription] = "ssytar";
+    dataBranch[branchDescription] = "P.gtr.y";
+    logy[branchDescription] = false;
 
-    // // ssyptar
-    // branchDescription = "SHMSyptar";
-    // branchDescriptions.push_back(branchDescription);
-    // nBins[branchDescription] = 50;
-    // loBin[branchDescription] = -0.1;
-    // hiBin[branchDescription] = +0.1;
-    // simcBranch[branchDescription] = "ssyptar";
-    // dataBranch[branchDescription] = "P.gtr.ph";
-    // logy[branchDescription] = false;
+    // ssxptar
+    branchDescription = "SHMSxptar";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 50;
+    loBin[branchDescription] = -0.1;
+    hiBin[branchDescription] = +0.1;
+    simcBranch[branchDescription] = "ssxptar";
+    dataBranch[branchDescription] = "P.gtr.th";
+    logy[branchDescription] = false;
+
+    // ssyptar
+    branchDescription = "SHMSyptar";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 50;
+    loBin[branchDescription] = -0.1;
+    hiBin[branchDescription] = +0.1;
+    simcBranch[branchDescription] = "ssyptar";
+    dataBranch[branchDescription] = "P.gtr.ph";
+    logy[branchDescription] = false;
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Read CSV containing normfacs
@@ -293,7 +301,8 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     // Loop over kinematics and create histograms for simc
     TTree *T;
     Int_t N;
-    TString drawMe, weightStr, cutStr;
+    TString drawMe;
+    TCut thisCut, weightCut;
     TString histoname;
     TString branch;
 
@@ -333,7 +342,7 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
                         branch = simcBranch[b];
 
                         // Draw histogram
-                        histoname = Form("Q2_%.1f_%s_%scollimator_%sradcorr_%s", Q2, target.Data(), collimator.Data(), radcorr.Data(), branchDescription.Data());
+                        histoname = Form("Q2_%.1f_%s_%scollimator_%sradcorr_%s", Q2, target.Data(), collimator.Data(), radcorr.Data(), b.Data());
 
                         drawMe = Form("%s>>%s(%d,%f,%f)", branch.Data(),
                                                           histoname.Data(),
@@ -342,18 +351,18 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
                                                           hiBin[b]
                                                           );
 
-                        weightStr = Form("Weight*%f/%d", thisNormfac, N);
+                        weightCut = Form("Weight*%f/%d", thisNormfac, N);
 
-                        cutStr = Form("(%s)*(%s)", weightStr.Data(), simcCuts[target].GetTitle());
+                        thisCut = weightCut * simcCuts[target];
 
-                        T->Draw(drawMe.Data(), cutStr.Data(), "goff");
+                        T->Draw(drawMe.Data(), thisCut, "goff");
                         histos[histoKey] = (TH1F*) gDirectory->Get(histoname.Data());
 
                         // Scale to integral
                         // histos[histoKey]->Scale(1/histos[histoKey]->Integral());
 
                         // Labels
-                        histos[histoKey]->GetXaxis()->SetTitle(b.Data());
+                        histos[histoKey]->SetTitle(Form("%s %s radcorr;%s", b.Data(), radcorr.Data(), branch.Data()));
                     }
                 }
             }
@@ -375,7 +384,7 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
             auto histoKey = std::make_tuple(Q2, target, collimator, "data", b);
 
             // Draw histogram
-            histoname = Form("Q2_%.1f_%s_%scollimator_data_%s", Q2, target.Data(), collimator.Data(), branchDescription.Data());
+            histoname = Form("Q2_%.1f_%s_%scollimator_data_%s", Q2, target.Data(), collimator.Data(), b.Data());
 
             drawMe = Form("%s>>%s(%d,%f,%f)", branch.Data(),
                                               histoname.Data(),
@@ -402,7 +411,7 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
             // histos[histoKey]->Scale(1/histos[histoKey]->Integral());
 
             // Labels
-            histos[histoKey]->GetXaxis()->SetTitle(b.Data());
+            histos[histoKey]->SetTitle(Form("%s data;%s", b.Data(), branch.Data()));
         }
     }
 
@@ -429,8 +438,8 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
             auto withKey    = std::make_tuple(Q2, target, collimator, "with", b);
             auto withoutKey = std::make_tuple(Q2, target, collimator, "without", b);
 
-            if ((histos[withKey]==nullptr) || (histos[withoutKey]==nullptr)) {
-                std::cout << "Histo not found. Skip printing " << Q2 << "," << target << "," << collimator << "," << branchDescription << std::endl;
+            if ((histos[withKey]==nullptr) || (histos[withoutKey]==nullptr) || (histos[dataKey]==nullptr)) {
+                std::cout << "Histo not found. Skip printing " << Q2 << "," << target << "," << collimator << "," << b<< std::endl;
                 continue;
             }
 
