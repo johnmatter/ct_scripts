@@ -24,8 +24,7 @@ void livetime() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_edtmdecode.json");
 
     // Which kinematics
-    // std::vector<TString> kinematics = data->GetNames();
-    std::vector<TString> kinematics = {"C12_Q2_10_thick"};
+    std::vector<TString> kinematics = data->GetNames();
 
     // CSV to save
     TString csvFilename = "livetime.csv";
@@ -61,8 +60,8 @@ void livetime() {
     TString bcm = "P.BCM4A.scalerCurrent";
     TString bcmQ = "P.BCM4A.scalerCharge";
     TString timer = "P.1MHz.scalerTime";
-    TString physBranch = "T.coin.pTRIG6_RC2_tdcTimeRaw";
-    TString physScaler = "P.pTRIG1.scaler";
+    TString physBranch = "T.coin.pTRIG6_ROC2_tdcTimeRaw";
+    TString physScaler = "P.pTRIG6.scaler";
     TString edtmScaler = "P.EDTM.scaler";
     std::vector<TString> scalers = {
                "P.pTRIG1.scaler", // SHMS 3/4
@@ -177,9 +176,9 @@ void livetime() {
     }
 
     // Initialize histograms
-    // Key is <kinematics, trigger, {"open"|"cut"}>
+    // Key is <kinematics, trigger, {"open","cut","noedtm"}>
     std::map<std::tuple<TString, TString, TString>, TH1F*> histosPerKinematics;
-    // Key is <kinematics, run, trigger, {"open"|"cut"}>
+    // Key is <kinematics, run, trigger, {"open","cut","noedtm"}>
     std::map<std::tuple<TString, Int_t, TString, TString>, TH1F*> histosPerRun;
     std::map<TString, TH1F*> histosTemp;
     TString histoName, drawMe, histoTitle;
@@ -208,6 +207,11 @@ void livetime() {
                                                                      histoTitle.Data(),
                                                                      nBins, xMin, xMax);
 
+            histoName = Form("%s_%s_noedtm", k.Data(), branch.Data());
+            histoTitle = Form("%s;%s;Counts", k.Data(), branch.Data());
+            histosPerKinematics[std::make_tuple(k, branch, "noedtm")] = new TH1F(histoName.Data(),
+                                                                     histoTitle.Data(),
+                                                                     nBins, xMin, xMax);
 
             // Create histo for runs
             for (auto const &run : data->GetRuns(k)) {
@@ -222,6 +226,12 @@ void livetime() {
                 histosPerRun[std::make_tuple(k,run,branch,"cut")] = new TH1F(histoName.Data(),
                                                                       histoTitle.Data(),
                                                                       nBins, xMin, xMax);
+
+                histoName = Form("%s_run%d_%s_noedtm", k.Data(), run, branch.Data());
+                histoTitle = Form("%s: run %d;%s;Counts", k.Data(), run, branch.Data());
+                histosPerRun[std::make_tuple(k,run,branch,"noedtm")] = new TH1F(histoName.Data(),
+                                                                      histoTitle.Data(),
+                                                                      nBins, xMin, xMax);
             }
         }
     }
@@ -231,12 +241,12 @@ void livetime() {
     for (auto const &k: kinematics) {
         for (auto const &run : data->GetRuns(k)) {
             // EDTM
-            description = "accepted EDTM";
+            description = "EDTM";
             acceptedTrigs[std::make_tuple(run, edtmBranch, description)] = 0;
 
             // trig and !EDTM
             for (auto const &trig: trigBranches) {
-                description = Form("!%s", edtmBranch.Data());
+                description = "!EDTM";
                 acceptedTrigs[std::make_tuple(run, trig, description)] = 0;
             }
         }
@@ -353,20 +363,20 @@ void livetime() {
                     // EDTM
                     // std::cout << Form("%-32s %f in (%d, %d)?\n", edtmBranch.Data(), value[edtmBranch], tdcTimeWindowMin[edtmBranch], tdcTimeWindowMax[edtmBranch]);
                     if (value[edtmBranch]>0) {
-                        description = "accepted EDTM";
+                        description = "EDTM";
                         acceptedTrigs[std::make_tuple(run, edtmBranch, description)]++;
                     }
 
-                    // trig and !EDTM
+                    // physics trigger
                     for (auto const &trig: trigBranches) {
                         // Fill open histo summed over runs for this kinematics
                         histosPerKinematics[std::make_tuple(k, trig, "open")]->Fill(value[trig]);
                         // Fill open histo for this run
                         histosPerRun[std::make_tuple(k, run, trig, "open")]->Fill(value[trig]);
 
-                        // Check if not an edtm trigger
+                        // Check for physics trigger
                         // std::cout << Form("event %d: %-32s %f in (%d, %d)?\n", i, trig.Data(), value[trig], tdcTimeWindowMin[trig], tdcTimeWindowMax[trig]);
-                        if (value[edtmBranch]==0 && value[trig]>0) {
+                        if (value[trig]>0) {
                             // Increment count of accepted triggers
                             description = "!EDTM";
                             acceptedTrigs[std::make_tuple(run, trig, description)]++;
@@ -374,12 +384,20 @@ void livetime() {
 
                         // Check if inside the time window and not an edtm trigger
                         // std::cout << Form("event %d: %-32s %f in (%d, %d)?\n", i, trig.Data(), value[trig], tdcTimeWindowMin[trig], tdcTimeWindowMax[trig]);
-                        if ((value[edtmBranch])==0 &&
-                            (value[trig]>tdcTimeWindowMin[trig]) && (value[trig]<tdcTimeWindowMax[trig])) {
+                        if ((value[trig]>tdcTimeWindowMin[trig]) && (value[trig]<tdcTimeWindowMax[trig])) {
+
                             // Fill cut histo summed over runs for this kinematics
                             histosPerKinematics[std::make_tuple(k, trig, "cut")]->Fill(value[trig]);
                             // Fill cut histo for this run
                             histosPerRun[std::make_tuple(k, run, trig, "cut")]->Fill(value[trig]);
+
+                            // Check if inside the time window AND not an edtm trigger
+                            if (value[edtmBranch]==0) {
+                                // Fill cut histo summed over runs for this kinematics
+                                histosPerKinematics[std::make_tuple(k, trig, "noedtm")]->Fill(value[trig]);
+                                // Fill cut histo for this run
+                                histosPerRun[std::make_tuple(k, run, trig, "noedtm")]->Fill(value[trig]);
+                            }
                         }
                     }
                 }
@@ -396,10 +414,21 @@ void livetime() {
             // ----------------------------------------------------------------
             // Calculate live time
             // scalerTotal is a Double_t so we should be fine without recasting anything
-            livetime[std::make_tuple(run,"edtm")] = acceptedTrigs[std::make_tuple(run,edtmBranch,"EDTM")] / scalerTotal[std::make_tuple(run,edtmScaler)];
-            livetime[std::make_tuple(run,"cpu")]  = acceptedTrigs[std::make_tuple(run,physBranch,"!EDTM")] / scalerTotal[std::make_tuple(run,physScaler)];
-            livetime[std::make_tuple(run,"phys")] = (acceptedTrigs[std::make_tuple(run,physBranch,"!EDTM")]-acceptedTrigs[std::make_tuple(run,edtmBranch,"EDTM")])
-                                                    / (scalerTotal[std::make_tuple(run,physScaler)]-scalerTotal[std::make_tuple(run,edtmScaler)]);
+            Int_t physTrigN, physScalerN;
+            Int_t edtmTrigN, edtmScalerN;
+
+            edtmTrigN = acceptedTrigs[std::make_tuple(run,edtmBranch,"EDTM")];
+            edtmScalerN = scalerTotal[std::make_tuple(run,edtmScaler)];
+            physTrigN = acceptedTrigs[std::make_tuple(run,physBranch,"!EDTM")];
+            physScalerN = scalerTotal[std::make_tuple(run,physScaler)];
+
+            std::cout << Form("edtm lt = %d/%d\n", edtmTrigN, edtmScalerN);
+            std::cout << Form("cpu  lt = %d/%d\n", physTrigN, physScalerN);
+            std::cout << Form("phys lt = (%d-%d)/(%d-%d)\n", physTrigN, edtmTrigN, physScalerN, edtmScalerN);
+
+            livetime[std::make_tuple(run,"edtm")] = Double_t(edtmTrigN) / Double_t(edtmScalerN);
+            livetime[std::make_tuple(run,"cpu")]  = Double_t(physTrigN) / Double_t(physScalerN);
+            livetime[std::make_tuple(run,"phys")] = Double_t(physTrigN-edtmTrigN) / Double_t(physScalerN-edtmScalerN);
 
             // ----------------------------------------------------------------
             // Cleanup
@@ -429,11 +458,11 @@ void livetime() {
 
     // Loop over kinematics
     for (auto const &k : kinematics) {
-        // Print scaler counts
+        // Loop over runs
         for (auto const &run : data->GetRuns(k)) {
+
+            // Print scaler counts
             for (auto const &scaler: scalers) {
-                // Examples:
-                // LH2_Q2_8,LH2,8,pion,H.hTRIG1.scaler,scaler,3287568287652
                 ofs << k                      << ","
                     << data->GetTarget(k)     << ","
                     << data->GetQ2(k)         << ","
@@ -444,31 +473,33 @@ void livetime() {
                     << scalerTotal[std::make_tuple(run,scaler)]
                     << std::endl;
             }
-        }
 
-        // Print accepted trigger counts
-        // This is outside the loop over runs because I used "description" and run as part of the tuple key
-        // It was easier in this moment to just loop using an iterator (which contains run).
-        // TODO: fix weird acceptedTrigs map
-        for (std::map<tuple<Int_t, TString, TString>, Int_t>::iterator it=acceptedTrigs.begin(); it!=acceptedTrigs.end(); it++) {
-            // Examples:
-            // LH2_Q2_8,LH2,8,pion,T.coin.hTRIG1_ROC2_tdcTimeRaw,!hEDTM,3568287652
+            // Print physics trigger counts
+            for (auto const &trig: trigBranches) {
+                ofs << k                      << ","
+                    << data->GetTarget(k)     << ","
+                    << data->GetQ2(k)         << ","
+                    << data->GetCollimator(k) << ","
+                    << run                    << ","
+                    << trig                   << ","
+                    << "!EDTM"                << ","
+                    << acceptedTrigs[std::make_tuple(run, trig, "!EDTM")]
+                    << std::endl;
+            }
+
+            // Print EDTM trigger counts
             ofs << k                      << ","
                 << data->GetTarget(k)     << ","
                 << data->GetQ2(k)         << ","
                 << data->GetCollimator(k) << ","
-                << std::get<0>(it->first) << ","
-                << std::get<1>(it->first) << ","
-                << std::get<2>(it->first) << ","
-                << acceptedTrigs[it->first]
+                << run                    << ","
+                << edtmBranch             << ","
+                << "EDTM"                 << ","
+                << acceptedTrigs[std::make_tuple(run, edtmBranch, "EDTM")]
                 << std::endl;
-        }
 
-        // Print livetimes
-        for (auto const &run : data->GetRuns(k)) {
+            // Print livetime
             for (TString lt: {"phys","edtm","cpu"}) {
-                // Examples:
-                // LH2_Q2_8,LH2,8,pion,H.hTRIG1.scaler,scaler,3287568287652
                 ofs << k                      << ","
                     << data->GetTarget(k)     << ","
                     << data->GetQ2(k)         << ","
@@ -479,8 +510,8 @@ void livetime() {
                     << scalerTotal[std::make_tuple(run,lt)]
                     << std::endl;
             }
-        }
-    }
+        } // end loop over runs
+    } // end loop over kinematics
     ofs.close();
 
     //-------------------------------------------------------------------------------------------------------------------------
@@ -490,9 +521,9 @@ void livetime() {
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Print histos
-    TH1F *histoOpen, *histoCut;
+    TH1F *histoOpen, *histoCut, *histoNoEDTM;
     TLine *windowMinMarker, *windowMaxMarker;
-    TPaveLabel*text;
+    TPaveLabel *text;
     TString pdfFilename;
     TString thisWindowLabel;
     TCanvas* canvas = new TCanvas("canvas", "compare", 700, 500);
@@ -502,20 +533,25 @@ void livetime() {
     canvas->Print((pdfFilename+"[").Data());
     for (auto const &branch: trigBranches) {
         for (auto const &k : kinematics) {
-            histoOpen = histosPerKinematics[std::make_tuple(k, branch, "open")];
-            histoCut  = histosPerKinematics[std::make_tuple(k, branch, "cut")];
+            histoOpen    = histosPerKinematics[std::make_tuple(k, branch, "open")];
+            histoCut     = histosPerKinematics[std::make_tuple(k, branch, "cut")];
+            histoNoEDTM  = histosPerKinematics[std::make_tuple(k, branch, "noedtm")];
 
             histoOpen->SetLineColor(kRed+2);
-            histoCut->SetLineColor(kBlue+2);
+            histoCut->SetLineColor(kGreen+2);
+            histoNoEDTM->SetLineColor(kBlue+2);
 
             histoOpen->SetFillColor(kRed+2);
-            histoCut->SetFillColor(kBlue+2);
+            histoCut->SetFillColor(kGreen+2);
+            histoNoEDTM->SetFillColor(kBlue+2);
 
             histoOpen->SetFillStyle(3345);
             histoCut->SetFillStyle(3354);
+            histoNoEDTM->SetFillStyle(3305);
 
             histoOpen->Draw();
             histoCut->Draw("SAME");
+            histoNoEDTM->Draw("SAME");
 
             // Add reference lines for cuts
             // min
@@ -561,20 +597,25 @@ void livetime() {
     for (auto const &branch: trigBranches) {
         for (auto const &k : kinematics) {
             for (auto const &run : data->GetRuns(k)) {
-                histoOpen = histosPerRun[std::make_tuple(k, run, branch, "open")];
-                histoCut  = histosPerRun[std::make_tuple(k, run, branch, "cut")];
+                histoOpen   = histosPerRun[std::make_tuple(k, run, branch, "open")];
+                histoCut    = histosPerRun[std::make_tuple(k, run, branch, "cut")];
+                histoNoEDTM = histosPerRun[std::make_tuple(k, run, branch, "noedtm")];
 
                 histoOpen->SetLineColor(kRed+2);
-                histoCut->SetLineColor(kBlue+2);
+                histoCut->SetLineColor(kGreen+2);
+                histoNoEDTM->SetLineColor(kBlue+2);
 
                 histoOpen->SetFillColor(kRed+2);
-                histoCut->SetFillColor(kBlue+2);
+                histoCut->SetFillColor(kGreen+2);
+                histoNoEDTM->SetFillColor(kBlue+2);
 
                 histoOpen->SetFillStyle(3345);
                 histoCut->SetFillStyle(3354);
+                histoNoEDTM->SetFillStyle(3305);
 
                 histoOpen->Draw();
                 histoCut->Draw("SAME");
+                histoNoEDTM->Draw("SAME");
 
                 // Add reference lines for cuts
                 // min
