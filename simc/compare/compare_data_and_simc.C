@@ -67,7 +67,7 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
 
     TString normfacFile = "/home/jmatter/ct_scripts/simc/yield/normfac.csv";
 
-    TString pdfFilename = "/home/jmatter/ct_scripts/simc/compare/simc_vs_data.pdf";
+    TString pdfFilename;
 
     //-------------------------------------------------------------------------------------------------------------------------
     // What branches do we want to plot?
@@ -424,9 +424,13 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
 
     // open PDF
     TCanvas* canvas = new TCanvas("canvas", "compare", 640, 480);
-    canvas->Print((pdfFilename+"[").Data());
 
     for(auto const &b: branchDescriptions) {
+
+        // Open file for this branch
+        pdfFilename = Form("/home/jmatter/ct_scripts/simc/compare/simc_vs_data_%s.pdf", b.Data());
+
+        canvas->Print((pdfFilename+"[").Data());
         for (auto const &k: kinematics) {
             std::cout << "Printing " << b << " for " << k << std::endl;
 
@@ -488,10 +492,12 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
             // gPad->BuildLegend();
 
             canvas->Print(pdfFilename.Data());
-        }
-    }
+        } // loop over kinematics
+
+        canvas->Print((pdfFilename+"]").Data());
+
+    } // loop over branches
 
     // close PDF
-    canvas->Print((pdfFilename+"]").Data());
 
 }
