@@ -1,7 +1,7 @@
 {
     "jobs": [
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_115.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_115",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12_q_115",
@@ -15,7 +15,7 @@
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_95.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_95",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12_q_95",
@@ -29,7 +29,7 @@
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_115.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_115",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "h1_q_115",
@@ -43,7 +43,7 @@
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_95.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_95",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "h1_q_95",
@@ -57,7 +57,7 @@
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_143.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_143",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12_q_143",
@@ -71,7 +71,7 @@
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12thin_q_8.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12thin_q_8",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12thin_q_8",
@@ -85,7 +85,7 @@
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_143.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_143",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "h1_q_143",
@@ -99,7 +99,7 @@
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_8.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12_q_8",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12_q_8",
@@ -113,7 +113,7 @@
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12thin_q_95.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh c12thin_q_95",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "c12thin_q_95",
@@ -127,7 +127,7 @@
             "track": "analysis"
         },
         {
-            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_8.inp",
+            "command": "/home/jmatter/ct_scripts/simc/run/run_simc.sh h1_q_8",
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "h1_q_8",
