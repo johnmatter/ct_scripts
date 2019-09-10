@@ -33,7 +33,7 @@ void generate_tdcTime_histos() {
     // Open file so we can save histograms
     TFile *f = new TFile("ct_tdcTime.root", "RECREATE");
 
-    // key is <trigger,kinematics,cut.GetTitle()>
+    // key is histoName
     std::map<TString, TH1F*> histos;
 
     // Cuts
@@ -58,9 +58,6 @@ void generate_tdcTime_histos() {
             for (auto const cut: cuts) {
                 // Skip because we didn't have the EDTM set up
                 if (data->GetQ2(k)==8) {continue;}
-
-                // key
-                // std::tuple<TString,TString,TString> key = std::make_tuple(trig,k,cut.GetTitle());
 
                 // Format
                 histoName = Form("%s_%s_%s", trig.Data(), k.Data(), cut.GetTitle());
