@@ -5,6 +5,7 @@
 #include <TH1F.h>
 #include <TCut.h>
 #include <TLine.h>
+#include <TMath.h>
 #include <TCanvas.h>
 #include <TString.h>
 #include <TFile.h>
@@ -23,7 +24,7 @@
 
 std::map<Int_t, Double_t> getBeamCutValues();
 
-void livetime(Int_t calculateLT=1, Int_t printLT=1) {
+void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Load our data and cuts
@@ -89,6 +90,15 @@ void livetime(Int_t calculateLT=1, Int_t printLT=1) {
     TString bcmBranch = "P.bcm.bcm4a.AvgCurrent";
 
     std::vector<TString> trigBranches = {physBranch, edtmBranch};
+
+    // tdcTime histo limits and resolutions
+    std::map<TString, Double_t> histoLoBin;
+    std::map<TString, Double_t> histoUpBin;
+    Double_t tdcBinResolution = 0.1;
+    histoLoBin[physBranch] = 200;
+    histoUpBin[physBranch] = 400;
+    histoLoBin[edtmBranch] = 50;
+    histoUpBin[edtmBranch] = 250;
 
     // tdcTime ranges to integrate
     std::map<TString, std::vector<Double_t>> trigLowerLimits;
@@ -195,45 +205,41 @@ void livetime(Int_t calculateLT=1, Int_t printLT=1) {
 
                 // ----------------------------------------------------------------
                 // Draw histograms, count triggers, write histos to disk
-
                 cutStr  = Form("(%s)>=(0.95*%f)", bcmBranch.Data(), averageCurrent);
+                Int_t count, lowerBin, upperBin, nBins;
 
-                // Draw pTRIG6
-                histoName = Form("run%d_%s", run, physBranch.Data());;
-                drawStr = Form("%s>>%s", physBranch.Data(), histoName.Data());
-                T->Draw(drawStr.Data(), cutStr.Data(), "goff");
-                histosPerRun[std::make_tuple(run, physBranch)] = (TH1F*) gDirectory->Get(histoName.Data());
-                fWrite->WriteObject(histosPerRun[std::make_tuple(run, physBranch)], histoName.Data());
+                for (auto const branch: trigBranches) {
+                    // Draw
+                    histoName = Form("run%d_%s", run, branch.Data());
 
-                // Draw pEDTM
-                histoName = Form("run%d_%s", run, edtmBranch.Data());;
-                drawStr = Form("%s>>%s", edtmBranch.Data(), histoName.Data());
-                T->Draw(drawStr.Data(), cutStr.Data(), "goff");
-                histosPerRun[std::make_tuple(run, edtmBranch)] = (TH1F*) gDirectory->Get(histoName.Data());
-                fWrite->WriteObject(histosPerRun[std::make_tuple(run, edtmBranch)], histoName.Data());
+                    nBins = TMath::Floor((histoUpBin[branch]-histoLoBin[branch])/tdcBinResolution);
+                    lowerBin = histoLoBin[branch];
+                    upperBin = histoUpBin[branch];
 
-                Int_t count, lowerBin, upperBin;
+                    drawStr = Form("%s>>%s(%d,%f,%f)", branch.Data(), histoName.Data(),
+                                                       nBins, lowerBin, upperBin);
 
-                // Integrate pTRIG6
-                histo = histosPerRun[std::make_tuple(run, physBranch)];
-                acceptedTrigs[std::make_tuple(run, physBranch)] = 0;
-                for (int i=0; i<trigLowerLimits[physBranch].size(); i++) {
-                    lowerBin = histo->FindBin(trigLowerLimits[physBranch][i]);
-                    upperBin = histo->FindBin(trigUpperLimits[physBranch][i]);
-                    count = histo->Integral(lowerBin, upperBin);
-                    std::cout << Form("Integrate pTRIG6_tdcTime from %f to %f: %d", trigLowerLimits[physBranch][i], trigUpperLimits[physBranch][i], count) << std::endl;
-                    acceptedTrigs[std::make_tuple(run, physBranch)] += count;
-                }
+                    T->Draw(drawStr.Data(), cutStr.Data(), "goff");
 
-                // Integrate EDTM
-                histo = histosPerRun[std::make_tuple(run, edtmBranch)];
-                acceptedTrigs[std::make_tuple(run, edtmBranch)] = 0;
-                for (int i=0; i<trigLowerLimits[edtmBranch].size(); i++) {
-                    lowerBin = histo->FindBin(trigLowerLimits[edtmBranch][i]);
-                    upperBin = histo->FindBin(trigUpperLimits[edtmBranch][i]);
-                    count = histo->Integral(lowerBin, upperBin);
-                    std::cout << Form("Integrate pEDTM_tdcTime from %f to %f: %d", trigLowerLimits[edtmBranch][i], trigUpperLimits[edtmBranch][i], count) << std::endl;
-                    acceptedTrigs[std::make_tuple(run, edtmBranch)] += count;
+                    // Get from gDirectory and store in map
+                    histo = (TH1F*) gDirectory->Get(histoName.Data());
+                    histosPerRun[std::make_tuple(run, branch)] = histo;
+
+                    // Integrate
+                    acceptedTrigs[std::make_tuple(run, branch)] = 0;
+                    for (int i=0; i<trigLowerLimits[branch].size(); i++) {
+                        std::cout << Form("Integrate %s from %f to %f: %d", branch.Data(), trigLowerLimits[branch][i], trigUpperLimits[branch][i], count) << std::endl;
+
+                        lowerBin = histo->FindBin(trigLowerLimits[branch][i]);
+                        upperBin = histo->FindBin(trigUpperLimits[branch][i]);
+
+                        count = histo->Integral(lowerBin, upperBin);
+
+                        acceptedTrigs[std::make_tuple(run, branch)] += count;
+                    }
+
+                    // Write to root file
+                    fWrite->WriteObject(histo, histoName.Data());
                 }
 
                 // ----------------------------------------------------------------
@@ -247,13 +253,14 @@ void livetime(Int_t calculateLT=1, Int_t printLT=1) {
                 physTrigN = acceptedTrigs[std::make_tuple(run,physBranch)];
                 physScalerN = scalerTotal[std::make_tuple(run,physScaler)];
 
-                std::cout << Form("edtm lt = %d/%d\n", edtmTrigN, edtmScalerN);
-                std::cout << Form("cpu  lt = %d/%d\n", physTrigN, physScalerN);
-                std::cout << Form("phys lt = (%d-%d)/(%d-%d)\n", physTrigN, edtmTrigN, physScalerN, edtmScalerN);
-
                 livetime[std::make_tuple(run,"edtm")] = Double_t(edtmTrigN) / Double_t(edtmScalerN);
                 livetime[std::make_tuple(run,"cpu")]  = Double_t(physTrigN) / Double_t(physScalerN);
                 livetime[std::make_tuple(run,"phys")] = Double_t(physTrigN-edtmTrigN) / Double_t(physScalerN-edtmScalerN);
+
+
+                std::cout << Form("edtm lt = %d/%d = %.3f\n", edtmTrigN, edtmScalerN, livetime[std::make_tuple(run,"edtm")]);
+                std::cout << Form("cpu  lt = %d/%d = %.3f\n", physTrigN, physScalerN, livetime[std::make_tuple(run,"cpu")]);
+                std::cout << Form("phys lt = (%d-%d)/(%d-%d) = %.3f\n", physTrigN, edtmTrigN, physScalerN, edtmScalerN, livetime[std::make_tuple(run,"phys")]);
 
                 // ----------------------------------------------------------------
                 // Cleanup
@@ -265,12 +272,10 @@ void livetime(Int_t calculateLT=1, Int_t printLT=1) {
 
         // Write histos to disk
         fWrite->Close();
-    }
 
-    //-------------------------------------------------------------------------------------------------------------------------
-    // Print live time
+        //-------------------------------------------------------------------------------------------------------------------------
+        // Print live time
 
-    if (printLT==1) {
         std::cout << "Print livetime and scalers to csv" << std::endl;
 
         // Open file
@@ -352,10 +357,13 @@ void livetime(Int_t calculateLT=1, Int_t printLT=1) {
             } // end loop over runs
         } // end loop over kinematics
         ofs.close();
+    }
 
 
-        //-------------------------------------------------------------------------------------------------------------------------
-        // Print histos
+    //-------------------------------------------------------------------------------------------------------------------------
+    // Print histos
+    if (printPDF==1) {
+
         fRead = new TFile(rootSaveFilename.Data(),"READ");
 
         std::vector<TLine*> windowMarker;
