@@ -23,7 +23,7 @@
 
 std::map<Int_t, Double_t> getBeamCutValues();
 
-void livetime() {
+void livetime(Int_t calculateLT=1, Int_t printLT=1) {
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Load our data and cuts
@@ -109,262 +109,186 @@ void livetime() {
     std::map<Int_t, Double_t> beamCut = getBeamCutValues();
 
     TString histoName, drawStr, cutStr;
+    Double_t yMin, yMax;
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Count triggers, calculate livetime
 
-    fWrite = new TFile(rootSaveFilename, "RECREATE");
+    if (calculateLT==1) {
 
-    for (auto const &k : kinematics) {
-        // We didn't have EDTM for Q^2=8 GeV^2 data, so skip for now
-        // There are ways to do this without the EDTM, but I don't have it
-        // implemented in this script yet.
-        if (data->GetQ2(k)==8) {
-            std::cout << "Skip " << k << std::endl;
-            continue;
-        }
-        std::cout << "Begin " << k << std::endl;
+        fWrite = new TFile(rootSaveFilename, "RECREATE");
 
-        for (auto const &run : data->GetRuns(k)) {
-            std::cout << "Run: " << run << "--------------------" << std::endl;
-
-            // ----------------------------------------------------------------
-            // Bookkeeping
-
-            // Initialize scalers, branches, counts, etc.
-            for (auto const &scaler: scalers) {
-                thisRead[scaler] = 0;
-                prevRead[scaler] = 0;
-                scalerTotal[std::make_tuple(run,scaler)] = 0;
+        for (auto const &k : kinematics) {
+            // We didn't have EDTM for Q^2=8 GeV^2 data, so skip for now
+            // There are ways to do this without the EDTM, but I don't have it
+            // implemented in this script yet.
+            if (data->GetQ2(k)==8) {
+                std::cout << "Skip " << k << std::endl;
+                continue;
             }
+            std::cout << "Begin " << k << std::endl;
 
-            // Get trees for this run from the rootfile
-            rootFilename = Form(data->GetRootfileTemplate(k),
-                                data->GetRootfileDirectory().Data(),
-                                run);
-            fRead  = new TFile(rootFilename.Data(), "READ");
-            T  = (TTree*) fRead->Get("T");
-            TS = (TTree*) fRead->Get("TSP");
+            for (auto const &run : data->GetRuns(k)) {
+                std::cout << "Run: " << run << "--------------------" << std::endl;
 
-            // Set scaler branch addresses
-            for (auto const &scaler: scalers) {
-                TS->SetBranchAddress(scaler, &(thisRead[scaler]));
-            }
+                // ----------------------------------------------------------------
+                // Bookkeeping
 
-            // ----------------------------------------------------------------
-            // Get current trip threshold
-            histoName = Form("run%d_%s", run, bcmScaler.Data());
-            TS->Draw(Form("%s>>%s(200,0,100)", bcmScaler.Data(), histoName.Data()),
-                     Form("%s>0", bcmScaler.Data()),
-                     "goff");
-            bcmHistos[run] = (TH1F*) gDirectory->Get(histoName.Data());
-            // fit = bcmHistos[run]->Fit("gaus", "S");
-            // averageCurrent = fit->Parameter(1);
-
-            averageCurrent = beamCut[run];
-            std::cout << Form("bcmCut=%f", averageCurrent) << std::endl;
-
-            fWrite->WriteObject(bcmHistos[run], histoName.Data());
-
-            // ----------------------------------------------------------------
-            // Loop over scalers and count triggers
-            for (int i=0; i<TS->GetEntries(); i++) {
-                if (i%1000==0) {
-                    std::cout << "Scaler progress: " << setprecision(3) << 100*Double_t(i)/TS->GetEntries() << "%" << std::endl;
+                // Initialize scalers, branches, counts, etc.
+                for (auto const &scaler: scalers) {
+                    thisRead[scaler] = 0;
+                    prevRead[scaler] = 0;
+                    scalerTotal[std::make_tuple(run,scaler)] = 0;
                 }
-                TS->GetEntry(i);
 
-                // If current not 5% below average, increment scalerTotal by an amount
-                // equal to the difference between this read and the previous one
-                if (thisRead[bcmScaler] >= (0.95 * averageCurrent)) {
+                // Get trees for this run from the rootfile
+                rootFilename = Form(data->GetRootfileTemplate(k),
+                                    data->GetRootfileDirectory().Data(),
+                                    run);
+                fRead  = new TFile(rootFilename.Data(), "READ");
+                T  = (TTree*) fRead->Get("T");
+                TS = (TTree*) fRead->Get("TSP");
+
+                // Set scaler branch addresses
+                for (auto const &scaler: scalers) {
+                    TS->SetBranchAddress(scaler, &(thisRead[scaler]));
+                }
+
+                // ----------------------------------------------------------------
+                // Get current trip threshold
+                histoName = Form("run%d_%s", run, bcmScaler.Data());
+                TS->Draw(Form("%s>>%s(200,0,100)", bcmScaler.Data(), histoName.Data()),
+                         Form("%s>0", bcmScaler.Data()),
+                         "goff");
+                bcmHistos[run] = (TH1F*) gDirectory->Get(histoName.Data());
+                // fit = bcmHistos[run]->Fit("gaus", "S");
+                // averageCurrent = fit->Parameter(1);
+
+                averageCurrent = beamCut[run];
+                std::cout << Form("bcmCut=%f", averageCurrent) << std::endl;
+
+                fWrite->WriteObject(bcmHistos[run], histoName.Data());
+
+                // ----------------------------------------------------------------
+                // Loop over scalers and count triggers
+                for (int i=0; i<TS->GetEntries(); i++) {
+                    if (i%1000==0) {
+                        std::cout << "Scaler progress: " << setprecision(3) << 100*Double_t(i)/TS->GetEntries() << "%" << std::endl;
+                    }
+                    TS->GetEntry(i);
+
+                    // If current not 5% below average, increment scalerTotal by an amount
+                    // equal to the difference between this read and the previous one
+                    if (thisRead[bcmScaler] >= (0.95 * averageCurrent)) {
+                        for (auto const &scaler: scalers) {
+                            Double_t increment = (thisRead[scaler] - prevRead[scaler]);
+                            scalerTotal[std::make_tuple(run,scaler)] += (increment);
+                        }
+                    }
+
+                    // Store this scaler read for the next read
                     for (auto const &scaler: scalers) {
-                        Double_t increment = (thisRead[scaler] - prevRead[scaler]);
-                        scalerTotal[std::make_tuple(run,scaler)] += (increment);
+                        prevRead[scaler] = thisRead[scaler];
                     }
                 }
+                std::cout << "Scaler progress: 100%" << std::endl;
 
-                // Store this scaler read for the next read
-                for (auto const &scaler: scalers) {
-                    prevRead[scaler] = thisRead[scaler];
+                // ----------------------------------------------------------------
+                // Draw histograms, count triggers, write histos to disk
+
+                cutStr  = Form("(%s)>=(0.95*%f)", bcmBranch.Data(), averageCurrent);
+
+                // Draw pTRIG6
+                histoName = Form("run%d_%s", run, physBranch.Data());;
+                drawStr = Form("%s>>%s", physBranch.Data(), histoName.Data());
+                T->Draw(drawStr.Data(), cutStr.Data(), "goff");
+                histosPerRun[std::make_tuple(run, physBranch)] = (TH1F*) gDirectory->Get(histoName.Data());
+                fWrite->WriteObject(histosPerRun[std::make_tuple(run, physBranch)], histoName.Data());
+
+                // Draw pEDTM
+                histoName = Form("run%d_%s", run, edtmBranch.Data());;
+                drawStr = Form("%s>>%s", edtmBranch.Data(), histoName.Data());
+                T->Draw(drawStr.Data(), cutStr.Data(), "goff");
+                histosPerRun[std::make_tuple(run, edtmBranch)] = (TH1F*) gDirectory->Get(histoName.Data());
+                fWrite->WriteObject(histosPerRun[std::make_tuple(run, edtmBranch)], histoName.Data());
+
+                Int_t count, lowerBin, upperBin;
+
+                // Integrate pTRIG6
+                histo = histosPerRun[std::make_tuple(run, physBranch)];
+                acceptedTrigs[std::make_tuple(run, physBranch)] = 0;
+                for (int i=0; i<trigLowerLimits[physBranch].size(); i++) {
+                    lowerBin = histo->FindBin(trigLowerLimits[physBranch][i]);
+                    upperBin = histo->FindBin(trigUpperLimits[physBranch][i]);
+                    count = histo->Integral(lowerBin, upperBin);
+                    std::cout << Form("Integrate pTRIG6_tdcTime from %f to %f: %d", trigLowerLimits[physBranch][i], trigUpperLimits[physBranch][i], count) << std::endl;
+                    acceptedTrigs[std::make_tuple(run, physBranch)] += count;
                 }
+
+                // Integrate EDTM
+                histo = histosPerRun[std::make_tuple(run, edtmBranch)];
+                acceptedTrigs[std::make_tuple(run, edtmBranch)] = 0;
+                for (int i=0; i<trigLowerLimits[edtmBranch].size(); i++) {
+                    lowerBin = histo->FindBin(trigLowerLimits[edtmBranch][i]);
+                    upperBin = histo->FindBin(trigUpperLimits[edtmBranch][i]);
+                    count = histo->Integral(lowerBin, upperBin);
+                    std::cout << Form("Integrate pEDTM_tdcTime from %f to %f: %d", trigLowerLimits[edtmBranch][i], trigUpperLimits[edtmBranch][i], count) << std::endl;
+                    acceptedTrigs[std::make_tuple(run, edtmBranch)] += count;
+                }
+
+                // ----------------------------------------------------------------
+                // Calculate live time
+                // scalerTotal is a Double_t so we should be fine without recasting anything
+                Int_t physTrigN, physScalerN;
+                Int_t edtmTrigN, edtmScalerN;
+
+                edtmTrigN = acceptedTrigs[std::make_tuple(run,edtmBranch)];
+                edtmScalerN = scalerTotal[std::make_tuple(run,edtmScaler)];
+                physTrigN = acceptedTrigs[std::make_tuple(run,physBranch)];
+                physScalerN = scalerTotal[std::make_tuple(run,physScaler)];
+
+                std::cout << Form("edtm lt = %d/%d\n", edtmTrigN, edtmScalerN);
+                std::cout << Form("cpu  lt = %d/%d\n", physTrigN, physScalerN);
+                std::cout << Form("phys lt = (%d-%d)/(%d-%d)\n", physTrigN, edtmTrigN, physScalerN, edtmScalerN);
+
+                livetime[std::make_tuple(run,"edtm")] = Double_t(edtmTrigN) / Double_t(edtmScalerN);
+                livetime[std::make_tuple(run,"cpu")]  = Double_t(physTrigN) / Double_t(physScalerN);
+                livetime[std::make_tuple(run,"phys")] = Double_t(physTrigN-edtmTrigN) / Double_t(physScalerN-edtmScalerN);
+
+                // ----------------------------------------------------------------
+                // Cleanup
+                // Deleting the TFile frees the memory taken up by any objects Get()-ed form it
+                fRead->Close();
+                delete fRead;
             }
-            std::cout << "Scaler progress: 100%" << std::endl;
-
-            // ----------------------------------------------------------------
-            // Draw histograms, count triggers, write histos to disk
-
-            cutStr  = Form("(%s)>=(0.95*%f)", bcmBranch.Data(), averageCurrent);
-
-            // Draw pTRIG6
-            histoName = Form("run%d_%s", run, physBranch.Data());;
-            drawStr = Form("%s>>%s", physBranch.Data(), histoName.Data());
-            T->Draw(drawStr.Data(), cutStr.Data(), "goff");
-            histosPerRun[std::make_tuple(run, physBranch)] = (TH1F*) gDirectory->Get(histoName.Data());
-            fWrite->WriteObject(histosPerRun[std::make_tuple(run, physBranch)], histoName.Data());
-
-            // Draw pEDTM
-            histoName = Form("run%d_%s", run, edtmBranch.Data());;
-            drawStr = Form("%s>>%s", edtmBranch.Data(), histoName.Data());
-            T->Draw(drawStr.Data(), cutStr.Data(), "goff");
-            histosPerRun[std::make_tuple(run, edtmBranch)] = (TH1F*) gDirectory->Get(histoName.Data());
-            fWrite->WriteObject(histosPerRun[std::make_tuple(run, edtmBranch)], histoName.Data());
-
-            Int_t count, lowerBin, upperBin;
-
-            // Integrate pTRIG6
-            histo = histosPerRun[std::make_tuple(run, physBranch)];
-            acceptedTrigs[std::make_tuple(run, physBranch)] = 0;
-            for (int i=0; i<trigLowerLimits[physBranch].size(); i++) {
-                lowerBin = histo->FindBin(trigLowerLimits[physBranch][i]);
-                upperBin = histo->FindBin(trigupperLimits[physBranch][i]);
-                count = histo->Integral(lowerBin, upperBin);
-                std::cout << Form("Integrate pTRIG6_tdcTime from %f to %f: %d", trigLowerLimits[physBranch][i], trigUpperLimits[physBranch][i], count) << std::endl;
-                acceptedTrigs[std::make_tuple(run, physBranch)] += count;
-            }
-
-            // Integrate EDTM
-            histo = histosPerRun[std::make_tuple(run, edtmBranch)];
-            acceptedTrigs[std::make_tuple(run, edtmBranch)] = 0;
-            for (int i=0; i<trigLowerLimits[edtmBranch].size(); i++) {
-                lowerBin = histo->FindBin(trigLowerLimits[edtmBranch][i]);
-                upperBin = histo->FindBin(trigupperLimits[edtmBranch][i]);
-                count = histo->Integral(lowerBin, upperBin);
-                std::cout << Form("Integrate pEDTM_tdcTime from %f to %f: %d", trigLowerLimits[edtmBranch][i], trigUpperLimits[edtmBranch][i], count) << std::endl;
-                acceptedTrigs[std::make_tuple(run, edtmBranch)] += count;
-            }
-
-            // ----------------------------------------------------------------
-            // Calculate live time
-            // scalerTotal is a Double_t so we should be fine without recasting anything
-            Int_t physTrigN, physScalerN;
-            Int_t edtmTrigN, edtmScalerN;
-
-            edtmTrigN = acceptedTrigs[std::make_tuple(run,edtmBranch)];
-            edtmScalerN = scalerTotal[std::make_tuple(run,edtmScaler)];
-            physTrigN = acceptedTrigs[std::make_tuple(run,physBranch)];
-            physScalerN = scalerTotal[std::make_tuple(run,physScaler)];
-
-            std::cout << Form("edtm lt = %d/%d\n", edtmTrigN, edtmScalerN);
-            std::cout << Form("cpu  lt = %d/%d\n", physTrigN, physScalerN);
-            std::cout << Form("phys lt = (%d-%d)/(%d-%d)\n", physTrigN, edtmTrigN, physScalerN, edtmScalerN);
-
-            livetime[std::make_tuple(run,"edtm")] = Double_t(edtmTrigN) / Double_t(edtmScalerN);
-            livetime[std::make_tuple(run,"cpu")]  = Double_t(physTrigN) / Double_t(physScalerN);
-            livetime[std::make_tuple(run,"phys")] = Double_t(physTrigN-edtmTrigN) / Double_t(physScalerN-edtmScalerN);
-
-            // ----------------------------------------------------------------
-            // Cleanup
-            // Deleting the TFile frees the memory taken up by any objects Get()-ed form it
-            fRead->Close();
-            delete fRead;
         }
+
+        // Write histos to disk
+        fWrite->Close();
     }
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Print live time
 
-    std::cout << "Print livetime and scalers to csv" << std::endl;
+    if (printLT==1) {
+        std::cout << "Print livetime and scalers to csv" << std::endl;
 
-    // Open file
-    std::ofstream ofs;
-    ofs.open(csvFilename.Data());
+        // Open file
+        std::ofstream ofs;
+        ofs.open(csvFilename.Data());
 
-    // Print header
-    ofs << "kinematics"           << ","
-        << "target"               << ","
-        << "Q2"                   << ","
-        << "collimator"           << ","
-        << "run"                  << ","
-        << "branch"               << ","
-        << "description"          << ","
-        << "count"
-        << std::endl;
+        // Print header
+        ofs << "kinematics"           << ","
+            << "target"               << ","
+            << "Q2"                   << ","
+            << "collimator"           << ","
+            << "run"                  << ","
+            << "branch"               << ","
+            << "description"          << ","
+            << "count"
+            << std::endl;
 
-    // Loop over kinematics
-    for (auto const &k : kinematics) {
-
-        // We didn't have EDTM for Q^2=8 GeV^2 data, so skip for now
-        // There are ways to do this without the EDTM, but I don't have it
-        // implemented in this script yet.
-        if (data->GetQ2(k)==8) {
-            std::cout << "Skip " << k << std::endl;
-            continue;
-        }
-
-        // Loop over runs
-        for (auto const &run : data->GetRuns(k)) {
-
-            // Print scaler counts
-            for (auto const &scaler: scalers) {
-                ofs << k                      << ","
-                    << data->GetTarget(k)     << ","
-                    << data->GetQ2(k)         << ","
-                    << data->GetCollimator(k) << ","
-                    << run                    << ","
-                    << scaler                 << ","
-                    << "scaler"               << ","
-                    << scalerTotal[std::make_tuple(run,scaler)]
-                    << std::endl;
-            }
-
-            // Print physics trigger counts
-            ofs << k                      << ","
-                << data->GetTarget(k)     << ","
-                << data->GetQ2(k)         << ","
-                << data->GetCollimator(k) << ","
-                << run                    << ","
-                << physBranch             << ","
-                << "integral"             << ","
-                << acceptedTrigs[std::make_tuple(run, physBranch)]
-                << std::endl;
-
-            // Print EDTM trigger counts
-            ofs << k                      << ","
-                << data->GetTarget(k)     << ","
-                << data->GetQ2(k)         << ","
-                << data->GetCollimator(k) << ","
-                << run                    << ","
-                << edtmBranch             << ","
-                << "integral"             << ","
-                << acceptedTrigs[std::make_tuple(run, edtmBranch)]
-                << std::endl;
-
-            // Print livetime
-            for (TString lt: {"phys","edtm","cpu"}) {
-                ofs << k                      << ","
-                    << data->GetTarget(k)     << ","
-                    << data->GetQ2(k)         << ","
-                    << data->GetCollimator(k) << ","
-                    << run                    << ","
-                    << lt                     << ","
-                    << "livetime"             << ","
-                    << livetime[std::make_tuple(run,lt)]
-                    << std::endl;
-            }
-        } // end loop over runs
-    } // end loop over kinematics
-    ofs.close();
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    // Write histos to disk
-    fWrite->Close();
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    // Print histos
-    fRead = new TFile(rootSaveFilename.Data(),"READ");
-
-    std::vector<TLine*> windowMarker;
-    TPaveLabel *text;
-    TString pdfFilename;
-    TString thisWindowLabel;
-    TCanvas* canvas = new TCanvas("canvas", "compare", 700, 500);
-
-    canvas->SetLogy();
-
-    // Create one file with one page per run
-    pdfFilename = "/home/jmatter/ct_scripts/analysis/livetime/histos_per_run.pdf";
-    canvas->Print((pdfFilename+"[").Data());
-    for (auto const &branch: trigBranches) {
+        // Loop over kinematics
         for (auto const &k : kinematics) {
 
             // We didn't have EDTM for Q^2=8 GeV^2 data, so skip for now
@@ -375,50 +299,147 @@ void livetime() {
                 continue;
             }
 
+            // Loop over runs
             for (auto const &run : data->GetRuns(k)) {
-                histoName = Form("run%d_%s", run, branch.Data());
-                histo = (TH1F*) gDirectory->Get(histoName.Data());
-                if (histo==nullptr) {
-                    std::cout << Form("nullputr histo for run %d, %s", run, branch.Data())<< std::endl;
+
+                // Print scaler counts
+                for (auto const &scaler: scalers) {
+                    ofs << k                      << ","
+                        << data->GetTarget(k)     << ","
+                        << data->GetQ2(k)         << ","
+                        << data->GetCollimator(k) << ","
+                        << run                    << ","
+                        << scaler                 << ","
+                        << "scaler"               << ","
+                        << scalerTotal[std::make_tuple(run,scaler)]
+                        << std::endl;
+                }
+
+                // Print physics trigger counts
+                ofs << k                      << ","
+                    << data->GetTarget(k)     << ","
+                    << data->GetQ2(k)         << ","
+                    << data->GetCollimator(k) << ","
+                    << run                    << ","
+                    << physBranch             << ","
+                    << "integral"             << ","
+                    << acceptedTrigs[std::make_tuple(run, physBranch)]
+                    << std::endl;
+
+                // Print EDTM trigger counts
+                ofs << k                      << ","
+                    << data->GetTarget(k)     << ","
+                    << data->GetQ2(k)         << ","
+                    << data->GetCollimator(k) << ","
+                    << run                    << ","
+                    << edtmBranch             << ","
+                    << "integral"             << ","
+                    << acceptedTrigs[std::make_tuple(run, edtmBranch)]
+                    << std::endl;
+
+                // Print livetime
+                for (TString lt: {"phys","edtm","cpu"}) {
+                    ofs << k                      << ","
+                        << data->GetTarget(k)     << ","
+                        << data->GetQ2(k)         << ","
+                        << data->GetCollimator(k) << ","
+                        << run                    << ","
+                        << lt                     << ","
+                        << "livetime"             << ","
+                        << livetime[std::make_tuple(run,lt)]
+                        << std::endl;
+                }
+            } // end loop over runs
+        } // end loop over kinematics
+        ofs.close();
+
+
+        //-------------------------------------------------------------------------------------------------------------------------
+        // Print histos
+        fRead = new TFile(rootSaveFilename.Data(),"READ");
+
+        std::vector<TLine*> windowMarker;
+        TPaveLabel *text;
+        TString pdfFilename;
+        TString thisWindowLabel;
+        TCanvas* canvas = new TCanvas("canvas", "compare", 700, 500);
+
+        canvas->SetLogy();
+
+        // Create one file with one page per run
+        pdfFilename = "/home/jmatter/ct_scripts/analysis/livetime/histos_per_run.pdf";
+        canvas->Print((pdfFilename+"[").Data());
+        for (auto const &branch: trigBranches) {
+            for (auto const &k : kinematics) {
+
+                // We didn't have EDTM for Q^2=8 GeV^2 data, so skip for now
+                // There are ways to do this without the EDTM, but I don't have it
+                // implemented in this script yet.
+                if (data->GetQ2(k)==8) {
+                    std::cout << "Skip " << k << std::endl;
                     continue;
                 }
-                std::cout << Form("Printing histo for run %d, %s", run, branch.Data())<< std::endl;
 
-                histo->SetLineColor(kBlue+2);
-                histo->Draw();
+                for (auto const &run : data->GetRuns(k)) {
+                    // Get this histogram from the root file
+                    histoName = Form("run%d_%s", run, branch.Data());
+                    fRead->GetObject(histoName.Data(), histo);
+                    if (histo==nullptr) {
+                        std::cout << Form("nullputr histo for run %d, %s", run, branch.Data())<< std::endl;
+                        continue;
+                    }
+                    std::cout << Form("Printing histo for run %d, %s", run, branch.Data())<< std::endl;
 
-                // Label
-                thisWindowLabel = Form("%s run %d", k.Data(), run);
-                text = new TPaveLabel(0.125, 0.64, 0.3, 0.68, thisWindowLabel.Data(), "brNDC");
-                text->Draw();
-                canvas->Modified();
-                canvas->Update();
+                    // Format and draw
+                    histo->SetLineColor(kBlue+2);
+                    histo->Draw();
 
-                // Print page without integral limit lines
-                canvas->Print(pdfFilename.Data());
+                    // Create label
+                    thisWindowLabel = Form("%s run %d", k.Data(), run);
+                    text = new TPaveLabel(0.6, 0.64, 0.9, 0.68, thisWindowLabel.Data(), "brNDC");
+                    text->Draw();
+                    canvas->Modified();
+                    canvas->Update();
 
-                // Add reference lines for integral limits
-                canvas->Update();
-                for (int i=0; i<trigLowerLimits[branch].size(); i++) {
-                    windowMarker[i] = new TLine(trigLowerLimits[branch][i], canvas->GetUymin(),
-                                                trigUpperLimits[branch][i], canvas->GetUymax());
-                    windowMarker[i]->SetLineColor(kRed);
-                    windowMarker[i]->SetLineStyle(7);
-                    windowMarker[i]->Draw();
-                }
+                    // Print page without integral limit lines
+                    canvas->Print(pdfFilename.Data());
 
-                gPad->Update();
+                    // Add reference lines for integral limits
+                    // canvas->Update();
+                    yMax = pow(10, canvas->GetUymax());
+                    yMin = pow(10, canvas->GetUymin());
 
-                // Print page with integral limit lines
-                canvas->Print(pdfFilename.Data());
+                    for (int i=0; i<trigLowerLimits[branch].size(); i++) {
+                        windowMarker.push_back(new TLine(trigLowerLimits[branch][i], yMin,
+                                                         trigLowerLimits[branch][i], yMax));
+                    }
 
-                for (int i=0; i<trigLowerLimits[branch].size(); i++) {
-                    delete windowMarker[i];
+                    for (int i=0; i<trigUpperLimits[branch].size(); i++) {
+                        windowMarker.push_back(new TLine(trigUpperLimits[branch][i], yMin,
+                                                         trigUpperLimits[branch][i], yMax));
+                    }
+
+                    for (int i=0; i<windowMarker.size(); i++) {
+                        windowMarker[i]->SetLineColor(kRed);
+                        windowMarker[i]->SetLineStyle(7);
+                        windowMarker[i]->Draw();
+                    }
+
+                    gPad->Update();
+
+                    // Print page with integral limit lines
+                    canvas->Print(pdfFilename.Data());
+
+                    // Cleanup window marker *TLines
+                    for (int i=0; i<windowMarker.size(); i++) {
+                        delete windowMarker[i];
+                    }
+                    windowMarker.clear();
                 }
             }
         }
+        canvas->Print((pdfFilename+"]").Data());
     }
-    canvas->Print((pdfFilename+"]").Data());
 }
 
 std::map<Int_t, Double_t> getBeamCutValues() {
