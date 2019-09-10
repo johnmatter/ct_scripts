@@ -20,6 +20,9 @@
 // It also creates histograms of triggers' raw TDC times, both with and without window cuts.
 // This allows us to check if our windows are set correctly
 // Big thanks to Carlos Yero for the inspiration for this script.
+
+std::map<Int_t, Double_t> getBeamCutValues();
+
 void livetime() {
 
     //-------------------------------------------------------------------------------------------------------------------------
@@ -32,9 +35,12 @@ void livetime() {
     // CSV to save
     TString csvFilename = "livetime.csv";
 
+    // root file to save histograms to
+    TString rootSaveFilename = "histos.root";
+
     // Needed for reading data
     TString rootFilename;
-    TFile *f;
+    TFile *fRead, *fWrite;
     TTree *T, *TS;
 
     // Key is run number
@@ -100,10 +106,15 @@ void livetime() {
     trigLowerLimits[edtmBranch].push_back(154);
     trigUpperLimits[edtmBranch].push_back(158);
 
+    std::map<Int_t, Double_t> beamCut = getBeamCutValues();
+
     TString histoName, drawStr, cutStr;
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Count triggers, calculate livetime
+
+    fWrite = new TFile(rootSaveFilename, "RECREATE");
+
     for (auto const &k : kinematics) {
         // We didn't have EDTM for Q^2=8 GeV^2 data, so skip for now
         // There are ways to do this without the EDTM, but I don't have it
@@ -131,9 +142,9 @@ void livetime() {
             rootFilename = Form(data->GetRootfileTemplate(k),
                                 data->GetRootfileDirectory().Data(),
                                 run);
-            f  = new TFile(rootFilename.Data(), "READ");
-            T  = (TTree*) f->Get("T");
-            TS = (TTree*) f->Get("TSP");
+            fRead  = new TFile(rootFilename.Data(), "READ");
+            T  = (TTree*) fRead->Get("T");
+            TS = (TTree*) fRead->Get("TSP");
 
             // Set scaler branch addresses
             for (auto const &scaler: scalers) {
@@ -141,14 +152,19 @@ void livetime() {
             }
 
             // ----------------------------------------------------------------
-            // Get average current
-            histoName = Form("%s_run%d", bcmScaler.Data(), run);
+            // Get current trip threshold
+            histoName = Form("run%d_%s", run, bcmScaler.Data());
             TS->Draw(Form("%s>>%s(200,0,100)", bcmScaler.Data(), histoName.Data()),
                      Form("%s>0", bcmScaler.Data()),
                      "goff");
             bcmHistos[run] = (TH1F*) gDirectory->Get(histoName.Data());
-            fit = bcmHistos[run]->Fit("gaus", "S");
-            averageCurrent = fit->Parameter(1);
+            // fit = bcmHistos[run]->Fit("gaus", "S");
+            // averageCurrent = fit->Parameter(1);
+
+            averageCurrent = beamCut[run];
+            std::cout << Form("bcmCut=%f", averageCurrent) << std::endl;
+
+            fWrite->WriteObject(bcmHistos[run], histoName.Data());
 
             // ----------------------------------------------------------------
             // Loop over scalers and count triggers
@@ -160,7 +176,7 @@ void livetime() {
 
                 // If current not 5% below average, increment scalerTotal by an amount
                 // equal to the difference between this read and the previous one
-                if ((averageCurrent - thisRead[bcmScaler])/averageCurrent < 0.5) {
+                if (thisRead[bcmScaler] >= (0.95 * averageCurrent)) {
                     for (auto const &scaler: scalers) {
                         Double_t increment = (thisRead[scaler] - prevRead[scaler]);
                         scalerTotal[std::make_tuple(run,scaler)] += (increment);
@@ -175,36 +191,46 @@ void livetime() {
             std::cout << "Scaler progress: 100%" << std::endl;
 
             // ----------------------------------------------------------------
-            // Count triggers
+            // Draw histograms, count triggers, write histos to disk
+
+            cutStr  = Form("(%s)>=(0.95*%f)", bcmBranch.Data(), averageCurrent);
 
             // Draw pTRIG6
-            histoName = Form("%s_%d", physBranch.Data(), run);;
+            histoName = Form("run%d_%s", run, physBranch.Data());;
             drawStr = Form("%s>>%s", physBranch.Data(), histoName.Data());
-            cutStr  = Form("((%f-%s)/%f)<0.5", averageCurrent, bcmBranch.Data(), averageCurrent);
             T->Draw(drawStr.Data(), cutStr.Data(), "goff");
             histosPerRun[std::make_tuple(run, physBranch)] = (TH1F*) gDirectory->Get(histoName.Data());
+            fWrite->WriteObject(histosPerRun[std::make_tuple(run, physBranch)], histoName.Data());
 
             // Draw pEDTM
-            histoName = Form("%s_%d", edtmBranch.Data(), run);;
+            histoName = Form("run%d_%s", run, edtmBranch.Data());;
             drawStr = Form("%s>>%s", edtmBranch.Data(), histoName.Data());
-            cutStr  = Form("((%f-%s)/%f)<0.5", averageCurrent, bcmBranch.Data(), averageCurrent);
             T->Draw(drawStr.Data(), cutStr.Data(), "goff");
             histosPerRun[std::make_tuple(run, edtmBranch)] = (TH1F*) gDirectory->Get(histoName.Data());
+            fWrite->WriteObject(histosPerRun[std::make_tuple(run, edtmBranch)], histoName.Data());
+
+            Int_t count, lowerBin, upperBin;
 
             // Integrate pTRIG6
             histo = histosPerRun[std::make_tuple(run, physBranch)];
             acceptedTrigs[std::make_tuple(run, physBranch)] = 0;
             for (int i=0; i<trigLowerLimits[physBranch].size(); i++) {
-                std::cout << Form("Integrate pTRIG6_tdcTime from %f to %f", trigLowerLimits[physBranch][i], trigUpperLimits[physBranch][i]) << std::endl;
-                acceptedTrigs[std::make_tuple(run, physBranch)] += histo->Integral(trigLowerLimits[physBranch][i], trigUpperLimits[physBranch][i]);
+                lowerBin = histo->FindBin(trigLowerLimits[physBranch][i]);
+                upperBin = histo->FindBin(trigupperLimits[physBranch][i]);
+                count = histo->Integral(lowerBin, upperBin);
+                std::cout << Form("Integrate pTRIG6_tdcTime from %f to %f: %d", trigLowerLimits[physBranch][i], trigUpperLimits[physBranch][i], count) << std::endl;
+                acceptedTrigs[std::make_tuple(run, physBranch)] += count;
             }
 
             // Integrate EDTM
-            histo = histosPerRun[std::make_tuple(run, physBranch)];
+            histo = histosPerRun[std::make_tuple(run, edtmBranch)];
             acceptedTrigs[std::make_tuple(run, edtmBranch)] = 0;
             for (int i=0; i<trigLowerLimits[edtmBranch].size(); i++) {
-                std::cout << Form("Integrate pEDTM_tdcTime from %f to %f", trigLowerLimits[edtmBranch][i], trigUpperLimits[edtmBranch][i]) << std::endl;
-                acceptedTrigs[std::make_tuple(run, edtmBranch)] += histo->Integral(trigLowerLimits[edtmBranch][i], trigUpperLimits[edtmBranch][i]);
+                lowerBin = histo->FindBin(trigLowerLimits[edtmBranch][i]);
+                upperBin = histo->FindBin(trigupperLimits[edtmBranch][i]);
+                count = histo->Integral(lowerBin, upperBin);
+                std::cout << Form("Integrate pEDTM_tdcTime from %f to %f: %d", trigLowerLimits[edtmBranch][i], trigUpperLimits[edtmBranch][i], count) << std::endl;
+                acceptedTrigs[std::make_tuple(run, edtmBranch)] += count;
             }
 
             // ----------------------------------------------------------------
@@ -229,13 +255,15 @@ void livetime() {
             // ----------------------------------------------------------------
             // Cleanup
             // Deleting the TFile frees the memory taken up by any objects Get()-ed form it
-            f->Close();
-            delete f;
+            fRead->Close();
+            delete fRead;
         }
     }
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Print live time
+
+    std::cout << "Print livetime and scalers to csv" << std::endl;
 
     // Open file
     std::ofstream ofs;
@@ -254,6 +282,15 @@ void livetime() {
 
     // Loop over kinematics
     for (auto const &k : kinematics) {
+
+        // We didn't have EDTM for Q^2=8 GeV^2 data, so skip for now
+        // There are ways to do this without the EDTM, but I don't have it
+        // implemented in this script yet.
+        if (data->GetQ2(k)==8) {
+            std::cout << "Skip " << k << std::endl;
+            continue;
+        }
+
         // Loop over runs
         for (auto const &run : data->GetRuns(k)) {
 
@@ -310,11 +347,12 @@ void livetime() {
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Write histos to disk
-    f = new TFile("histos.root","RECREATE");
-    f->Write();
+    fWrite->Close();
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Print histos
+    fRead = new TFile(rootSaveFilename.Data(),"READ");
+
     std::vector<TLine*> windowMarker;
     TPaveLabel *text;
     TString pdfFilename;
@@ -328,8 +366,24 @@ void livetime() {
     canvas->Print((pdfFilename+"[").Data());
     for (auto const &branch: trigBranches) {
         for (auto const &k : kinematics) {
+
+            // We didn't have EDTM for Q^2=8 GeV^2 data, so skip for now
+            // There are ways to do this without the EDTM, but I don't have it
+            // implemented in this script yet.
+            if (data->GetQ2(k)==8) {
+                std::cout << "Skip " << k << std::endl;
+                continue;
+            }
+
             for (auto const &run : data->GetRuns(k)) {
-                histo = histosPerRun[std::make_tuple(run, branch)];
+                histoName = Form("run%d_%s", run, branch.Data());
+                histo = (TH1F*) gDirectory->Get(histoName.Data());
+                if (histo==nullptr) {
+                    std::cout << Form("nullputr histo for run %d, %s", run, branch.Data())<< std::endl;
+                    continue;
+                }
+                std::cout << Form("Printing histo for run %d, %s", run, branch.Data())<< std::endl;
+
                 histo->SetLineColor(kBlue+2);
                 histo->Draw();
 
@@ -365,4 +419,127 @@ void livetime() {
         }
     }
     canvas->Print((pdfFilename+"]").Data());
+}
+
+std::map<Int_t, Double_t> getBeamCutValues() {
+    std::map<Int_t, Double_t> beamCut;
+
+    beamCut[2278] = 14;
+    beamCut[2279] = 14;
+    beamCut[2280] = 15;
+    beamCut[2281] = 15;
+    beamCut[2283] = 15;
+    beamCut[2284] = 45;
+    beamCut[2285] = 45;
+    beamCut[2286] = 45;
+    beamCut[2290] = 44;
+    beamCut[2291] = 44;
+    beamCut[2292] = 44;
+    beamCut[2293] = 39;
+    beamCut[2294] = 39;
+    beamCut[2295] = 39;
+    beamCut[2296] = 39;
+    beamCut[2297] = 39;
+    beamCut[2298] = 40;
+    beamCut[2299] = 40;
+    beamCut[2300] = 25;
+    beamCut[2301] = 40;
+    beamCut[2303] = 40;
+    beamCut[2304] = 40;
+    beamCut[2305] = 40;
+    beamCut[2306] = 40;
+    beamCut[2308] = 40;
+    beamCut[2309] = 40;
+    beamCut[2310] = 15;
+    beamCut[2311] = 15;
+    beamCut[2312] = 40;
+    beamCut[2313] = 40;
+    beamCut[2314] = 40;
+    beamCut[2315] = 40;
+    beamCut[2316] = 40;
+    beamCut[2317] = 40;
+    beamCut[2318] = 40;
+    beamCut[2319] = 40;
+    beamCut[2320] = 40;
+    beamCut[2321] = 40;
+    beamCut[2322] = 40;
+    beamCut[2323] = 40;
+    beamCut[2324] = 40;
+    beamCut[2325] = 40;
+    beamCut[2343] = 40;
+    beamCut[2344] = 35;
+    beamCut[2345] = 40;
+    beamCut[2346] = 40;
+    beamCut[2347] = 40;
+    beamCut[2348] = 45;
+    beamCut[2349] = 45;
+    beamCut[2350] = 40;
+    beamCut[2351] = 36;
+    beamCut[2352] = 40;
+    beamCut[2355] = 15;
+    beamCut[2356] = 40;
+    beamCut[2357] = 15;
+    beamCut[2358] = 35;
+    beamCut[2359] = 35;
+    beamCut[2361] = 35;
+    beamCut[2362] = 35;
+    beamCut[2406] = 14;
+    beamCut[2407] = 14;
+    beamCut[2408] = 14;
+    beamCut[2409] = 14;
+    beamCut[2410] = 14;
+    beamCut[2411] = 14;
+    beamCut[2412] = 14;
+    beamCut[2414] = 14;
+    beamCut[2415] = 14;
+    beamCut[2416] = 14;
+    beamCut[2417] = 14;
+    beamCut[2418] = 14;
+    beamCut[2419] = 14;
+    beamCut[2420] = 5;
+    beamCut[2421] = 5;
+    beamCut[2423] = 2;
+    beamCut[2424] = 4;
+    beamCut[2425] = 39;
+    beamCut[2426] = 48;
+    beamCut[2427] = 49;
+    beamCut[2428] = 30;
+    beamCut[2429] = 20;
+    beamCut[2430] = 7;
+    beamCut[2431] = 7;
+    beamCut[2432] = 7;
+    beamCut[2433] = 7;
+    beamCut[2434] = 23;
+    beamCut[2435] = 25;
+    beamCut[2446] = 7;
+    beamCut[2447] = 25;
+    beamCut[2448] = 7;
+    beamCut[2449] = 15;
+    beamCut[2450] = 19;
+    beamCut[2452] = 29;
+    beamCut[2453] = 34;
+    beamCut[2456] = 48;
+    beamCut[2457] = 30;
+    beamCut[2458] = 4;
+    beamCut[2459] = 20;
+    beamCut[2460] = 48;
+    beamCut[2461] = 19;
+    beamCut[2462] = 4;
+    beamCut[2463] = 4;
+    beamCut[2464] = 4;
+    beamCut[3179] = 6;
+    beamCut[3180] = 49;
+    beamCut[3181] = 49;
+    beamCut[3183] = 49;
+    beamCut[3184] = 49;
+    beamCut[3186] = 49;
+    beamCut[3187] = 49;
+    beamCut[3188] = 49;
+    beamCut[3193] = 39;
+    beamCut[3198] = 59;
+    beamCut[3199] = 59;
+    beamCut[3201] = 49;
+
+    return beamCut;
+
 }
