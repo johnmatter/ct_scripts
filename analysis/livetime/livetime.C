@@ -103,17 +103,17 @@ void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
     // tdcTime ranges to integrate
     std::map<TString, std::vector<Double_t>> trigLowerLimits;
     std::map<TString, std::vector<Double_t>> trigUpperLimits;
-    trigLowerLimits[physBranch].push_back(272); // pTRIG6 self-timing + EDTM
+    trigLowerLimits[physBranch].push_back(272); // pTRIG6 self-timing + EDTM centered at 273.75
     trigUpperLimits[physBranch].push_back(276); // pTRIG6 self-timing + EDTM
-    trigLowerLimits[physBranch].push_back(283); // EDTM
+    trigLowerLimits[physBranch].push_back(283); // EDTM centered at ~285
     trigUpperLimits[physBranch].push_back(287); // EDTM
-    trigLowerLimits[physBranch].push_back(329); // EDTM
-    trigUpperLimits[physBranch].push_back(333); // EDTM
-    trigLowerLimits[edtmBranch].push_back(91);
+    trigLowerLimits[physBranch].push_back(329); // EDTM centered at ~331.5
+    trigUpperLimits[physBranch].push_back(332); // EDTM
+    trigLowerLimits[edtmBranch].push_back(91); // centered at ~92.5
     trigUpperLimits[edtmBranch].push_back(94);
-    trigLowerLimits[edtmBranch].push_back(108);
+    trigLowerLimits[edtmBranch].push_back(108); // centered at ~110
     trigUpperLimits[edtmBranch].push_back(112);
-    trigLowerLimits[edtmBranch].push_back(154);
+    trigLowerLimits[edtmBranch].push_back(154); // centered at 155.5
     trigUpperLimits[edtmBranch].push_back(158);
 
     std::map<Int_t, Double_t> beamCut = getBeamCutValues();
@@ -171,10 +171,15 @@ void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
                          Form("%s>0", bcmScaler.Data()),
                          "goff");
                 bcmHistos[run] = (TH1F*) gDirectory->Get(histoName.Data());
+
+                // Get cut by fitting bcm histogram
+                // This method is, emphatically, not good as it stands.
                 // fit = bcmHistos[run]->Fit("gaus", "S");
                 // averageCurrent = fit->Parameter(1);
 
-                averageCurrent = beamCut[run];
+                // Explicitly set cut value
+                averageCurrent = beamCut[run]; // per run
+                // averageCurrent = 4; // global
                 std::cout << Form("bcmCut=%f", averageCurrent) << std::endl;
 
                 fWrite->WriteObject(bcmHistos[run], histoName.Data());
@@ -189,7 +194,7 @@ void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
 
                     // If current not 5% below average, increment scalerTotal by an amount
                     // equal to the difference between this read and the previous one
-                    if (thisRead[bcmScaler] >= (0.95 * averageCurrent)) {
+                    if (thisRead[bcmScaler] >= averageCurrent) {
                         for (auto const &scaler: scalers) {
                             Double_t increment = (thisRead[scaler] - prevRead[scaler]);
                             scalerTotal[std::make_tuple(run,scaler)] += (increment);
@@ -205,7 +210,7 @@ void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
 
                 // ----------------------------------------------------------------
                 // Draw histograms, count triggers, write histos to disk
-                cutStr  = Form("(%s)>=(0.95*%f)", bcmBranch.Data(), averageCurrent);
+                cutStr  = Form("(%s)>=%f", bcmBranch.Data(), averageCurrent);
                 Int_t count, lowerBin, upperBin, nBins;
 
                 for (auto const branch: trigBranches) {
