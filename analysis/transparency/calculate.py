@@ -2,6 +2,10 @@
 import pandas as pd
 from warnings import warn
 
+
+# TODO:
+# - Replace yield calculation with goodevents and charge. Goodevents exists. Need to write charge script.
+
 #------------------------------------------------------------------------------
 def main():
     # List of kinematics we're interested in
@@ -28,6 +32,7 @@ def main():
     csvs['hTracking']  = '/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/HMS_tracking.csv'
     csvs['pTracking']  = '/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/SHMS_tracking.csv'
     csvs['yield']      = '/home/jmatter/ct_scripts/analysis/transparency/yield.csv'
+    csvs['goodevents'] = '/home/jmatter/ct_scripts/analysis/transparency/goodevents.csv'
     csvs['absorption'] = '/home/jmatter/ct_scripts/analysis/transparency/absorption.csv'
     csvs['simc']       = '/home/jmatter/ct_scripts/analysis/transparency/simc.csv'
     csvs['livetime']   = '/home/jmatter/ct_scripts/analysis/transparency/livetime.csv'
