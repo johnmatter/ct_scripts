@@ -1,0 +1,13 @@
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_LH2_Q2_8
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_LH2_Q2_10_large_collimator
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_LH2_Q2_10_pion_collimator
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_LH2_Q2_12
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_LH2_Q2_14_large_collimator
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_LH2_Q2_14_pion_collimator
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_C12_Q2_8_thick
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_C12_Q2_8_thin
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_C12_Q2_10_thin
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_C12_Q2_10_thick
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_C12_Q2_12
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_C12_Q2_14_large_collimator
+./create_bcm_param.sh /home/jmatter/ct_scripts/runlists/coin/runs_C12_Q2_14_pion_collimator

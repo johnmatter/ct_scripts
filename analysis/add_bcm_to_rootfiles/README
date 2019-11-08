@@ -1,0 +1,13 @@
+We need to use R__LOAD_LIBRARY to load the ScalerCalib library. 
+
+First, go to ~/CT12Gev/ct_replay/CALIBRATION/bcm_current_map and build it:
+> root -b
+root [0] .L ScalerCalib.C+
+root [1] .q
+
+Then to make it accessible here, link it:
+> ln -s ~/CT12Gev/ct_replay/CALIBRATION/bcm_current_map/ScalerCalib_C.so ScalerCalib_c
+
+Now you can run 01_create_all_bcm_params.sh
+
+After that, you should run XYZ to add these params to your production replay rootfiles.
