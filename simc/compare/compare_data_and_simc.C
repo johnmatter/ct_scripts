@@ -49,7 +49,8 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     std::map<TString, TCut> simcCuts;
     simcCuts["C12_thick"] = "Em<0.08 && abs(Pm)<0.3 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
     simcCuts["C12_thin"]  = "Em<0.08 && abs(Pm)<0.3 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
-    simcCuts["LH2"]       = "Em<0.05 && abs(Pm)<0.025 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
+    // simcCuts["LH2"]       = "Em<0.05 && abs(Pm)<0.025 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
+    simcCuts["LH2"]       = "Em<0.05 && hsdelta<8 && hsdelta>-8 && ssdelta<15 && ssdelta>-10";
 
     std::map<TString, TString> targetFilenameMap;
     targetFilenameMap["C12_thick"]="c12";
@@ -63,6 +64,7 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     Q2FilenameMap[14.3]=143;
 
     TString rootfileDirectory = "/work/hallc/e1206107/jmatter/simc_gfortran/worksim/";
+    // TString rootfileDirectory = "/home/jmatter/volatile_jmatter/group_simc";
     TString rootfileFormat = Form("%s/%%s_radcorr/%%s_collimator/%%s_q_%%d.root", rootfileDirectory.Data());
 
     TString normfacFile = "/home/jmatter/ct_scripts/simc/yield/normfac.csv";
@@ -122,6 +124,16 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     dataBranch[branchDescription] = "P.kin.secondary.pmiss";
     logy[branchDescription] = false;
 
+    // Pmiss_zoom_logy
+    branchDescription = "Pmiss_zoom_logy";
+    branchDescriptions.push_back(branchDescription);
+    nBins[branchDescription] = 100;
+    loBin[branchDescription] = 0.0;
+    hiBin[branchDescription] = 0.05;
+    simcBranch[branchDescription] = "Pm";
+    dataBranch[branchDescription] = "P.kin.secondary.pmiss";
+    logy[branchDescription] = true;
+
     // Pmiss_z
     branchDescription = "PmissZ";
     branchDescriptions.push_back(branchDescription);
@@ -156,8 +168,8 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     branchDescription = "W";
     branchDescriptions.push_back(branchDescription);
     nBins[branchDescription] = 100;
-    loBin[branchDescription] = 0.5;
-    hiBin[branchDescription] = 1.5;
+    loBin[branchDescription] = 0.7;
+    hiBin[branchDescription] = 1.3;
     simcBranch[branchDescription] = "W";
     dataBranch[branchDescription] = "H.kin.primary.W";
     logy[branchDescription] = false;
@@ -205,9 +217,9 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     // hsyptar
     branchDescription = "HMSyptar";
     branchDescriptions.push_back(branchDescription);
-    nBins[branchDescription] = 50;
-    loBin[branchDescription] = -0.1;
-    hiBin[branchDescription] = +0.1;
+    nBins[branchDescription] = 60;
+    loBin[branchDescription] = -0.06;
+    hiBin[branchDescription] = +0.06;
     simcBranch[branchDescription] = "hsyptar";
     dataBranch[branchDescription] = "H.gtr.ph";
     logy[branchDescription] = false;
@@ -236,8 +248,8 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     branchDescription = "SHMSxptar";
     branchDescriptions.push_back(branchDescription);
     nBins[branchDescription] = 50;
-    loBin[branchDescription] = -0.1;
-    hiBin[branchDescription] = +0.1;
+    loBin[branchDescription] = -0.06;
+    hiBin[branchDescription] = +0.06;
     simcBranch[branchDescription] = "ssxptar";
     dataBranch[branchDescription] = "P.gtr.th";
     logy[branchDescription] = false;
@@ -246,8 +258,8 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     branchDescription = "SHMSyptar";
     branchDescriptions.push_back(branchDescription);
     nBins[branchDescription] = 50;
-    loBin[branchDescription] = -0.1;
-    hiBin[branchDescription] = +0.1;
+    loBin[branchDescription] = -0.06;
+    hiBin[branchDescription] = +0.06;
     simcBranch[branchDescription] = "ssyptar";
     dataBranch[branchDescription] = "P.gtr.ph";
     logy[branchDescription] = false;
@@ -362,7 +374,8 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
                         // histos[histoKey]->Scale(1/histos[histoKey]->Integral());
 
                         // Labels
-                        histos[histoKey]->SetTitle(Form("%s %s radcorr;%s", b.Data(), radcorr.Data(), branch.Data()));
+                        // histos[histoKey]->SetTitle(Form("%s %s radcorr;%s", b.Data(), radcorr.Data(), branch.Data()));
+                        histos[histoKey]->SetTitle("");
                     }
                 }
             }
@@ -398,7 +411,7 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
                 cut = cuts->Get("coinCutsC12");
             }
             if (data->GetTarget(k).Contains("LH2")) {
-                cut = cuts->Get("coinCutsLH2");
+                cut = cuts->Get("betaCut") && cuts->Get("deltaCut") && cuts->Get("PIDCut") && cuts->Get("hodoTimeCut") && "P.kin.secondary.emiss < 0.05";
             }
             if (cut=="") {
                 std::cout << "Couldn't find cut for kinematics " << k << std::endl;
@@ -411,7 +424,8 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
             // histos[histoKey]->Scale(1/histos[histoKey]->Integral());
 
             // Labels
-            histos[histoKey]->SetTitle(Form("%s data;%s", b.Data(), branch.Data()));
+            // histos[histoKey]->SetTitle(Form("%s data;%s", b.Data(), branch.Data()));
+            histos[histoKey]->SetTitle("");
         }
     }
 
@@ -454,11 +468,27 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
             histos[withKey]->Scale(histos[dataKey]->Integral());
             histos[withoutKey]->Scale(histos[dataKey]->Integral());
 
-
-            // Set colors
+            // Set aesthetics
             histos[dataKey]->SetLineColor(kBlue);
             histos[withKey]->SetLineColor(kRed);
-            histos[withoutKey]->SetLineColor(kGreen);
+            // histos[withoutKey]->SetLineColor(kGreen);
+
+            Double_t lineWidth = 6;
+            histos[dataKey]->SetLineWidth(lineWidth);
+            histos[withKey]->SetLineWidth(lineWidth);
+            // histos[withoutKey]->SetLineWidth(lineWidth);
+
+            // histos[dataKey]->SetFillColor(kRed);
+            // histos[withKey]->SetFillColor(kBlue);
+            // histos[withoutKey]->SetFillColor(kGreen);
+
+            Double_t labelSize = 0.06;
+            histos[dataKey]->GetXaxis()->SetLabelSize(labelSize);
+            histos[withKey]->GetXaxis()->SetLabelSize(labelSize);
+            histos[withoutKey]->GetXaxis()->SetLabelSize(labelSize);
+            histos[dataKey]->GetYaxis()->SetLabelSize(labelSize);
+            histos[withKey]->GetYaxis()->SetLabelSize(labelSize);
+            histos[withoutKey]->GetYaxis()->SetLabelSize(labelSize);
 
             // Are we using a logarithmic y axis?
             if (logy[b]==true) {
@@ -467,22 +497,26 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
                 canvas->SetLogy(0);
             }
 
-            // Draw
-            // The string drawOpt starts empty, so that the first histo is *not* drawn
-            // with the "SAME" option. After the first is drawn, drawOpt becomes "SAME"
-            // for subsequent histos.
-            TString drawOpt="";
-            if (drawData==1) {
-                histos[dataKey]->Draw("HIST");
-                drawOpt = "SAME";
-            }
-            if (drawSimcWithRadcorr==1) {
-                histos[withKey]->Draw(drawOpt.Data());
-                drawOpt = "SAME";
-            }
-            if (drawSimcWithoutRadcorr==1) {
-                histos[withoutKey]->Draw(drawOpt.Data());
-            }
+            // Bypass my convoluted drawing logic to force a particular aesthetic DD requested
+            histos[withKey]->Draw("HIST");
+            histos[dataKey]->Draw("HISTSAME");
+
+            // // Draw
+            // // The string drawOpt starts empty, so that the first histo is *not* drawn
+            // // with the "SAME" option. After the first is drawn, drawOpt becomes "SAME"
+            // // for subsequent histos.
+            // TString drawOpt="";
+            // if (drawData==1) {
+            //     histos[dataKey]->Draw("E");
+            //     drawOpt = "SAME";
+            // }
+            // if (drawSimcWithRadcorr==1) {
+            //     histos[withKey]->Draw(drawOpt.Data());
+            //     drawOpt = "SAME";
+            // }
+            // if (drawSimcWithoutRadcorr==1) {
+            //     histos[withoutKey]->Draw(drawOpt.Data());
+            // }
 
             // Add a title
             TString thisTitle = Form("%s, Q^2=%.1f, %s, %s collimator", b.Data(), Q2, target.Data(), collimator.Data());
@@ -499,5 +533,28 @@ void compare_data_and_simc(Int_t drawData=1, Int_t drawSimcWithRadcorr=1, Int_t 
     } // loop over branches
 
     // close PDF
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    // Write histograms to a root file in case we want them later
+    TString rootSaveFilename = "compare_data_simc.root";
+    TFile *fWrite = new TFile(rootSaveFilename, "RECREATE");
+    for(auto const &b: branchDescriptions) {
+        for (auto const &k: kinematics) {
+            Double_t Q2 = data->GetQ2(k);
+            TString target = data->GetTarget(k);
+            TString collimator = data->GetCollimator(k);
+
+            auto dataKey    = std::make_tuple(Q2, target, collimator, "data", b);
+            auto withKey    = std::make_tuple(Q2, target, collimator, "with", b);
+            auto withoutKey = std::make_tuple(Q2, target, collimator, "without", b);
+
+            fWrite->WriteObject(histos[dataKey],    histos[dataKey]->GetName());
+            fWrite->WriteObject(histos[withKey],    histos[withKey]->GetName());
+            fWrite->WriteObject(histos[withoutKey], histos[withoutKey]->GetName());
+        }
+    }
+    fWrite->Close();
+
+
 
 }
