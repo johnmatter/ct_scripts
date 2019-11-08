@@ -164,6 +164,8 @@ void plot_cuts() {
     //-------------------------------------------------------------------------------------------------------------------------
     // Loop over kinematics and print histos to PDF
 
+    canvas->SetLogy(1);
+
     TString histoOpen, histoWindow;
     TLine *windowMinMarker, *windowMaxMarker;
     for(auto const &tdc: TDCs) {
