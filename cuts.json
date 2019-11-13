@@ -6,7 +6,7 @@
         },
         {
             "name" : "pDeltaCut",
-            "cut"  : "\"P.gtr.dp > -10 && P.gtr.dp < 15\""
+            "cut"  : "\"P.gtr.dp > -10 && P.gtr.dp < 12\""
         },
         {
             "name" : "pBetaCut",
@@ -30,11 +30,11 @@
         },
         {
             "name" : "pLH2EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss < 0.05 && abs(TMath::Sign(1,P.kin.secondary.pmiss_z)*P.kin.secondary.pmiss) < 0.025\""
+            "cut"  : "\"P.kin.secondary.emiss < 0.1 && abs(P.kin.secondary.pmiss) < 0.1\""
         },
         {
             "name" : "pC12EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.08 && abs(TMath::Sign(1,P.kin.secondary.pmiss_z)*P.kin.secondary.pmiss) < 0.3\""
+            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.08 && abs(P.kin.secondary.pmiss) < 0.3\""
         },
         {
             "name" : "hHodoTimeCut",
@@ -42,7 +42,7 @@
         },
         {
             "name" : "hDeltaCut",
-            "cut"  : "\"H.gtr.dp > -8 && H.gtr.dp < 8\""
+            "cut"  : "\"H.gtr.dp > -10 && H.gtr.dp < 10\""
         },
         {
             "name" : "hBetaCut",
