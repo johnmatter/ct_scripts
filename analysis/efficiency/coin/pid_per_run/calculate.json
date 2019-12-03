@@ -1,0 +1,19 @@
+{
+    "jobs": [
+        {
+            "command": "/home/jmatter/ct_scripts/analysis/efficiency/coin/pid_per_run/run.sh",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/pid_per_run/calculate.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/pid_per_run/calculate.out",
+            "timeSecs": 18000,
+            "track": "analysis"
+        }
+    ],
+    "name": "ct_pid_unweighted"
+}
