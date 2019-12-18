@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import os
-import subprocess
+from os import path
 
 #------------------------------------------------------------------------------- 
-# hadd all files for CT kinematics
-# Run hadd_filecheck.py before this script
+# Check if all the files exist for hadd-ing
+# Run this before CT_hadd.py
 #------------------------------------------------------------------------------- 
+
 
 # Where are the lists of run numbers by kinematics?
 runlistDir = '/home/jmatter/ct_scripts/runlists/coin'
@@ -34,7 +35,9 @@ rootfileDir = '/volatile/hallc/comm2017/e1206107/ROOTfiles/pass2'
 rootfileInputTemplate = 'coin_replay_production_%d_-1.root'
 
 #------------------------------------------------------------------------------- 
-# Loop over kinematics and hadd rootfiles
+# Loop over kinematics and check if files exist
+
+print('runlist,haddout,runfile,exists')
 
 # Each key in haddFilename is a runlist.
 for key in haddFilename:
@@ -56,8 +59,9 @@ for key in haddFilename:
         filename = os.path.join(rootfileDir,rootfileInputTemplate % run) 
         inputRootfiles.append(filename)
 
-    # Form output file for hadd
-    outputRootfile = os.path.join(rootfileDir, haddFilename[key])
-
-    # Run hadd
-    subprocess.call(['hadd'] + [outputRootfile] + inputRootfiles)
+    # Print if file exists
+    for file in inputRootfiles:
+        if path.exists(file):
+            print("%s, %s, %s, TRUE" % (key, haddFilename[key], file))
+        else:
+            print("%s, %s, %s, FALSE" % (key, haddFilename[key], file))
