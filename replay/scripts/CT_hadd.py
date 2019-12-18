@@ -60,5 +60,4 @@ for key in haddFilename:
     outputRootfile = os.path.join(rootfileDir, haddFilename[key])
 
     # Run hadd
-    # subprocess.call(['hadd'] + [outputRootfile] + inputRootfiles)
-    print(['hadd'] + [outputRootfile] + inputRootfiles)
+    subprocess.call(['hadd'] + [outputRootfile] + inputRootfiles)
