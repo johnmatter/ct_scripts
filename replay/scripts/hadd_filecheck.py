@@ -2,10 +2,10 @@
 import os
 from os import path
 
-#------------------------------------------------------------------------------- 
+#-------------------------------------------------------------------------------
 # Check if all the files exist for hadd-ing
 # Run this before CT_hadd.py
-#------------------------------------------------------------------------------- 
+#-------------------------------------------------------------------------------
 
 
 # Where are the lists of run numbers by kinematics?
@@ -34,7 +34,7 @@ rootfileDir = '/volatile/hallc/comm2017/e1206107/ROOTfiles/pass2'
 # What's the input root filename template?
 rootfileInputTemplate = 'coin_replay_production_%d_-1.root'
 
-#------------------------------------------------------------------------------- 
+#-------------------------------------------------------------------------------
 # Loop over kinematics and check if files exist
 
 print('runlist,haddout,runfile,exists')
@@ -43,7 +43,7 @@ print('runlist,haddout,runfile,exists')
 for key in haddFilename:
     # Form runlist filename and read it
     runlist = os.path.join(runlistDir, key)
-    f = open(runlist,'r') 
+    f = open(runlist,'r')
     lines = f.readlines()
 
     # Read each line and add to list
@@ -56,7 +56,7 @@ for key in haddFilename:
     # Generate list of input files for hadd
     inputRootfiles = []
     for run in runs:
-        filename = os.path.join(rootfileDir,rootfileInputTemplate % run) 
+        filename = os.path.join(rootfileDir,rootfileInputTemplate % run)
         inputRootfiles.append(filename)
 
     # Print if file exists

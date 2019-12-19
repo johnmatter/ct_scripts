@@ -2,10 +2,10 @@
 import os
 import subprocess
 
-#------------------------------------------------------------------------------- 
+#-------------------------------------------------------------------------------
 # hadd all files for CT kinematics
 # Run hadd_filecheck.py before this script
-#------------------------------------------------------------------------------- 
+#-------------------------------------------------------------------------------
 
 # Where are the lists of run numbers by kinematics?
 runlistDir = '/home/jmatter/ct_scripts/runlists/coin'
@@ -33,14 +33,14 @@ rootfileDir = '/volatile/hallc/comm2017/e1206107/ROOTfiles/pass2'
 # What's the input root filename template?
 rootfileInputTemplate = 'coin_replay_production_%d_-1.root'
 
-#------------------------------------------------------------------------------- 
+#-------------------------------------------------------------------------------
 # Loop over kinematics and hadd rootfiles
 
 # Each key in haddFilename is a runlist.
 for key in haddFilename:
     # Form runlist filename and read it
     runlist = os.path.join(runlistDir, key)
-    f = open(runlist,'r') 
+    f = open(runlist,'r')
     lines = f.readlines()
 
     # Read each line and add to list
@@ -53,7 +53,7 @@ for key in haddFilename:
     # Generate list of input files for hadd
     inputRootfiles = []
     for run in runs:
-        filename = os.path.join(rootfileDir,rootfileInputTemplate % run) 
+        filename = os.path.join(rootfileDir,rootfileInputTemplate % run)
         inputRootfiles.append(filename)
 
     # Form output file for hadd
