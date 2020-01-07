@@ -20,7 +20,7 @@ void plot_fp_values() {
     gStyle->SetOptStat("nemruoi");
 
     CTData *dataOld = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
-    CTData *dataNew = new CTData("/home/jmatter/ct_scripts/ct_coin_data_pass3.json");
+    CTData *dataNew = new CTData("/home/jmatter/ct_scripts/ct_coin_data_edtmdecode.json");
     CTCuts *cutsJson = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // PDF to print to

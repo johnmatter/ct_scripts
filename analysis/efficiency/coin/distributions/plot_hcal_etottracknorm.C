@@ -14,15 +14,15 @@
 #include <CTCuts.h>
 
 // Investigating what the distribution of coincidence times look like
-// for events that should, do, and don't fire the HMS Cherenkov.
-void plot_hcer_cointime() {
+// for events that should, do, and don't fire the HMS Calorimeter.
+void plot_hcal_etottracknorm() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_edtmdecode.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // PDF to print to
-    TString pdfFilename = "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/distributions_cointime.pdf";
+    TString pdfFilename = "/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/distributions_hcal_etottracknorm.pdf";
 
-    TFile *fWrite = new TFile("/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/distributions_cointime.root", "RECREATE");
+    TFile *fWrite = new TFile("/home/jmatter/ct_scripts/analysis/efficiency/coin/distributions/distributions_hcal_etottracknorm.root", "RECREATE");
 
     // Events-per-delta histograms for weighting
     std::map<TString, TH1F*> histograms;
@@ -49,28 +49,28 @@ void plot_hcer_cointime() {
 
         // Should
         histoName = Form("%s_should", k.Data());
-        drawMe = Form("CTime.epCoinTime_ROC1>>%s(200,-20,20)", histoName.Data());
+        drawMe = Form("H.cal.etottracknorm>>%s(150,0,1.5)", histoName.Data());
         data->GetChain(k)->Draw(drawMe.Data(), shouldCut, "goff");
         histograms[histoName] = (TH1F*) gDirectory->Get(histoName.Data());
         fWrite->WriteObject(histograms[histoName], histoName.Data());
 
         // Did
         histoName = Form("%s_did", k.Data());
-        drawMe = Form("CTime.epCoinTime_ROC1>>%s(200,-20,20)", histoName.Data());
+        drawMe = Form("H.cal.etottracknorm>>%s(150,0,1.5)", histoName.Data());
         data->GetChain(k)->Draw(drawMe.Data(), didCut, "goff");
         histograms[histoName] = (TH1F*) gDirectory->Get(histoName.Data());
         fWrite->WriteObject(histograms[histoName], histoName.Data());
 
         // Didnt
         histoName = Form("%s_didnt", k.Data());
-        drawMe = Form("CTime.epCoinTime_ROC1>>%s(200,-20,20)", histoName.Data());
+        drawMe = Form("H.cal.etottracknorm>>%s(150,0,1.5)", histoName.Data());
         data->GetChain(k)->Draw(drawMe.Data(), didntCut, "goff");
         histograms[histoName] = (TH1F*) gDirectory->Get(histoName.Data());
         fWrite->WriteObject(histograms[histoName], histoName.Data());
 
         // Open
         histoName = Form("%s_open", k.Data());
-        drawMe = Form("CTime.epCoinTime_ROC1>>%s(200,-20,20)", histoName.Data());
+        drawMe = Form("H.cal.etottracknorm>>%s(150,0,1.5)", histoName.Data());
         data->GetChain(k)->Draw(drawMe.Data(), openCut, "goff");
         histograms[histoName] = (TH1F*) gDirectory->Get(histoName.Data());
         fWrite->WriteObject(histograms[histoName], histoName.Data());
@@ -89,7 +89,7 @@ void plot_hcer_cointime() {
         TH1F* hOpen   = histograms[Form("%s_open",  k.Data())];
 
         // Set title. Only need to set one, since we're overlaying them
-        hOpen->SetTitle(Form("%s: epCoinTime_ROC1", k.Data()));
+        hOpen->SetTitle(Form("%s: H.cal.etottracknorm", k.Data()));
 
         // Line color
         hShould->SetLineColor(kBlue+1);
