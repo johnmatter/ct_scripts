@@ -82,6 +82,9 @@ int main() {
 
                 if (
                     kinematicsCut && 
+                    *pHodStatus==1 && 
+                    (*pBeta < 1.4) && (*pBeta > 0.6) && 
+                    (*pDelta < 12) && (*pDelta > -10) &&
                     *hHodStatus==1 && 
                     (*hBeta < 1.2) && (*hBeta > 0.8) && 
                     (*hDelta < 10) && (*hDelta > -10) && 
@@ -106,6 +109,9 @@ int main() {
 
                 if (
                     kinematicsCut && 
+                    *pHodStatus==1 && 
+                    (*pBeta < 1.4) && (*pBeta > 0.6) && 
+                    (*pDelta < 12) && (*pDelta > -10) &&
                     *hHodStatus==1 && 
                     (*hBeta < 1.2) && (*hBeta > 0.8) && 
                     (*hDelta < 10) && (*hDelta > -10) && 
@@ -132,7 +138,11 @@ int main() {
                     kinematicsCut && 
                     *pHodStatus==1 && 
                     (*pBeta < 1.4) && (*pBeta > 0.6) && 
-                    (*pDelta < 12) && (*pDelta > -10)
+                    (*pDelta < 12) && (*pDelta > -10) &&
+                    *hHodStatus==1 && 
+                    (*hBeta < 1.2) && (*hBeta > 0.8) && 
+                    (*hDelta < 10) && (*hDelta > -10) && 
+                    (*hCerNpe>0)
                    ) {
                       nShould[std::make_tuple(k, "pCer", run)]++;
                       if (*pCerNpe<0.1) {
