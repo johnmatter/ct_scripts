@@ -18,3 +18,4 @@ CXXFLAGS=$(ROOTFLAGS) $(INC_PARAMS) $(LIB)
 
 all:
 	$(CC) $(CXXFLAGS) calculate.C -o calculate
+	$(CC) $(CXXFLAGS) hcal_th2.C -o hcal_th2
