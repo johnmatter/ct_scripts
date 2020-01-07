@@ -226,7 +226,7 @@
         },
         {
             "name" : "pNGCerShould",
-            "cut"  : "pBetaCut && hBetaCut && hCalCut && hCerCut && pHGCerCut"
+            "cut"  : "pBetaCut && pDeltaCut && pHodoTimeCut"
         },
         {
             "name" : "pNGCerDid",
@@ -234,7 +234,7 @@
         },
         {
             "name" : "pHGCerShould",
-            "cut"  : "pBetaCut && hBetaCut && hCalCut && hCerCut && pNGCerCut"
+            "cut"  : "pBetaCut && pDeltaCut && pHodoTimeCut"
         },
         {
             "name" : "pHGCerDid",
@@ -242,7 +242,7 @@
         },
         {
             "name" : "pCerShould",
-            "cut"  : "pBetaCut && hBetaCut && hCalCut && hCerCut"
+            "cut"  : "pBetaCut && pDeltaCut && pHodoTimeCut"
         },
         {
             "name" : "pCerDid",
@@ -250,7 +250,7 @@
         },
         {
             "name" : "hCerShould",
-            "cut"  : "pBetaCut && hBetaCut && hCalCut && pCerCut"
+            "cut"  : "hBetaCut && hDeltaCut && hCalCut && hHodoTimeCut"
         },
         {
             "name" : "hCerDid",
@@ -258,7 +258,7 @@
         },
         {
             "name" : "pCalShould",
-            "cut"  : "pBetaCut && hBetaCut && hCalCut && hCerCut && pCerCut"
+            "cut"  : "pBetaCut && pDeltaCut && pCerCut && pHodoTimeCut"
         },
         {
             "name" : "pCalDid",
@@ -266,7 +266,7 @@
         },
         {
             "name" : "hCalShould",
-            "cut"  : "pBetaCut && hBetaCut && hCerCut && pCerCut"
+            "cut"  : "hBetaCut && hDeltaCut && hCerCut && hHodoTimeCut"
         },
         {
             "name" : "hCalDid",
