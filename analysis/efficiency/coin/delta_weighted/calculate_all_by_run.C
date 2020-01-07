@@ -38,8 +38,8 @@ int main() {
     std::vector<TString> kinematics = data->GetNames();
 
     // Where are we saving the output?
-    TString csvFilename = "ct_event_weighted_efficiency.csv";
-    TString csvPerBinFilename = "ct_event_weighted_efficiency_per_bin.csv";
+    TString csvFilename = "by_run/ct_event_weighted_efficiency.csv";
+    TString csvPerBinFilename = "by_run/ct_event_weighted_efficiency_per_bin.csv";
 
     // ------------------------------------------------------------------------
     // Calculate efficiencies as a function of delta
@@ -53,10 +53,10 @@ int main() {
                 TCut cutDid    = cuts->Get(Form("%sDid",    d.Data()));
 
                 // Target-specific cuts
-                if (k.Contains("LH2")) {
-                    cutShould = cutShould && cuts->Get("pLH2EMissPMissCut");
-                    cutDid    = cutDid    && cuts->Get("pLH2EMissPMissCut");
-                }
+                // if (k.Contains("LH2")) {
+                //     cutShould = cutShould && cuts->Get("pLH2EMissPMissCut");
+                //     cutDid    = cutDid    && cuts->Get("pLH2EMissPMissCut");
+                // }
                 if (k.Contains("C12")) {
                     cutShould = cutShould && cuts->Get("pC12EMissPMissCut");
                     cutDid    = cutDid    && cuts->Get("pC12EMissPMissCut");
@@ -75,15 +75,15 @@ int main() {
                 switch (d[0]) {
                     case 'h':
                         scanBranch = "H.gtr.dp";
-                        scanBins = 16;
-                        scanLo = -8;
-                        scanHi = +8;
+                        scanBins = 20;
+                        scanLo = -10;
+                        scanHi = +10;
                         break;
                     case 'p':
                         scanBranch = "P.gtr.dp";
-                        scanBins = 25;
+                        scanBins = 22;
                         scanLo = -10;
-                        scanHi = +15;
+                        scanHi = +12;
                         break;
                 }
                 efficiencyCalculators0D[key_0D]->SetScanBranch(scanBranch);

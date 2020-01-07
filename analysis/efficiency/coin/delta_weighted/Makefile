@@ -17,4 +17,6 @@ LIB+=$(EFF_DIR)/Efficiency2D.so
 CXXFLAGS=$(ROOTFLAGS) $(INC_PARAMS) $(LIB)
 
 all: 
-	$(CC) $(CXXFLAGS) calculate_all.C
+	$(CC) $(CXXFLAGS) -o calculate_all calculate_all.C
+	$(CC) $(CXXFLAGS) -o calculate_all_by_run calculate_all_by_run.C
+	$(CC) $(CXXFLAGS) -o calculate_quick calculate_quick.C
