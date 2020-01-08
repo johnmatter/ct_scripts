@@ -33,22 +33,26 @@ int main() {
     kinematics.push_back("C12_Q2_10_thin");
 
     // Where are the hadd-ed files?
-    TString rootfileDirectory = "/lustre/expphy/volatile/hallc/comm2017/e1206107/ROOTfiles/pass2";
+    TString rootfileDirectory = "/home/jmatter/ROOTfiles/pass2";
 
     // Which kinematics correspond to which hadd-ed file?
     std::map<TString, TString> rootFilenames;
-    rootFilenames["LH2_Q2_12"]                  = "h1_q_115.root";
-    rootFilenames["LH2_Q2_14_large_collimator"] = "h1_q_143_lgcoll.root";
-    rootFilenames["LH2_Q2_8"]                   = "h1_q_8.root";
-    rootFilenames["LH2_Q2_10_pion_collimator"]  = "h1_q_95_lgcoll.root";
-    rootFilenames["LH2_Q2_10_large_collimator"] = "h1_q_95_small.root";
-    rootFilenames["C12_Q2_12"]                  = "c12_q_115.root";
-    rootFilenames["C12_Q2_14_large_collimator"] = "c12_q_143.root";
-    rootFilenames["C12_Q2_14_pion_collimator"]  = "c12_q_143_smcoll.root";
-    rootFilenames["C12_Q2_8_thick"]             = "c12_q_8.root";
-    rootFilenames["C12_Q2_10_thick"]            = "c12_q_95.root";
-    rootFilenames["C12_Q2_8_thin"]              = "c12thin_q_8.root";
-    rootFilenames["C12_Q2_10_thin"]             = "c12thin_q_95.root";
+    rootFilenames["LH2_Q2_8"]                   = "coin_replay_production_LH2_8_smallcoll.root";
+    rootFilenames["LH2_Q2_10_pion_collimator"]  = "coin_replay_production_LH2_9.5_smallcoll.root";
+    rootFilenames["LH2_Q2_10_large_collimator"] = "coin_replay_production_LH2_9.5_largecoll.root";
+    rootFilenames["LH2_Q2_12"]                  = "coin_replay_production_LH2_11.5_largecoll.root";
+    rootFilenames["LH2_Q2_14_large_collimator"] = "coin_replay_production_LH2_14.3_largecoll.root";
+    rootFilenames["LH2_Q2_14_pion_collimator"]  = "coin_replay_production_LH2_14.3_smallcoll.root";
+    rootFilenames["C12_Q2_8_thick"]             = "coin_replay_production_C12_thick_8_smallcoll.root";
+    rootFilenames["C12_Q2_8_thin"]              = "coin_replay_production_C12_thin_8_smallcoll.root";
+    rootFilenames["C12_Q2_10_thick"]            = "coin_replay_production_C12_thick_9.5_largecoll.root";
+    rootFilenames["C12_Q2_10_thin"]             = "coin_replay_production_C12_thin_9.5_largecoll.root";
+    rootFilenames["C12_Q2_12"]                  = "coin_replay_production_C12_thick_11.5_largecoll.root";
+    rootFilenames["C12_Q2_14_large_collimator"] = "coin_replay_production_C12_thick_14.3_largecoll.root";
+    rootFilenames["C12_Q2_14_pion_collimator"]  = "coin_replay_production_C12_thick_14.3_smallcoll.root";
+
+
+
 
     // Which detectors?
     std::vector<TString> detectors = {"hCal", "hCer", "pCer"};
