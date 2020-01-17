@@ -18,4 +18,3 @@ CXXFLAGS=$(ROOTFLAGS) $(INC_PARAMS) $(LIB)
 
 all:
 	$(CC) $(CXXFLAGS) calculate.C -o calculate
-	$(CC) $(CXXFLAGS) plot.C -o plot

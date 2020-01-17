@@ -17,8 +17,12 @@ int main() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
+    TString rootfileDir;
+    // rootfileDir = "/home/jmatter/e1206107/CT12GeV/ct_replay/ROOTfiles/pass2";
+    rootfileDir = "/home/jmatter/ROOTfiles/pass2";
+
     // Which kinematics?
-    std::vector<TString> kinematics = data->GetNames();
+    std::vector<TString> kinematics = {"LH2_Q2_14_large_collimator"};
 
     // Which detectors?
     std::vector<TString> detectors = {"hCal", "hCer", "pCer"};
@@ -50,10 +54,11 @@ int main() {
         std::cout << "Processing " << k << std::endl;
 
         for (auto const &run : data->GetRuns(k)) {
+            std::cout << "\trun" << run << std::endl;
 
             // Open file
             rootFilename = Form(data->GetRootfileTemplate(k),
-                                data->GetRootfileDirectory().Data(),
+                                rootfileDir.Data(),
                                 run);
             file = new TFile(rootFilename.Data(), "READ");
             TTreeReader reader("T", file);
@@ -81,13 +86,13 @@ int main() {
                 }
 
                 if (
-                    kinematicsCut &&
-                    *pHodStatus==1 &&
-                    (*pBeta < 1.4) && (*pBeta > 0.6) &&
+                    kinematicsCut && 
+                    *pHodStatus==1 && 
+                    (*pBeta < 1.4) && (*pBeta > 0.6) && 
                     (*pDelta < 12) && (*pDelta > -10) &&
-                    *hHodStatus==1 &&
-                    (*hBeta < 1.2) && (*hBeta > 0.8) &&
-                    (*hDelta < 10) && (*hDelta > -10) &&
+                    *hHodStatus==1 && 
+                    (*hBeta < 1.2) && (*hBeta > 0.8) && 
+                    (*hDelta < 10) && (*hDelta > -10) && 
                     (*hEtottracknorm < 1.15) && (*hEtottracknorm > 0.8)
                    ) {
                       nShould[std::make_tuple(k, "hCer", run)]++;
@@ -108,13 +113,13 @@ int main() {
                 }
 
                 if (
-                    kinematicsCut &&
-                    *pHodStatus==1 &&
-                    (*pBeta < 1.4) && (*pBeta > 0.6) &&
+                    kinematicsCut && 
+                    *pHodStatus==1 && 
+                    (*pBeta < 1.4) && (*pBeta > 0.6) && 
                     (*pDelta < 12) && (*pDelta > -10) &&
-                    *hHodStatus==1 &&
-                    (*hBeta < 1.2) && (*hBeta > 0.8) &&
-                    (*hDelta < 10) && (*hDelta > -10) &&
+                    *hHodStatus==1 && 
+                    (*hBeta < 1.2) && (*hBeta > 0.8) && 
+                    (*hDelta < 10) && (*hDelta > -10) && 
                     (*hCerNpe>0)
                    ) {
                       nShould[std::make_tuple(k, "hCal", run)]++;
@@ -135,15 +140,14 @@ int main() {
                 }
 
                 if (
-                    kinematicsCut &&
-                    *pHodStatus==1 &&
-                    (*pBeta < 1.4) && (*pBeta > 0.6) &&
+                    kinematicsCut && 
+                    *pHodStatus==1 && 
+                    (*pBeta < 1.4) && (*pBeta > 0.6) && 
                     (*pDelta < 12) && (*pDelta > -10) &&
-                    *hHodStatus==1 &&
-                    (*hBeta < 1.2) && (*hBeta > 0.8) &&
-                    (*hDelta < 10) && (*hDelta > -10)
-                    // (*hEtottracknorm < 1.15) && (*hEtottracknorm > 0.8) &&
-                    // (*hCerNpe>0)
+                    *hHodStatus==1 && 
+                    (*hBeta < 1.2) && (*hBeta > 0.8) && 
+                    (*hDelta < 10) && (*hDelta > -10) && 
+                    (*hCerNpe>0)
                    ) {
                       nShould[std::make_tuple(k, "pCer", run)]++;
                       if (*pCerNpe<0.1) {
@@ -183,6 +187,4 @@ int main() {
 
     // close csv
     ofs.close();
-
-    return 0;
 }
