@@ -84,6 +84,7 @@ void bcm_average() {
     // lines[run][region] = new TF1(etc)
     std::map<Int_t, std::map<Int_t, TF1*>> lines;
     std::map<Int_t, std::map<Int_t, TGraph*>> shades;
+    std::map<Int_t, TGraph*> graphs;
 
     // ------------------------------------------------------------------------
     // Initialize everything to be unweighted.
@@ -399,7 +400,8 @@ void bcm_average() {
 
     TCanvas* c = new TCanvas("c", "canvas", 1024, 640);
     TH2F *diagnosticHisto;
-    TString drawMe, histoName;
+    TString drawMe, canvasName;
+    Int_t N;
 
     // for average reference lines
     TString lineName;
@@ -425,11 +427,13 @@ void bcm_average() {
             file->GetObject("TSP", T);
 
             // Draw diagnostic histogram
-            histoName = Form("run%d_%s", run, bcmBranch.Data());
-            drawMe = Form("%s:This->GetReadEntry()>>%s", bcmBranch.Data(), histoName.Data());
-            T->Draw(drawMe.Data());
-            diagnosticHisto = (TH2F*) gPad->GetPrimitive(histoName.Data());
-            diagnosticHisto->SetTitle(Form("run %d; Entry; %s", run, bcmBranch.Data()));
+            canvasName = Form("run%d_%s", run, bcmBranch.Data());
+            drawMe = Form("%s:This->GetReadEntry()", bcmBranch.Data());
+            N = T->Draw(drawMe.Data(), "", "goff");
+
+            graphs[run] = new TGraph(N, T->GetV2(), T->GetV1());
+            graphs[run]->SetTitle(Form("run %d; Entry; %s", run, bcmBranch.Data()));
+            graphs[run]->Draw("AL");
 
             // Set BCM current branch address
             T->SetBranchAddress(bcmBranch.Data(), &bcmCurrent);
@@ -545,7 +549,7 @@ void bcm_average() {
             std::cout << Form("\nRun %d\t weighted avg = %f\n\n\n", run, bcm_avgs[run].avg);
 
             // Write histogram to file
-            fWrite->WriteObject(c, histoName.Data());
+            fWrite->WriteObject(c, canvasName.Data());
 
         } // loop over runs
     } // loop over kinematics
