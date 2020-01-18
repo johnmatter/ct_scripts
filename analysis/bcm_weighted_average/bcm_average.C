@@ -6,6 +6,7 @@
 #include <TH2F.h>
 #include <TPad.h>
 #include <TLine.h>
+#include <TGraph.h>
 #include <TCanvas.h>
 
 #include <CTData.h>
@@ -46,6 +47,7 @@ struct bcm_avg_t {
   Int_t run;
   Bool_t weighted;
   Double_t avg;
+  Double_t sem;
   Int_t regions; // number of regions = begin.size()
   std::vector<Int_t> begin; // starts of regions to average
   std::vector<Int_t> end;   // ends of regions to average
@@ -55,6 +57,7 @@ struct bcm_avg_t {
   std::vector<Double_t> averagesWithNoCut;
   std::vector<Double_t> averagesWithOneCut;
   std::vector<Double_t> averagesWithTwoCuts;
+  std::vector<Double_t> regionUncertainty;
 };
 
 void bcm_average();
@@ -75,11 +78,12 @@ void bcm_average() {
     TFile *fWrite = new TFile("/home/jmatter/ct_scripts/analysis/bcm_weighted_average/bcm_average.root", "RECREATE");
 
     // Where should we save the calculated averages?
-    TString csvFilename = "/home/jmatter/ct_scripts/analysis/bcm_weighted_average/ct_quick_efficiency.csv";
+    TString csvFilename = "/home/jmatter/ct_scripts/analysis/bcm_weighted_average/bcm_average.csv";
 
     // These are used to indicate on histograms what the average is
     // lines[run][region] = new TF1(etc)
     std::map<Int_t, std::map<Int_t, TF1*>> lines;
+    std::map<Int_t, std::map<Int_t, TGraph*>> shades;
 
     // ------------------------------------------------------------------------
     // Initialize everything to be unweighted.
@@ -461,7 +465,7 @@ void bcm_average() {
                     bcm_avgs[run].averagesWithNoCut[n] += bcmCurrent;
                     bcm_avgs[run].countWithNoCut[n]++;
                 }
-                bcm_avgs[run].averagesWithNoCut[n] /= bcm_avgs[run].countWithNoCut[n]++;
+                bcm_avgs[run].averagesWithNoCut[n] /= bcm_avgs[run].countWithNoCut[n];
 
                 // Apply one 95% cut
                 bcm_avgs[run].countWithOneCut.push_back(0);
@@ -475,7 +479,7 @@ void bcm_average() {
                         bcm_avgs[run].countWithOneCut[n]++;
                     }
                 }
-                bcm_avgs[run].averagesWithOneCut[n] /= bcm_avgs[run].countWithOneCut[n]++;
+                bcm_avgs[run].averagesWithOneCut[n] /= bcm_avgs[run].countWithOneCut[n];
 
                 // Apply a second 95% cut
                 bcm_avgs[run].countWithTwoCuts.push_back(0);
@@ -489,13 +493,19 @@ void bcm_average() {
                         bcm_avgs[run].countWithTwoCuts[n]++;
                     }
                 }
-                bcm_avgs[run].averagesWithTwoCuts[n] /= bcm_avgs[run].countWithTwoCuts[n]++;
+                bcm_avgs[run].averagesWithTwoCuts[n] /= bcm_avgs[run].countWithTwoCuts[n];
 
-                std::cout << Form("Run %d\tregion %d\t start %d end %d \tavgs =\t%f\t|\t%f\t|\t%f\n",
+                // Calculate uncertainty
+                bcm_avgs[run].regionUncertainty.push_back(bcm_avgs[run].averagesWithTwoCuts[n] / sqrt(bcm_avgs[run].countWithTwoCuts[n]));
+
+                // Print result to cout for progress indication
+                std::cout << Form("Run %5d region %3d: start %-4d end %-4d avgs = %-5.2f | %-5.2f | %-5.2f +- %-5.2f (n=%9d)\n",
                                   run, n, regionBegin, regionEnd,
                                   bcm_avgs[run].averagesWithNoCut[n],
                                   bcm_avgs[run].averagesWithOneCut[n],
-                                  bcm_avgs[run].averagesWithTwoCuts[n]
+                                  bcm_avgs[run].averagesWithTwoCuts[n],
+                                  bcm_avgs[run].regionUncertainty[n],
+                                  bcm_avgs[run].countWithTwoCuts[n]
                                   );
 
                 // Draw reference line for this region
@@ -504,8 +514,18 @@ void bcm_average() {
                 slope = 0;
                 yIntercept = bcm_avgs[run].averagesWithTwoCuts[n];
                 lines[run][n]->SetParameters(slope, yIntercept);
-                // lines[run][n]->SetLineColor(kRed);
+                lines[run][n]->SetLineColor(kRed);
                 lines[run][n]->Draw("SAME");
+
+                // Draw uncertainty for this region
+                shades[run][n] = new TGraph(4);
+                shades[run][n]->SetPoint(0,regionBegin, bcm_avgs[run].averagesWithTwoCuts[n] + bcm_avgs[run].regionUncertainty[n]);
+                shades[run][n]->SetPoint(1,regionEnd,   bcm_avgs[run].averagesWithTwoCuts[n] + bcm_avgs[run].regionUncertainty[n]);
+                shades[run][n]->SetPoint(2,regionEnd,   bcm_avgs[run].averagesWithTwoCuts[n] - bcm_avgs[run].regionUncertainty[n]);
+                shades[run][n]->SetPoint(3,regionBegin, bcm_avgs[run].averagesWithTwoCuts[n] - bcm_avgs[run].regionUncertainty[n]);
+                shades[run][n]->SetFillStyle(3013);
+                shades[run][n]->SetFillColor(kRed);
+                shades[run][n]->Draw("fSAME");
 
             } // end loop over regions
 
@@ -516,10 +536,11 @@ void bcm_average() {
             numerator = 0;
             denominator = 0;
             for (int n = 0; n < bcm_avgs[run].regions; n++) {
-                numerator   += bcm_avgs[run].countWithTwoCuts[n] * bcm_avgs[run].averagesWithTwoCuts[n];
-                denominator += bcm_avgs[run].countWithTwoCuts[n];
+                numerator   += bcm_avgs[run].averagesWithTwoCuts[n] / (bcm_avgs[run].regionUncertainty[n] * bcm_avgs[run].regionUncertainty[n]);
+                denominator += 1 / (bcm_avgs[run].regionUncertainty[n] * bcm_avgs[run].regionUncertainty[n]);
             }
             bcm_avgs[run].avg = numerator / denominator;
+            bcm_avgs[run].sem = 1 / sqrt(denominator);
 
             std::cout << Form("\nRun %d\t weighted avg = %f\n\n\n", run, bcm_avgs[run].avg);
 
@@ -536,10 +557,10 @@ void bcm_average() {
     // Write to csv
     std::ofstream ofs;
     ofs.open(csvFilename.Data());
-    ofs << "run, bcm4aAverage" << std::endl;
+    ofs << "run, bcm4aAverage, bcm4AUncertainty" << std::endl;
     for (auto const &k : data->GetNames()) {
         for (auto const &run : data->GetRuns(k)) {
-            ofs << run << "," << bcm_avgs[run].avg << std::endl;
+            ofs << run << "," << bcm_avgs[run].avg << "," << bcm_avgs[run].sem << std::endl;
         }
     }
     ofs.close();
