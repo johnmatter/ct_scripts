@@ -7,9 +7,8 @@ import sys
 # hcana report outputs.
 
 runlistDir = '/home/jmatter/ct_scripts/runlists/coin'
-runlistRegex = 'runs_(.*)_Q2_(.*)'
 
-reportDir = '/work/hallc/e1206107/CT12GeV/ct_replay/REPORT_OUTPUT/COIN/PRODUCTION/pass1'
+reportDir = '/home/jmatter/ct_replay_pass2/REPORT_OUTPUT/COIN/PRODUCTION/'
 reportTemplate = 'replay_coin_production_%d_-1.report'
 
 # regexQuery = input("Enter regex to use as search: ")
@@ -17,31 +16,12 @@ regexQuery = sys.argv[1]
 
 #------------------------------------------------------------------------------
 def main():
-    # Get all runlists in runlistDir
-    # lists = os.listdir(runlistDir)
-
     # Define explicit list of runlists to process
-    lists = ["runs_LH2_Q2_8", "runs_LH2_Q2_10",
-             "runs_LH2_Q2_12", "runs_LH2_Q2_14",
-             "runs_C12_Q2_8", "runs_C12_Q2_10",
-             "runs_C12_Q2_12", "runs_C12_Q2_14"]
+    lists = ["all_coin_LH2_runs"]
 
     # Loop over each runlist and store matches in a list
     for listname in lists:
         runlistFilename = os.path.join(runlistDir,listname)
-
-        # Get a tuple like ('LH2', '12')
-        kinematics = parseFilename(listname)
-        if (kinematics == ('','')):
-            print('Couldn''t parse runlist filename %s' % listname)
-            continue
-
-        target = kinematics[0]
-        Q2 = int(kinematics[1])
-
-        # Skip dummy target data
-        if (target=='AL'):
-            continue
 
         # Read list of runs from runlist
         runlistF = open(runlistFilename,'r')
@@ -53,21 +33,11 @@ def main():
                 runs.append(int(run))
 
         # Scan each run's report output for desired string and print it
-        print('target,Q2,run,match')
+        print('list,run,match')
         for run in runs:
             matches = parseReport(run, regexQuery)
             for match in matches:
-                print('%s,%d,%d,%s' % (target,Q2,run,match))
-
-#------------------------------------------------------------------------------
-def parseFilename(filename):
-    # Return a tuple of capture groups
-    try:
-        matches = re.match(runlistRegex, filename).groups()
-        return matches
-    except:
-        print('Filename %s doesn\'t match regex: %s' % (filename, runlistRegex))
-        return ('','')
+                print('%s,%d,%s' % (listname,run,match))
 
 #------------------------------------------------------------------------------
 def parseReport(run, regexQuery):
