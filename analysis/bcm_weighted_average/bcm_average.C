@@ -563,8 +563,10 @@ void bcm_average() {
     ofs.open(csvFilename.Data());
     ofs << "run, bcm4aAverage, bcm4AUncertainty" << std::endl;
     for (auto const &k : data->GetNames()) {
-        for (auto const &run : data->GetRuns(k)) {
-            ofs << run << "," << bcm_avgs[run].avg << "," << bcm_avgs[run].sem << std::endl;
+        if(data->GetTarget(k) == "LH2") {
+            for (auto const &run : data->GetRuns(k)) {
+                ofs << run << "," << bcm_avgs[run].avg << "," << bcm_avgs[run].sem << std::endl;
+            }
         }
     }
     ofs.close();
