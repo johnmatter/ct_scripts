@@ -40,7 +40,7 @@
 // For each region (or entire run if the run is "stable") we do the following:
 //   1) Calculate the average current, I
 //   2) Count the beam as tripped if the current is 5% below I
-//   3) Calculate a new average for non-tripped scalar reads, I'
+//   3) Calculate a new average for non-tripped scaler reads, I'
 //   4) Apply
 
 struct bcm_avg_t {
@@ -51,9 +51,9 @@ struct bcm_avg_t {
   Int_t regions; // number of regions = begin.size()
   std::vector<Int_t> begin; // starts of regions to average
   std::vector<Int_t> end;   // ends of regions to average
-  std::vector<Int_t> countWithNoCut;   // non-trip scalar reads in regions
-  std::vector<Int_t> countWithOneCut;  // non-trip scalar reads in regions
-  std::vector<Int_t> countWithTwoCuts; // non-trip scalar reads in regions
+  std::vector<Int_t> countWithNoCut;   // non-trip scaler reads in regions
+  std::vector<Int_t> countWithOneCut;  // non-trip scaler reads in regions
+  std::vector<Int_t> countWithTwoCuts; // non-trip scaler reads in regions
   std::vector<Double_t> averagesWithNoCut;
   std::vector<Double_t> averagesWithOneCut;
   std::vector<Double_t> averagesWithTwoCuts;
@@ -92,6 +92,10 @@ void bcm_average() {
     std::map<Int_t, bcm_avg_t> bcm_avgs;
     bcm_avg_t bcm_avg;
     for (auto const &k : data->GetNames()) {
+        // LH2 only
+        if(data->GetTarget(k) != "LH2")
+            continue;
+
         for (auto const &run : data->GetRuns(k)) {
             bcm_avg.run = run;
             bcm_avg.weighted = false;
@@ -415,6 +419,10 @@ void bcm_average() {
     Double_t bcmCurrent, numerator, denominator;
 
     for (auto const &k : data->GetNames()) {
+        // LH2 only
+        if(data->GetTarget(k) != "LH2")
+            continue;
+
         for (auto const &run : data->GetRuns(k)) {
 
             std::cout << "--------------" << std::endl;
@@ -463,8 +471,8 @@ void bcm_average() {
                 // Flat average
                 bcm_avgs[run].countWithNoCut.push_back(0);
                 bcm_avgs[run].averagesWithNoCut.push_back(0);
-                for (int scalarRead = regionBegin; scalarRead <= regionEnd; scalarRead++) {
-                    T->GetEntry(scalarRead);
+                for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
+                    T->GetEntry(scalerRead);
 
                     bcm_avgs[run].averagesWithNoCut[n] += bcmCurrent;
                     bcm_avgs[run].countWithNoCut[n]++;
@@ -474,8 +482,8 @@ void bcm_average() {
                 // Apply one 95% cut
                 bcm_avgs[run].countWithOneCut.push_back(0);
                 bcm_avgs[run].averagesWithOneCut.push_back(0);
-                for (int scalarRead = regionBegin; scalarRead <= regionEnd; scalarRead++) {
-                    T->GetEntry(scalarRead);
+                for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
+                    T->GetEntry(scalerRead);
 
                     // Only count this read if it's not below 95% of average
                     if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithNoCut[n])) {
@@ -488,8 +496,8 @@ void bcm_average() {
                 // Apply a second 95% cut
                 bcm_avgs[run].countWithTwoCuts.push_back(0);
                 bcm_avgs[run].averagesWithTwoCuts.push_back(0);
-                for (int scalarRead = regionBegin; scalarRead <= regionEnd; scalarRead++) {
-                    T->GetEntry(scalarRead);
+                for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
+                    T->GetEntry(scalerRead);
 
                     // Only count this read if it's not below 95% of average
                     if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithOneCut[n])) {
@@ -563,10 +571,12 @@ void bcm_average() {
     ofs.open(csvFilename.Data());
     ofs << "run, bcm4aAverage, bcm4AUncertainty" << std::endl;
     for (auto const &k : data->GetNames()) {
-        if(data->GetTarget(k) == "LH2") {
-            for (auto const &run : data->GetRuns(k)) {
-                ofs << run << "," << bcm_avgs[run].avg << "," << bcm_avgs[run].sem << std::endl;
-            }
+        // LH2 only
+        if(data->GetTarget(k) != "LH2")
+            continue;
+
+        for (auto const &run : data->GetRuns(k)) {
+            ofs << run << "," << bcm_avgs[run].avg << "," << bcm_avgs[run].sem << std::endl;
         }
     }
     ofs.close();
