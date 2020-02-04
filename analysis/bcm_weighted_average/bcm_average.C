@@ -58,6 +58,7 @@ struct bcm_avg_t {
   std::vector<Double_t> averagesWithOneCut;
   std::vector<Double_t> averagesWithTwoCuts;
   std::vector<Double_t> regionUncertainty;
+  std::vector<Double_t> weights;
 };
 
 void bcm_average();
@@ -86,6 +87,12 @@ void bcm_average() {
     std::map<Int_t, std::map<Int_t, TF1*>> lines;
     std::map<Int_t, std::map<Int_t, TGraph*>> shades;
     std::map<Int_t, TGraph*> graphs;
+
+    // Weighting with SEM gives funny results. I haven't thought hard about why,
+    // but weighting by number of scaler reads is a reasonable choice so I'm
+    // comfortable using it.
+    Bool_t weightWithCount = true;
+    Bool_t weightWithSEM   = false;
 
     // ------------------------------------------------------------------------
     // Initialize everything to be unweighted.
@@ -182,8 +189,8 @@ void bcm_average() {
     bcm_avg.weighted = true;
     bcm_avg.begin.push_back(0);
     bcm_avg.end.push_back(2315);
-    bcm_avg.begin.push_back(2316);
-    bcm_avg.end.push_back(2440);
+    // bcm_avg.begin.push_back(2316);
+    // bcm_avg.end.push_back(2440);
     bcm_avg.begin.push_back(2500);
     bcm_avg.end.push_back(2850);
     bcm_avg.begin.push_back(2851);
@@ -485,7 +492,7 @@ void bcm_average() {
                     regionEnd = (T->GetEntries()-1);
                 }
 
-                // Flat average
+                // Regular average
                 bcm_avgs[run].countWithNoCut.push_back(0);
                 bcm_avgs[run].averagesWithNoCut.push_back(0);
                 for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
@@ -502,7 +509,7 @@ void bcm_average() {
                 for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
                     T->GetEntry(scalerRead);
 
-                    // Only count this read if it's not below 95% of average
+                    // Only count this read if it's above 95% of average
                     if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithNoCut[n])) {
                         bcm_avgs[run].averagesWithOneCut[n] += bcmCurrent;
                         bcm_avgs[run].countWithOneCut[n]++;
@@ -516,7 +523,7 @@ void bcm_average() {
                 for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
                     T->GetEntry(scalerRead);
 
-                    // Only count this read if it's not below 95% of average
+                    // Only count this read if it's above 95% of average
                     if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithOneCut[n])) {
                         bcm_avgs[run].averagesWithTwoCuts[n] += bcmCurrent;
                         bcm_avgs[run].countWithTwoCuts[n]++;
@@ -524,17 +531,36 @@ void bcm_average() {
                 }
                 bcm_avgs[run].averagesWithTwoCuts[n] /= bcm_avgs[run].countWithTwoCuts[n];
 
-                // Calculate uncertainty
-                bcm_avgs[run].regionUncertainty.push_back(bcm_avgs[run].averagesWithTwoCuts[n] / sqrt(bcm_avgs[run].countWithTwoCuts[n]));
+                // Calculate this region's uncertainty
+                numerator = 0;
+                for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
+                    T->GetEntry(scalerRead);
+
+                    // Only count this read if it's above 95% of average
+                    if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithOneCut[n])) {
+                        numerator += (bcmCurrent - bcm_avgs[run].averagesWithTwoCuts[n])*(bcmCurrent - bcm_avgs[run].averagesWithTwoCuts[n]);
+                    }
+                }
+                denominator = sqrt( (bcm_avgs[run].countWithTwoCuts[n]) * (bcm_avgs[run].countWithTwoCuts[n]-1) );
+                bcm_avgs[run].regionUncertainty.push_back(numerator / denominator);
+
+                // Assign weight
+                if (weightWithSEM) {
+                    bcm_avgs[run].weights.push_back( 1 / (bcm_avgs[run].regionUncertainty[n] * bcm_avgs[run].regionUncertainty[n]) );
+                }
+                if (weightWithCount) {
+                    bcm_avgs[run].weights.push_back( bcm_avgs[run].countWithTwoCuts[n] );
+                }
 
                 // Print result to cout for progress indication
-                std::cout << Form("Run %5d region %3d: start %-4d end %-4d avgs = %-5.2f | %-5.2f | %-5.2f +- %-5.2f (n=%9d)\n",
+                std::cout << Form("Run %5d region %3d: start %-4d end %-4d avgs = %-5.2f | %-5.2f | %-5.2f +- %-5.2f (n=%9d) \t %f \n",
                                   run, n, regionBegin, regionEnd,
                                   bcm_avgs[run].averagesWithNoCut[n],
                                   bcm_avgs[run].averagesWithOneCut[n],
                                   bcm_avgs[run].averagesWithTwoCuts[n],
                                   bcm_avgs[run].regionUncertainty[n],
-                                  bcm_avgs[run].countWithTwoCuts[n]
+                                  bcm_avgs[run].countWithTwoCuts[n],
+                                  bcm_avgs[run].weights[n] * bcm_avgs[run].averagesWithTwoCuts[n]
                                   );
 
                 // Draw reference line for this region
@@ -565,8 +591,8 @@ void bcm_average() {
             numerator = 0;
             denominator = 0;
             for (int n = 0; n < bcm_avgs[run].regions; n++) {
-                numerator   += bcm_avgs[run].averagesWithTwoCuts[n] / (bcm_avgs[run].regionUncertainty[n] * bcm_avgs[run].regionUncertainty[n]);
-                denominator += 1 / (bcm_avgs[run].regionUncertainty[n] * bcm_avgs[run].regionUncertainty[n]);
+                numerator   += bcm_avgs[run].averagesWithTwoCuts[n]  * bcm_avgs[run].weights[n];
+                denominator += bcm_avgs[run].weights[n];
             }
             bcm_avgs[run].avg = numerator / denominator;
             bcm_avgs[run].sem = 1 / sqrt(denominator);
@@ -608,7 +634,10 @@ void bcm_average() {
 
         for (auto const &run : data->GetRuns(k)) {
             for (int n = 0; n < bcm_avgs[run].regions; n++) {
-                ofs << Form("Run %5d region %3d: start %-4d end %-4d avgs = %-5.2f | %-5.2f | %-5.2f +- %-5.2f (n=%9d)\n",
+                regionBegin = bcm_avgs[run].begin[n];
+                regionEnd   = bcm_avgs[run].end[n];
+
+                ofs << Form("%d, %d, %d, %d, %f, %f, %f, %f, %d\n",
                                   run, n, regionBegin, regionEnd,
                                   bcm_avgs[run].averagesWithNoCut[n],
                                   bcm_avgs[run].averagesWithOneCut[n],
