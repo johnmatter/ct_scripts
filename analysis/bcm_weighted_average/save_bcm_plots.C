@@ -1,3 +1,5 @@
+// This assumes every object in your root file is a TCanvas*
+
 void save_bcm_plots() {
     TFile *f = new TFile("bcm_average.root");
     TList *keys = f->GetListOfKeys();
@@ -11,7 +13,7 @@ void save_bcm_plots() {
         name = (char*) keys->At(n)->GetName();
         c = (TCanvas*) f->Get(name);
 
-        pdfFilename = Form("%s.pdf", name);
+        pdfFilename = Form("pdf/%s.pdf", name);
 
         c->Print(pdfFilename.Data());
         delete c;
