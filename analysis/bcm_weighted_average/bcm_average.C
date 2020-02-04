@@ -78,7 +78,8 @@ void bcm_average() {
     TFile *fWrite = new TFile("/home/jmatter/ct_scripts/analysis/bcm_weighted_average/bcm_average.root", "RECREATE");
 
     // Where should we save the calculated averages?
-    TString csvFilename = "/home/jmatter/ct_scripts/analysis/bcm_weighted_average/bcm_average.csv";
+    TString averageCsvFilename = "/home/jmatter/ct_scripts/analysis/bcm_weighted_average/csv/bcm_average.csv";
+    TString segmentCsvFilename = "/home/jmatter/ct_scripts/analysis/bcm_weighted_average/csv/segments.csv";
 
     // These are used to indicate on histograms what the average is
     // lines[run][region] = new TF1(etc)
@@ -109,6 +110,7 @@ void bcm_average() {
     // ----------------------
     // 2278  LH2  9.5   pion
     // 2279  LH2  9.5   pion
+    // 2283  LH2  14.3  pion
     // 2406  LH2  14.3  large
     // 2410  LH2  14.3  large
     // 2414  LH2  14.3  large
@@ -171,6 +173,21 @@ void bcm_average() {
     bcm_avg.end.push_back(443);
     bcm_avg.begin.push_back(550);
     bcm_avg.end.push_back(3273);
+    bcm_avgs[bcm_avg.run] = bcm_avg;
+    bcm_avg.begin.clear();
+    bcm_avg.end.clear();
+
+    // 2283
+    bcm_avg.run = 2283;
+    bcm_avg.weighted = true;
+    bcm_avg.begin.push_back(0);
+    bcm_avg.end.push_back(2315);
+    bcm_avg.begin.push_back(2316);
+    bcm_avg.end.push_back(2440);
+    bcm_avg.begin.push_back(2500);
+    bcm_avg.end.push_back(2850);
+    bcm_avg.begin.push_back(2851);
+    bcm_avg.end.push_back(4000);
     bcm_avgs[bcm_avg.run] = bcm_avg;
     bcm_avg.begin.clear();
     bcm_avg.end.clear();
@@ -566,9 +583,9 @@ void bcm_average() {
     fWrite->Close();
 
     //-------------------------------------------------------------------------
-    // Write to csv
+    // Write weighted averages to csv
     std::ofstream ofs;
-    ofs.open(csvFilename.Data());
+    ofs.open(averageCsvFilename.Data());
     ofs << "run, bcm4aAverage, bcm4AUncertainty" << std::endl;
     for (auto const &k : data->GetNames()) {
         // LH2 only
@@ -577,6 +594,29 @@ void bcm_average() {
 
         for (auto const &run : data->GetRuns(k)) {
             ofs << run << "," << bcm_avgs[run].avg << "," << bcm_avgs[run].sem << std::endl;
+        }
+    }
+    ofs.close();
+
+    // Write each segment to csv for further investigation
+    ofs.open(segmentCsvFilename.Data());
+    ofs << "run, segment, begin, end, averagesWithNoCut, averagesWithOneCut, averagesWithTwoCuts, regionUncertainty, countTwoCuts" << std::endl;
+    for (auto const &k : data->GetNames()) {
+        // LH2 only
+        if(data->GetTarget(k) != "LH2")
+            continue;
+
+        for (auto const &run : data->GetRuns(k)) {
+            for (int n = 0; n < bcm_avgs[run].regions; n++) {
+                ofs << Form("Run %5d region %3d: start %-4d end %-4d avgs = %-5.2f | %-5.2f | %-5.2f +- %-5.2f (n=%9d)\n",
+                                  run, n, regionBegin, regionEnd,
+                                  bcm_avgs[run].averagesWithNoCut[n],
+                                  bcm_avgs[run].averagesWithOneCut[n],
+                                  bcm_avgs[run].averagesWithTwoCuts[n],
+                                  bcm_avgs[run].regionUncertainty[n],
+                                  bcm_avgs[run].countWithTwoCuts[n]
+                                  );
+            }
         }
     }
     ofs.close();
