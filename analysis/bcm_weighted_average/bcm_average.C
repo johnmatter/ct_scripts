@@ -44,21 +44,22 @@
 //   4) Apply
 
 struct bcm_avg_t {
-  Int_t run;
-  Bool_t weighted;
-  Double_t avg;
-  Double_t sem;
-  Int_t regions; // number of regions = begin.size()
-  std::vector<Int_t> begin; // starts of regions to average
-  std::vector<Int_t> end;   // ends of regions to average
-  std::vector<Int_t> countWithNoCut;   // non-trip scaler reads in regions
-  std::vector<Int_t> countWithOneCut;  // non-trip scaler reads in regions
-  std::vector<Int_t> countWithTwoCuts; // non-trip scaler reads in regions
-  std::vector<Double_t> averagesWithNoCut;
-  std::vector<Double_t> averagesWithOneCut;
-  std::vector<Double_t> averagesWithTwoCuts;
-  std::vector<Double_t> regionUncertainty;
-  std::vector<Double_t> weights;
+    Int_t run;
+    Bool_t weighted;
+    Double_t avg;
+    Double_t sem;
+    Int_t regions; // number of regions = begin.size()
+    std::vector<Int_t> begin; // starts of regions to average
+    std::vector<Int_t> end;   // ends of regions to average
+    std::vector<Int_t> countWithNoCut;   // non-trip scaler reads in regions
+    std::vector<Int_t> countWithOneCut;  // non-trip scaler reads in regions
+    std::vector<Int_t> countWithTwoCuts; // non-trip scaler reads in regions
+    std::vector<Double_t> averagesWithNoCut;
+    std::vector<Double_t> averagesWithOneCut;
+    std::vector<Double_t> averagesWithTwoCuts;
+    std::vector<Double_t> regionUncertainty;
+    std::vector<Double_t> weights;
+    std::vector<Double_t> rawScalerIncrements;
 };
 
 void bcm_average();
@@ -74,6 +75,7 @@ void bcm_average() {
 
     // Which bcm?
     TString bcmBranch = "P.BCM4A.scalerCurrent";
+    TString rawScalerBranch = "P.BCM4A.scaler";
 
     // Where should we save diagnostic plots?
     TFile *fWrite = new TFile("/home/jmatter/ct_scripts/analysis/bcm_weighted_average/bcm_average.root", "RECREATE");
@@ -91,8 +93,9 @@ void bcm_average() {
     // Weighting with SEM gives funny results. I haven't thought hard about why,
     // but weighting by number of scaler reads is a reasonable choice so I'm
     // comfortable using it.
-    Bool_t weightWithCount = true;
-    Bool_t weightWithSEM   = false;
+    Bool_t weightWithRawScaler   = true;
+    Bool_t weightWithScalerReads = false;
+    Bool_t weightWithSEM         = false;
 
     // ------------------------------------------------------------------------
     // Initialize everything to be unweighted.
@@ -217,6 +220,8 @@ void bcm_average() {
     bcm_avg.weighted = true;
     bcm_avg.begin.push_back(0);
     bcm_avg.end.push_back(3000);
+    bcm_avg.begin.push_back(3001);
+    bcm_avg.end.push_back(3280);
     bcm_avg.begin.push_back(3290);
     bcm_avg.end.push_back(3330);
     bcm_avg.begin.push_back(3331);
@@ -342,19 +347,33 @@ void bcm_average() {
     bcm_avg.begin.push_back(120);
     bcm_avg.end.push_back(190);
     bcm_avg.begin.push_back(224);
-    bcm_avg.end.push_back(968);
+    bcm_avg.end.push_back(970);
     bcm_avg.begin.push_back(975);
     bcm_avg.end.push_back(1108);
+    bcm_avg.begin.push_back(1109);
+    bcm_avg.end.push_back(1149);
     bcm_avg.begin.push_back(1150);
     bcm_avg.end.push_back(1180);
     bcm_avg.begin.push_back(1181);
     bcm_avg.end.push_back(1248);
+    bcm_avg.begin.push_back(1249);
+    bcm_avg.end.push_back(1349);
     bcm_avg.begin.push_back(1350);
     bcm_avg.end.push_back(1390);
-    bcm_avg.begin.push_back(1500);
-    bcm_avg.end.push_back(1788);
+    bcm_avg.begin.push_back(1391);
+    bcm_avg.end.push_back(1460);
+    bcm_avg.begin.push_back(1480);
+    bcm_avg.end.push_back(1590);
+    bcm_avg.begin.push_back(1600);
+    bcm_avg.end.push_back(1630);
+    bcm_avg.begin.push_back(1650);
+    bcm_avg.end.push_back(1785);
+    bcm_avg.begin.push_back(1786);
+    bcm_avg.end.push_back(1835);
     bcm_avg.begin.push_back(1840);
     bcm_avg.end.push_back(1948);
+    bcm_avg.begin.push_back(1949);
+    bcm_avg.end.push_back(1965);
     bcm_avgs[bcm_avg.run] = bcm_avg;
     bcm_avg.begin.clear();
     bcm_avg.end.clear();
@@ -440,7 +459,10 @@ void bcm_average() {
     TTree *T;
 
     Int_t regionBegin, regionEnd;
-    Double_t bcmCurrent, numerator, denominator;
+    Double_t bcmCurrent; // in uA
+    Double_t thisRawScalerRead;
+    Double_t lastRawScalerRead;
+    Double_t numerator, denominator; // for calculating averages, uncertainty
 
     for (auto const &k : data->GetNames()) {
         // LH2 only
@@ -467,8 +489,9 @@ void bcm_average() {
             graphs[run]->SetTitle(Form("run %d; Entry; %s", run, bcmBranch.Data()));
             graphs[run]->Draw("AL");
 
-            // Set BCM current branch address
+            // Set branch addresses
             T->SetBranchAddress(bcmBranch.Data(), &bcmCurrent);
+            T->SetBranchAddress(rawScalerBranch.Data(), &thisRawScalerRead);
 
             // If not weighted, we need to set the beginning and end of the
             // region to be the size of the tree. Should we do this for the
@@ -492,6 +515,7 @@ void bcm_average() {
                     regionEnd = (T->GetEntries()-1);
                 }
 
+                // ---------------------------------------
                 // Regular average
                 bcm_avgs[run].countWithNoCut.push_back(0);
                 bcm_avgs[run].averagesWithNoCut.push_back(0);
@@ -499,10 +523,13 @@ void bcm_average() {
                     T->GetEntry(scalerRead);
 
                     bcm_avgs[run].averagesWithNoCut[n] += bcmCurrent;
+
+                    // Scaler read counts
                     bcm_avgs[run].countWithNoCut[n]++;
                 }
                 bcm_avgs[run].averagesWithNoCut[n] /= bcm_avgs[run].countWithNoCut[n];
 
+                // ---------------------------------------
                 // Apply one 95% cut
                 bcm_avgs[run].countWithOneCut.push_back(0);
                 bcm_avgs[run].averagesWithOneCut.push_back(0);
@@ -512,46 +539,58 @@ void bcm_average() {
                     // Only count this read if it's above 95% of average
                     if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithNoCut[n])) {
                         bcm_avgs[run].averagesWithOneCut[n] += bcmCurrent;
+
+                        // Scaler read counts
                         bcm_avgs[run].countWithOneCut[n]++;
                     }
                 }
                 bcm_avgs[run].averagesWithOneCut[n] /= bcm_avgs[run].countWithOneCut[n];
 
+                // ---------------------------------------
                 // Apply a second 95% cut
                 bcm_avgs[run].countWithTwoCuts.push_back(0);
                 bcm_avgs[run].averagesWithTwoCuts.push_back(0);
+                bcm_avgs[run].rawScalerIncrements.push_back(0);
+                thisRawScalerRead = 0;
+                lastRawScalerRead = 0;
                 for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
+                    // Keep track of last read
+                    lastRawScalerRead = thisRawScalerRead;
+
                     T->GetEntry(scalerRead);
 
                     // Only count this read if it's above 95% of average
                     if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithOneCut[n])) {
                         bcm_avgs[run].averagesWithTwoCuts[n] += bcmCurrent;
+
+                        // Scaler read counts
                         bcm_avgs[run].countWithTwoCuts[n]++;
+
+                        // Raw scaler incremenet
+                        bcm_avgs[run].rawScalerIncrements[n] += (thisRawScalerRead - lastRawScalerRead);
                     }
                 }
                 bcm_avgs[run].averagesWithTwoCuts[n] /= bcm_avgs[run].countWithTwoCuts[n];
 
+                // ---------------------------------------
                 // Calculate this region's uncertainty
-                numerator = 0;
-                for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
-                    T->GetEntry(scalerRead);
+                numerator   = bcm_avgs[run].averagesWithTwoCuts[n];
+                denominator = sqrt(bcm_avgs[run].rawScalerIncrements[n]);
+                bcm_avgs[run].regionUncertainty.push_back(numerator/denominator);
 
-                    // Only count this read if it's above 95% of average
-                    if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithOneCut[n])) {
-                        numerator += (bcmCurrent - bcm_avgs[run].averagesWithTwoCuts[n])*(bcmCurrent - bcm_avgs[run].averagesWithTwoCuts[n]);
-                    }
-                }
-                denominator = sqrt( (bcm_avgs[run].countWithTwoCuts[n]) * (bcm_avgs[run].countWithTwoCuts[n]-1) );
-                bcm_avgs[run].regionUncertainty.push_back(numerator / denominator);
-
+                // ---------------------------------------
                 // Assign weight
                 if (weightWithSEM) {
                     bcm_avgs[run].weights.push_back( 1 / (bcm_avgs[run].regionUncertainty[n] * bcm_avgs[run].regionUncertainty[n]) );
                 }
-                if (weightWithCount) {
+                if (weightWithScalerReads) {
                     bcm_avgs[run].weights.push_back( bcm_avgs[run].countWithTwoCuts[n] );
                 }
+                if (weightWithRawScaler) {
+                    bcm_avgs[run].weights.push_back( bcm_avgs[run].rawScalerIncrements[n] );
+                }
 
+                // ---------------------------------------
                 // Print result to cout for progress indication
                 std::cout << Form("Run %5d region %3d: start %-4d end %-4d avgs = %-5.2f | %-5.2f | %-5.2f +- %-5.2f (n=%9d) \t %f \n",
                                   run, n, regionBegin, regionEnd,
@@ -562,6 +601,9 @@ void bcm_average() {
                                   bcm_avgs[run].countWithTwoCuts[n],
                                   bcm_avgs[run].weights[n] * bcm_avgs[run].averagesWithTwoCuts[n]
                                   );
+
+                // ---------------------------------------
+                // Draw
 
                 // Draw reference line for this region
                 lineName = Form("run%d_region%d", run, n);
@@ -626,7 +668,7 @@ void bcm_average() {
 
     // Write each segment to csv for further investigation
     ofs.open(segmentCsvFilename.Data());
-    ofs << "run, segment, begin, end, averagesWithNoCut, averagesWithOneCut, averagesWithTwoCuts, regionUncertainty, countTwoCuts" << std::endl;
+    ofs << "run, segment, begin, end, averagesWithNoCut, averagesWithOneCut, averagesWithTwoCuts, regionUncertainty, countTwoCuts, rawScalerWeight" << std::endl;
     for (auto const &k : data->GetNames()) {
         // LH2 only
         if(data->GetTarget(k) != "LH2")
@@ -637,13 +679,14 @@ void bcm_average() {
                 regionBegin = bcm_avgs[run].begin[n];
                 regionEnd   = bcm_avgs[run].end[n];
 
-                ofs << Form("%d, %d, %d, %d, %f, %f, %f, %f, %d\n",
+                ofs << Form("%d, %d, %d, %d, %f, %f, %f, %f, %d, %f\n",
                                   run, n, regionBegin, regionEnd,
                                   bcm_avgs[run].averagesWithNoCut[n],
                                   bcm_avgs[run].averagesWithOneCut[n],
                                   bcm_avgs[run].averagesWithTwoCuts[n],
                                   bcm_avgs[run].regionUncertainty[n],
-                                  bcm_avgs[run].countWithTwoCuts[n]
+                                  bcm_avgs[run].countWithTwoCuts[n],
+                                  bcm_avgs[run].rawScalerIncrements[n]
                                   );
             }
         }
