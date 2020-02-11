@@ -60,6 +60,10 @@ struct bcm_avg_t {
     std::vector<Double_t> regionUncertainty;
     std::vector<Double_t> weights;
     std::vector<Double_t> rawScalerIncrements;
+    std::vector<Double_t> charges;
+    Double_t myCharge;
+    Double_t scalerCharge;
+    Double_t scalerChargeCut;
 };
 
 void bcm_average();
@@ -74,8 +78,10 @@ void bcm_average() {
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
 
     // Which bcm?
-    TString bcmBranch = "P.BCM4A.scalerCurrent";
-    TString rawScalerBranch = "P.BCM4A.scaler";
+    TString scalerRawBranch       = "P.BCM4A.scaler";
+    TString scalerCurrentBranch   = "P.BCM4A.scalerCurrent";
+    TString scalerChargeBranch    = "P.BCM4A.scalerCharge";
+    TString scalerChargeCutBranch = "P.BCM4A.scalerChargeCut";
 
     // Where should we save diagnostic plots?
     TFile *fWrite = new TFile("/home/jmatter/ct_scripts/analysis/bcm_weighted_average/bcm_average.root", "RECREATE");
@@ -97,14 +103,18 @@ void bcm_average() {
     Bool_t weightWithScalerReads = false;
     Bool_t weightWithSEM         = false;
 
+    // Do we only want to look at LH2?
+    Bool_t lh2Only = false;
+
     // ------------------------------------------------------------------------
     // Initialize everything to be unweighted.
     // After this we'll change the settings for runs we want to weight.
     std::map<Int_t, bcm_avg_t> bcm_avgs;
     bcm_avg_t bcm_avg;
     for (auto const &k : data->GetNames()) {
+
         // LH2 only
-        if(data->GetTarget(k) != "LH2")
+        if (lh2Only && (data->GetTarget(k) != "LH2"))
             continue;
 
         for (auto const &run : data->GetRuns(k)) {
@@ -459,14 +469,19 @@ void bcm_average() {
     TTree *T;
 
     Int_t regionBegin, regionEnd;
-    Double_t bcmCurrent; // in uA
+    Double_t bcmCurrent;    // in uA
+    Double_t bcmCharge;     // in uC
+    Double_t bcmChargeCut;  // in uC
     Double_t thisRawScalerRead;
     Double_t lastRawScalerRead;
+    Double_t thisChargeRead;
+    Double_t lastChargeRead;
     Double_t numerator, denominator; // for calculating averages, uncertainty
 
     for (auto const &k : data->GetNames()) {
+
         // LH2 only
-        if(data->GetTarget(k) != "LH2")
+        if (lh2Only && (data->GetTarget(k) != "LH2"))
             continue;
 
         for (auto const &run : data->GetRuns(k)) {
@@ -481,17 +496,19 @@ void bcm_average() {
             file->GetObject("TSP", T);
 
             // Draw diagnostic histogram
-            canvasName = Form("run%d_%s", run, bcmBranch.Data());
-            drawMe = Form("%s:This->GetReadEntry()", bcmBranch.Data());
+            canvasName = Form("run%d_%s", run, scalerCurrentBranch.Data());
+            drawMe = Form("%s:This->GetReadEntry()", scalerCurrentBranch.Data());
             N = T->Draw(drawMe.Data(), "", "goff");
 
             graphs[run] = new TGraph(N, T->GetV2(), T->GetV1());
-            graphs[run]->SetTitle(Form("run %d; Entry; %s", run, bcmBranch.Data()));
+            graphs[run]->SetTitle(Form("run %d; Entry; %s", run, scalerCurrentBranch.Data()));
             graphs[run]->Draw("AL");
 
             // Set branch addresses
-            T->SetBranchAddress(bcmBranch.Data(), &bcmCurrent);
-            T->SetBranchAddress(rawScalerBranch.Data(), &thisRawScalerRead);
+            T->SetBranchAddress(scalerRawBranch.Data(),       &thisRawScalerRead);
+            T->SetBranchAddress(scalerCurrentBranch.Data(),   &bcmCurrent);
+            T->SetBranchAddress(scalerChargeBranch.Data(),    &bcmCharge);
+            T->SetBranchAddress(scalerChargeCutBranch.Data(), &bcmChargeCut);
 
             // If not weighted, we need to set the beginning and end of the
             // region to be the size of the tree. Should we do this for the
@@ -551,11 +568,15 @@ void bcm_average() {
                 bcm_avgs[run].countWithTwoCuts.push_back(0);
                 bcm_avgs[run].averagesWithTwoCuts.push_back(0);
                 bcm_avgs[run].rawScalerIncrements.push_back(0);
+                bcm_avgs[run].charges.push_back(0);
                 thisRawScalerRead = 0;
                 lastRawScalerRead = 0;
+                lastChargeRead = 0;
+                bcmCharge = 0;
                 for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
                     // Keep track of last read
                     lastRawScalerRead = thisRawScalerRead;
+                    lastChargeRead = bcmCharge;
 
                     T->GetEntry(scalerRead);
 
@@ -568,6 +589,9 @@ void bcm_average() {
 
                         // Raw scaler incremenet
                         bcm_avgs[run].rawScalerIncrements[n] += (thisRawScalerRead - lastRawScalerRead);
+
+                        // Charge increment
+                        bcm_avgs[run].charges[n] += (bcmCharge - lastChargeRead);
                     }
                 }
                 bcm_avgs[run].averagesWithTwoCuts[n] /= bcm_avgs[run].countWithTwoCuts[n];
@@ -629,6 +653,17 @@ void bcm_average() {
             c->Modified();
             c->Update();
 
+            // Get scaler charge calculated by hcana
+            T->GetEntry(T->GetEntries()-1);
+            bcm_avgs[run].scalerCharge    = bcmCharge;
+            bcm_avgs[run].scalerChargeCut = bcmChargeCut;
+
+            // Calculate my total charge
+            bcm_avgs[run].myCharge = 0;
+            for (int n = 0; n < bcm_avgs[run].regions; n++) {
+                bcm_avgs[run].myCharge += bcm_avgs[run].charges[n];
+            }
+
             // Calculate the weighted average
             numerator = 0;
             denominator = 0;
@@ -654,24 +689,32 @@ void bcm_average() {
     // Write weighted averages to csv
     std::ofstream ofs;
     ofs.open(averageCsvFilename.Data());
-    ofs << "run, bcm4aAverage, bcm4AUncertainty" << std::endl;
+    ofs << "run, bcm4aAverage, bcm4AUncertainty, myCharge, scalerCharge, scalerChargeCut" << std::endl;
     for (auto const &k : data->GetNames()) {
+
         // LH2 only
-        if(data->GetTarget(k) != "LH2")
+        if (lh2Only && (data->GetTarget(k) != "LH2"))
             continue;
 
         for (auto const &run : data->GetRuns(k)) {
-            ofs << run << "," << bcm_avgs[run].avg << "," << bcm_avgs[run].sem << std::endl;
+            ofs << run
+                << "," << bcm_avgs[run].avg
+                << "," << bcm_avgs[run].sem
+                << "," << bcm_avgs[run].myCharge
+                << "," << bcm_avgs[run].scalerCharge
+                << "," << bcm_avgs[run].scalerChargeCut
+                << std::endl;
         }
     }
     ofs.close();
 
     // Write each segment to csv for further investigation
     ofs.open(segmentCsvFilename.Data());
-    ofs << "run, segment, begin, end, averagesWithNoCut, averagesWithOneCut, averagesWithTwoCuts, regionUncertainty, countTwoCuts, rawScalerWeight" << std::endl;
+    ofs << "run, segment, begin, end, averagesWithNoCut, averagesWithOneCut, averagesWithTwoCuts, regionUncertainty, countTwoCuts, rawScalerWeight, charge" << std::endl;
     for (auto const &k : data->GetNames()) {
+
         // LH2 only
-        if(data->GetTarget(k) != "LH2")
+        if (lh2Only && (data->GetTarget(k) != "LH2"))
             continue;
 
         for (auto const &run : data->GetRuns(k)) {
@@ -679,15 +722,18 @@ void bcm_average() {
                 regionBegin = bcm_avgs[run].begin[n];
                 regionEnd   = bcm_avgs[run].end[n];
 
-                ofs << Form("%d, %d, %d, %d, %f, %f, %f, %f, %d, %f\n",
-                                  run, n, regionBegin, regionEnd,
-                                  bcm_avgs[run].averagesWithNoCut[n],
-                                  bcm_avgs[run].averagesWithOneCut[n],
-                                  bcm_avgs[run].averagesWithTwoCuts[n],
-                                  bcm_avgs[run].regionUncertainty[n],
-                                  bcm_avgs[run].countWithTwoCuts[n],
-                                  bcm_avgs[run].rawScalerIncrements[n]
-                                  );
+                ofs << run
+                    << "," << n
+                    << "," << regionBegin
+                    << "," << regionEnd
+                    << "," << bcm_avgs[run].averagesWithNoCut[n]
+                    << "," << bcm_avgs[run].averagesWithOneCut[n]
+                    << "," << bcm_avgs[run].averagesWithTwoCuts[n]
+                    << "," << bcm_avgs[run].regionUncertainty[n]
+                    << "," << bcm_avgs[run].countWithTwoCuts[n]
+                    << "," << bcm_avgs[run].rawScalerIncrements[n]
+                    << "," << bcm_avgs[run].charges[n]
+                    << std::endl;
             }
         }
     }
