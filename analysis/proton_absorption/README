@@ -1,0 +1,5 @@
+This set of scripts is currently intended to be run on my laptop, not ifarm.
+
+To do the whole analysis, execute ./run.sh
+
+load.C is for interactive analysis

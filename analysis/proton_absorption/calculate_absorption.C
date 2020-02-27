@@ -1,153 +1,142 @@
-#include <vector>
-#include <map>
+{
+    std::vector<Double_t> q2s = {8.0, 9.5, 11.5, 14.3};
+    std::map<Double_t, TFile*> file;
+    std::map<Double_t, TCanvas*> canvas;
+    std::map<Double_t, std::map<TString, TH1*>> histo;
 
-#include <TCanvas.h>
-#include <TH1F.h>
-#include <TCut.h>
+    std::map<Double_t, Double_t> singN, coinN;
+    std::map<Double_t, Double_t> singQ, coinQ;
+    std::map<Double_t, Double_t> singY, coinY;
+    std::map<Double_t, Double_t> absorption;
 
-#include <CTData.h>
+    std::vector<TString> histoNames = {"h_emiss", "h_delta", "h_hslope", "h_pslope",
+                                       "h_react_cut", "h_react_open", "h_coinW_singlescut",
+                                       "h_coinW_coincut", "h_coinW_inpeak", "h_coinW_open",
+                                       "h_singW_cut", "h_singW_inpeak", "h_singW_open",
+                                       "h_singW_cut_wide", "h_singW_inpeak_wide",
+                                       "h_singW_open_wide"};
 
-class CutSelector {
-    private:
-        TCanvas *canvas;
-        Int_t numKeys;
-        std::vector<Double_t> keys;
-        std::map<Double_t, TH1*> histograms;
-        std::map<Double_t, TChain*> chains;
+    TString canvasName;
 
-        TString branch;
+    // ------------------------------------------------------------------------
+    // Get stuff from canvas root files
+    for (auto q2: q2s) {
+        file[q2] = TFile::Open(Form("q2_%.1f_canvas.root", q2));
 
-        std::map<Double_t, Double_t> cutLow;
-        std::map<Double_t, Double_t> cutHigh;
-        std::map<Double_t, TCut> cuts;
+        // Get canvas
+        canvasName = Form("c_q2_%.1f", q2);
+        file[q2]->GetObject(canvasName.Data(), canvas[q2]);
 
-        Int_t drawBins;
-        Double_t drawLow;
-        Double_t drawHigh;
-
-    public:
-        CutSelector(TString name, std::map<Double_t, TChain*>);
-        void Select(TString b, Int_t n, Double_t lo, Double_t hi, std::map<Double_t, TCut> drawCuts);
-        TCut Get(Double_t key) { return cuts[key]; }
-
-};
-
-//----------------------
-// Constructor
-CutSelector::CutSelector(TString name, std::map<Double_t, TChain*> c) {
-    // Set chains
-    chains = c;
-
-    // Extract keys from input chains
-    keys.clear();
-    keys.reserve(chains.size());
-    for(auto const& mapPair: chains)
-            keys.push_back(mapPair.first);
-
-    // Test that chains are non-null
-    for (auto const key: keys) {
+        // Get histograms
+        for (auto histoName: histoNames) {
+        file[q2]->GetObject(histoName.Data(), histo[q2][histoName]);
+        }
     }
 
-    numKeys = keys.size();
-    if (numKeys != 4) {
-        std::cout << "input chains should have length 4!" << std::endl;
+    // ------------------------------------------------------------------------
+    // Load trees for calculating total charge
+    std::map<Double_t, TFile*> fcoin, fsing, fdummy;
+    std::map<Double_t, TTree*> tcoin, tsing;
+    TTree* t;
+
+    // Q^2 = 8
+    fcoin[8.0]  = new TFile("/Volumes/ssd750/ct/pass3/coin_replay_production_LH2_8_smallcoll.root");
+    fsing[8.0]  = new TFile("/Volumes/ssd750/ct/pass3/hms_coin_replay_production_2049_500000.root");
+
+    // Q^2 = 9.5
+    fcoin[9.5]  = new TFile("/Volumes/ssd750/ct/pass3/coin_replay_production_LH2_9.5_smallcoll.root");
+    fsing[9.5]  = new TFile("/Volumes/ssd750/ct/pass3/lh2_hms_singles_q2_9.5.root");
+
+    // Q^2 = 11.5
+    fcoin[11.5]  = new TFile("/Volumes/ssd750/ct/pass3/coin_replay_production_LH2_11.5_largecoll.root");
+    fsing[11.5]  = new TFile("/Volumes/ssd750/ct/pass3/lh2_hms_singles_q2_11.5.root");
+
+    // Q^2 = 14.3
+    fcoin[14.3]  = new TFile("/Volumes/ssd750/ct/pass3/coin_replay_production_LH2_14.3_largecoll.root");
+    fsing[14.3]  = new TFile("/Volumes/ssd750/ct/pass3/lh2_hms_singles_q2_14.3.root");
+
+    // Read
+    for (auto q2: q2s) {
+        fcoin[q2]->GetObject("TSH", tcoin[q2]);
+        fsing[q2]->GetObject("TSH", tsing[q2]);
     }
 
-    // Create canvas
-    canvas = new TCanvas(name.Data(), name.Data(), 800, 600);
-    canvas->Divide(2,2);
-}
+    // ------------------------------------------------------------------------
+    // Get charge
+    TString bcmBranchName = "H.BCM4A.scalerChargeCut";
+    Double_t Q, Qprev, Qtot;
+    for (auto q2: q2s) {
+        // Singles
+        t = tsing[q2];
+        t->SetBranchAddress(bcmBranchName.Data(), &Q);
+        Q = Qprev = Qtot = 0;
+        for (int i=1; i<t->GetEntries(); t->GetEntry(i++)) {
+            if ( (Q<Qprev) || (i==(t->GetEntries()-1)) ) {
+               Qtot += Qprev;
+            }
+            Qprev = Q;
+        }
+        singQ[q2] = Qtot/1e3;
 
-//----------------------
-// Draw branch and ask user to make a selection on cut values for branch
-// cuts is a map that expects the same keys as chains
-void CutSelector::Select(TString b, Int_t n, Double_t lo, Double_t hi, std::map<Double_t, TCut> drawCuts) {
-    // Set member values
-    branch = b;
-    drawBins = n;
-    drawLow = lo;
-    drawHigh = hi;
-
-    // Draw
-    Int_t pad = 1;
-    TString drawString, histoName;
-    for (auto const key: keys) {
-        drawString = Form("%s>>%s(%d,%f,%f)", branch.Data(), histoName.Data(), drawBins, drawLow, drawHigh);
-        chains[key]->Draw(drawString.Data(), drawCuts[key], "goff");
-        histograms[key] = (TH1F*) gDirectory->Get(histoName.Data());
-        canvas->cd(pad);
-        histograms[key]->Draw();
-        pad++;
+        // Coin
+        t = tcoin[q2];
+        t->SetBranchAddress(bcmBranchName.Data(), &Q);
+        Q = Qprev = Qtot = 0;
+        for (int i=1; i<t->GetEntries(); t->GetEntry(i++)) {
+            if ( (Q<Qprev) || (i==(t->GetEntries()-1)) ) {
+               Qtot += Qprev;
+            }
+            Qprev = Q;
+        }
+        coinQ[q2] = Qtot/1e3;
     }
-    canvas->Modified();
-    canvas->Update();
 
-    // Ask user to select cuts for each key
-    string str;
-    for (auto const key: keys) {
+    // ------------------------------------------------------------------------
+    // Get counts and yield
+    TString singHistogramName = "h_singW_inpeak";
+    TString coinHistogramName = "h_coinW_inpeak";
+    for (auto q2: q2s) {
+        singN[q2] = histo[q2][singHistogramName]->Integral();
+        coinN[q2] = histo[q2][coinHistogramName]->Integral();
 
-        cout << "Enter low cut for Q^2=" << key << ": ";
-        getline(cin, str);
-        stringstream(str) >> cutLow[key];
-
-        cout << "Enter high cut for Q^2=" << key << ": ";
-        getline(cin, str);
-        stringstream(str) >> cutHigh[key];
-
-        cuts[key] = Form("(%s>%f && %s<%f)", branch.Data(), cutLow[key], branch.Data(), cutHigh[key]);
-
+        singY[q2] = singN[q2]/singQ[q2];
+        coinY[q2] = coinN[q2]/coinQ[q2];
     }
-}
 
-//----------------------
-void calculate_absorption() {
+    // ------------------------------------------------------------------------
+    // Calculate and print absorption
+    for (auto q2: q2s) {
+        absorption[q2] = 100*(1-(coinY[q2]/singY[q2]));
+    }
 
-    // Load data and cuts
-    CTData *coinData = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
-    CTData *singlesData = new CTData("/home/jmatter/ct_scripts/ct_hms_singles_data.json");
+    Int_t q2width     = 12;
+    Int_t absorpwidth = 18;
+    Int_t countwidth  = 8;
+    Int_t chargewidth = 20;
+    Int_t yieldwidth  = 16;
 
-    // keys are Q^2
-    std::map<Double_t, TChain*> LH2CoinChains;
-    std::map<Double_t, TChain*> LH2SingChains;
-    std::map<Double_t, TChain*> AlSingChains;
+    // header
+    std::cout << std::left
+              << std::setw(q2width)     << "Q^2 [Gev^2]"
+              << std::setw(absorpwidth) << "absorption [%]"
+              << std::setw(countwidth)  << "Coin N"
+              << std::setw(chargewidth) << "Coin charge [mC]"
+              << std::setw(yieldwidth)  << "Coin yield"
+              << std::setw(countwidth)  << "Sing N"
+              << std::setw(chargewidth) << "Sing charge [mC]"
+              << std::setw(yieldwidth)  << "Sing yield"
+              << std::endl;
 
-    LH2CoinChains[8.0]  = coinData->GetChain("LH2_Q2_8");
-    LH2CoinChains[9.5]  = coinData->GetChain("LH2_Q2_10_pion_collimator");
-    LH2CoinChains[11.5] = coinData->GetChain("LH2_Q2_12");
-    LH2CoinChains[14.3] = coinData->GetChain("LH2_Q2_14_large_collimator");
-
-    LH2SingChains[8.0]  = singlesData->GetChain("LH2_Q2_8");
-    LH2SingChains[9.5]  = singlesData->GetChain("LH2_Q2_10");
-    LH2SingChains[11.5] = singlesData->GetChain("LH2_Q2_12");
-    LH2SingChains[14.3] = singlesData->GetChain("LH2_Q2_14");
-
-    AlSingChains[8.0]   = singlesData->GetChain("Al_Q2_8");
-    AlSingChains[9.5]   = singlesData->GetChain("Al_Q2_10");
-    AlSingChains[11.5]  = singlesData->GetChain("Al_Q2_12");
-    AlSingChains[14.3]  = singlesData->GetChain("Al_Q2_14");
-
-    // -----
-    std::map<Double_t, TCut> emptyCuts;
-    emptyCuts[8.0]  = "";
-    emptyCuts[9.5]  = "";
-    emptyCuts[11.5] = "";
-    emptyCuts[14.3] = "";
-
-    // --------------------------------------
-    // First we cut on emiss
-
-    CutSelector* eMissCutSelector = new CutSelector("emiss", LH2CoinChains);
-    eMissCutSelector->Select("P.kin.secondary.emiss", 120, -0.02, 0.1, emptyCuts);
-
-    std::map<Double_t, TCut> emissCuts;
-    emissCuts[8.0]  = eMissCutSelector->Get(8.0);
-    emissCuts[9.5]  = eMissCutSelector->Get(9.5);
-    emissCuts[11.5] = eMissCutSelector->Get(11.5);
-    emissCuts[14.3] = eMissCutSelector->Get(14.3);
-
-    std::cout << "8.0: " << emissCuts[8.0] << std::endl;
-    std::cout << "9.5: " << emissCuts[9.5] << std::endl;
-    std::cout << "11.5: " << emissCuts[11.5] << std::endl;
-    std::cout << "14.3: " << emissCuts[14.3] << std::endl;
-
+    for (auto q2: q2s) {
+        std::cout << std::left
+                  << std::setw(q2width)     << q2
+                  << std::setw(absorpwidth) << absorption[q2]
+                  << std::setw(countwidth)  << coinN[q2]
+                  << std::setw(chargewidth) << coinQ[q2]
+                  << std::setw(yieldwidth)  << coinY[q2]
+                  << std::setw(countwidth)  << singN[q2]
+                  << std::setw(chargewidth) << singQ[q2]
+                  << std::setw(yieldwidth)  << singY[q2]
+                  << std::endl;
+    }
 }
