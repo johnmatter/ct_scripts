@@ -30,7 +30,7 @@ haddFilename['runs_LH2_Q2_14_pion_collimator']  = 'coin_replay_production_LH2_14
 
 # Where are your hcana-replayed root files?
 # rootfileDir = '/volatile/hallc/comm2017/e1206107/ROOTfiles/pass2'
-rootfileDir = '/home/jmatter/ct_replay_pass2/ROOTfiles/'
+rootfileDir = '/home/jmatter/ct_replay/ROOTfiles/'
 
 # What's the input root filename template?
 rootfileInputTemplate = 'coin_replay_production_%d_-1.root'
