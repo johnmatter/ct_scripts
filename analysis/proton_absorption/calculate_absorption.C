@@ -14,7 +14,7 @@
                                        "h_coinW_coincut", "h_coinW_inpeak", "h_coinW_open",
                                        "h_singW_cut", "h_singW_inpeak", "h_singW_open",
                                        "h_singW_cut_wide", "h_singW_inpeak_wide",
-                                       "h_singW_open_wide"};
+                                       "h_singW_open_wide", "h_sing_W_count", "h_coin_W_count"};
 
     TString canvasName;
 
@@ -93,8 +93,8 @@
 
     // ------------------------------------------------------------------------
     // Get counts and yield
-    TString singHistogramName = "h_singW_inpeak";
-    TString coinHistogramName = "h_coinW_inpeak";
+    TString singHistogramName = "h_sing_W_count";
+    TString coinHistogramName = "h_coin_W_count";
     for (auto q2: q2s) {
         singN[q2] = histo[q2][singHistogramName]->Integral();
         coinN[q2] = histo[q2][coinHistogramName]->Integral();
@@ -110,33 +110,33 @@
     }
 
     Int_t q2width     = 12;
-    Int_t absorpwidth = 18;
+    Int_t absorpwidth = 15;
     Int_t countwidth  = 8;
-    Int_t chargewidth = 20;
-    Int_t yieldwidth  = 16;
+    Int_t chargewidth = 17;
+    Int_t yieldwidth  = 12;
 
     // header
     std::cout << std::left
-              << std::setw(q2width)     << "Q^2 [Gev^2]"
-              << std::setw(absorpwidth) << "absorption [%]"
-              << std::setw(countwidth)  << "Coin N"
-              << std::setw(chargewidth) << "Coin charge [mC]"
-              << std::setw(yieldwidth)  << "Coin yield"
-              << std::setw(countwidth)  << "Sing N"
-              << std::setw(chargewidth) << "Sing charge [mC]"
-              << std::setw(yieldwidth)  << "Sing yield"
-              << std::endl;
+              << " | " << std::setw(q2width)     << "Q^2 [Gev^2]"
+              << " | " << std::setw(absorpwidth) << "absorption [%]"
+              << " | " << std::setw(countwidth)  << "Coin N"
+              << " | " << std::setw(chargewidth) << "Coin charge [mC]"
+              << " | " << std::setw(yieldwidth)  << "Coin yield"
+              << " | " << std::setw(countwidth)  << "Sing N"
+              << " | " << std::setw(chargewidth) << "Sing charge [mC]"
+              << " | " << std::setw(yieldwidth)  << "Sing yield"
+              << " | " << std::endl;
 
     for (auto q2: q2s) {
         std::cout << std::left
-                  << std::setw(q2width)     << q2
-                  << std::setw(absorpwidth) << absorption[q2]
-                  << std::setw(countwidth)  << coinN[q2]
-                  << std::setw(chargewidth) << coinQ[q2]
-                  << std::setw(yieldwidth)  << coinY[q2]
-                  << std::setw(countwidth)  << singN[q2]
-                  << std::setw(chargewidth) << singQ[q2]
-                  << std::setw(yieldwidth)  << singY[q2]
-                  << std::endl;
+                  << " | " << std::setw(q2width)     << q2
+                  << " | " << std::setw(absorpwidth) << absorption[q2]
+                  << " | " << std::setw(countwidth)  << coinN[q2]
+                  << " | " << std::setw(chargewidth) << coinQ[q2]
+                  << " | " << std::setw(yieldwidth)  << coinY[q2]
+                  << " | " << std::setw(countwidth)  << singN[q2]
+                  << " | " << std::setw(chargewidth) << singQ[q2]
+                  << " | " << std::setw(yieldwidth)  << singY[q2]
+                  << " | " << std::endl;
     }
 }
