@@ -16,7 +16,7 @@ void generate_histos(Double_t q2) {
 
     std::map<Double_t, TFile*> fcoin, fsing, fdummy;
     TTree *tcoin, *tsing, *tdummy;
-    std::vector<Double_t> q2s = {8.0, 9.5, 11.5, 14.3};
+    std::vector<Double_t> q2s = {9.5, 11.5};
 
     // Q^2 = 8
     fcoin[8.0]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/coin_replay_production_LH2_8_smallcoll.root");
@@ -57,23 +57,23 @@ void generate_histos(Double_t q2) {
     emisscut[14.3] = "P.kin.secondary.emiss<0.03";
 
     pdeltacut[8.0]  = "-0.0 < P.gtr.dp && P.gtr.dp < 4.0";
-    pdeltacut[9.5]  = "-3.0 < P.gtr.dp && P.gtr.dp < 6.0";
-    pdeltacut[11.5] = "-3.0 < P.gtr.dp && P.gtr.dp < 5.0";
+    pdeltacut[9.5]  = "-3.5 < P.gtr.dp && P.gtr.dp < 8.0";
+    pdeltacut[11.5] = "-3.0 < P.gtr.dp && P.gtr.dp < 6.0";
     pdeltacut[14.3] = "-0.5 < P.gtr.dp && P.gtr.dp < 3.5";
 
     hdeltacut[8.0]  = "-4.0 < H.gtr.dp && H.gtr.dp < 5.0";
     hdeltacut[9.5]  = "-4.0 < H.gtr.dp && H.gtr.dp < 6.0";
-    hdeltacut[11.5] = "-4.0 < H.gtr.dp && H.gtr.dp < 8.0";
+    hdeltacut[11.5] = "-6.0 < H.gtr.dp && H.gtr.dp < 8.0";
     hdeltacut[14.3] = "-4.0 < H.gtr.dp && H.gtr.dp < 6.0";
 
     hslopecut[8.0]  = "-0.050 < H.gtr.th && H.gtr.th < 0.050 && -0.020 < H.gtr.ph && H.gtr.ph < 0.025";
-    hslopecut[9.5]  = "-0.040 < H.gtr.th && H.gtr.th < 0.045 && -0.015 < H.gtr.ph && H.gtr.ph < 0.020";
-    hslopecut[11.5] = "-0.060 < H.gtr.th && H.gtr.th < 0.060 && -0.020 < H.gtr.ph && H.gtr.ph < 0.030";
+    hslopecut[9.5]  = "-0.045 < H.gtr.th && H.gtr.th < 0.050 && -0.020 < H.gtr.ph && H.gtr.ph < 0.020";
+    hslopecut[11.5] = "-0.070 < H.gtr.th && H.gtr.th < 0.070 && -0.030 < H.gtr.ph && H.gtr.ph < 0.030";
     hslopecut[14.3] = "-0.060 < H.gtr.th && H.gtr.th < 0.060 && -0.020 < H.gtr.ph && H.gtr.ph < 0.020";
 
     pslopecut[8.0]  = "-0.020 < P.gtr.th && P.gtr.th < 0.020 && -0.010 < P.gtr.ph && P.gtr.ph < 0.010";
-    pslopecut[9.5]  = "-0.040 < P.gtr.th && P.gtr.th < 0.035 && -0.015 < P.gtr.ph && P.gtr.ph < 0.015";
-    pslopecut[11.5] = "-0.040 < P.gtr.th && P.gtr.th < 0.025 && -0.015 < P.gtr.ph && P.gtr.ph < 0.015";
+    pslopecut[9.5]  = "-0.050 < P.gtr.th && P.gtr.th < 0.045 && -0.020 < P.gtr.ph && P.gtr.ph < 0.020";
+    pslopecut[11.5] = "-0.050 < P.gtr.th && P.gtr.th < 0.050 && -0.020 < P.gtr.ph && P.gtr.ph < 0.020";
     pslopecut[14.3] = "-0.025 < P.gtr.th && P.gtr.th < 0.020 && -0.010 < P.gtr.ph && P.gtr.ph < 0.010";
 
     ztarcut[8.0]  = "abs(H.react.z)<4";
@@ -108,44 +108,57 @@ void generate_histos(Double_t q2) {
     tdummy->Draw("H.react.z>>h_react_cut(100,-10,10)", hdeltacut[q2]&&hslopecut[q2]);
 
     singlescut = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2];
-    coincut    = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2] && pdeltacut[q2] && pslopecut[q2];
+    coincut    = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2] && pdeltacut[q2] && pslopecut[q2] && ppidcut[q2] && emisscut[q2];
 
     // W
+    // Wcoin
     tcoin->Draw("H.kin.primary.W>>h_coinW_open(160,0.8,1.2)");
     tcoin->Draw("H.kin.primary.W>>h_coinW_singlescut(160,0.8,1.2)", singlescut);
     tcoin->Draw("H.kin.primary.W>>h_coinW_coincut(160,0.8,1.2)", coincut);
     tcoin->Draw("H.kin.primary.W>>h_coinW_inpeak(160,0.8,1.2)", coincut && coinWcut);
 
+    // Wcoin_wide
+    tcoin->Draw("H.kin.primary.W>>h_coinW_open_wide(100,0.0,2.0)");
+    tcoin->Draw("H.kin.primary.W>>h_coinW_singlescut_wide(100,0.0,2.0)", singlescut);
+    tcoin->Draw("H.kin.primary.W>>h_coinW_coincut_wide(100,0.0,2.0)", coincut);
+    tcoin->Draw("H.kin.primary.W>>h_coinW_inpeak_wide(100,0.0,2.0)", coincut && coinWcut);
+
+    // Wsing
     tsing->Draw("H.kin.W>>h_singW_open(80,0.8,1.2)");
     tsing->Draw("H.kin.W>>h_singW_cut(80,0.8,1.2)", singlescut);
     tsing->Draw("H.kin.W>>h_singW_inpeak(80,0.8,1.2)", singlescut && singWcut);
+    // Wsingwide
     tsing->Draw("H.kin.W>>h_singW_open_wide(80,0.0,2.0)");
     tsing->Draw("H.kin.W>>h_singW_cut_wide(80,0.0,2.0)", singlescut);
     tsing->Draw("H.kin.W>>h_singW_inpeak_wide(80,0.0,2.0)", singlescut && singWcut);
 
     // These are used for calculating yields in the absorption script
-    tcoin->Draw("H.kin.primary.W>>h_coin_W_count(160,0.8,1.2)", hpidcut[q2] && ztarcut[q2] && hdeltacut[q2] && hslopecut[q2] && coinWcut && ppidcut[q2]);
-    tsing->Draw("H.kin.W>>h_sing_W_count(80,0.8,1.2)",          hpidcut[q2] && ztarcut[q2] && hdeltacut[q2] && hslopecut[q2] && singWcut);
+    tcoin->Draw("H.kin.primary.W>>h_coin_W_count(160,0.8,1.2)", hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && coinWcut && ztarcut[q2] && ppidcut[q2] && emisscut[q2] && pslopecut[q2] && pdeltacut[q2]);
+    tsing->Draw("H.kin.W>>h_sing_W_count(80,0.8,1.2)",          hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && singWcut && ztarcut[q2]);
 
     // Get histos from memory
-    TH1F* h_emiss             = (TH1F*) gDirectory->Get("h_emiss");
-    TH1F* h_delta             = (TH1F*) gDirectory->Get("h_delta");
-    TH1F* h_hslope            = (TH1F*) gDirectory->Get("h_hslope");
-    TH1F* h_pslope            = (TH1F*) gDirectory->Get("h_pslope");
-    TH1F* h_react_cut         = (TH1F*) gDirectory->Get("h_react_cut");
-    TH1F* h_react_open        = (TH1F*) gDirectory->Get("h_react_open");
-    TH1F* h_coinW_singlescut  = (TH1F*) gDirectory->Get("h_coinW_singlescut");
-    TH1F* h_coinW_coincut     = (TH1F*) gDirectory->Get("h_coinW_coincut");
-    TH1F* h_coinW_inpeak      = (TH1F*) gDirectory->Get("h_coinW_inpeak");
-    TH1F* h_coinW_open        = (TH1F*) gDirectory->Get("h_coinW_open");
-    TH1F* h_singW_cut         = (TH1F*) gDirectory->Get("h_singW_cut");
-    TH1F* h_singW_inpeak      = (TH1F*) gDirectory->Get("h_singW_inpeak");
-    TH1F* h_singW_open        = (TH1F*) gDirectory->Get("h_singW_open");
-    TH1F* h_singW_cut_wide    = (TH1F*) gDirectory->Get("h_singW_cut_wide");
-    TH1F* h_singW_inpeak_wide = (TH1F*) gDirectory->Get("h_singW_inpeak_wide");
-    TH1F* h_singW_open_wide   = (TH1F*) gDirectory->Get("h_singW_open_wide");
-    TH1F* h_sing_W_count      = (TH1F*) gDirectory->Get("h_sing_W_count");
-    TH1F* h_coin_W_count      = (TH1F*) gDirectory->Get("h_coin_W_count");
+    TH1F* h_emiss                 = (TH1F*) gDirectory->Get("h_emiss");
+    TH1F* h_delta                 = (TH1F*) gDirectory->Get("h_delta");
+    TH1F* h_hslope                = (TH1F*) gDirectory->Get("h_hslope");
+    TH1F* h_pslope                = (TH1F*) gDirectory->Get("h_pslope");
+    TH1F* h_react_cut             = (TH1F*) gDirectory->Get("h_react_cut");
+    TH1F* h_react_open            = (TH1F*) gDirectory->Get("h_react_open");
+    TH1F* h_coinW_singlescut      = (TH1F*) gDirectory->Get("h_coinW_singlescut");
+    TH1F* h_coinW_coincut         = (TH1F*) gDirectory->Get("h_coinW_coincut");
+    TH1F* h_coinW_inpeak          = (TH1F*) gDirectory->Get("h_coinW_inpeak");
+    TH1F* h_coinW_open            = (TH1F*) gDirectory->Get("h_coinW_open");
+    TH1F* h_coinW_singlescut_wide = (TH1F*) gDirectory->Get("h_coinW_singlescut_wide");
+    TH1F* h_coinW_coincut_wide    = (TH1F*) gDirectory->Get("h_coinW_coincut_wide");
+    TH1F* h_coinW_inpeak_wide     = (TH1F*) gDirectory->Get("h_coinW_inpeak_wide");
+    TH1F* h_coinW_open_wide       = (TH1F*) gDirectory->Get("h_coinW_open_wide");
+    TH1F* h_singW_cut             = (TH1F*) gDirectory->Get("h_singW_cut");
+    TH1F* h_singW_inpeak          = (TH1F*) gDirectory->Get("h_singW_inpeak");
+    TH1F* h_singW_open            = (TH1F*) gDirectory->Get("h_singW_open");
+    TH1F* h_singW_cut_wide        = (TH1F*) gDirectory->Get("h_singW_cut_wide");
+    TH1F* h_singW_inpeak_wide     = (TH1F*) gDirectory->Get("h_singW_inpeak_wide");
+    TH1F* h_singW_open_wide       = (TH1F*) gDirectory->Get("h_singW_open_wide");
+    TH1F* h_sing_W_count          = (TH1F*) gDirectory->Get("h_sing_W_count");
+    TH1F* h_coin_W_count          = (TH1F*) gDirectory->Get("h_coin_W_count");
 
 
     // Make things pretty
@@ -230,6 +243,19 @@ void generate_histos(Double_t q2) {
     h_singW_cut->Draw("SAME");
     h_singW_inpeak->Draw("SAME");
 
+    h_coinW_singlescut_wide->SetLineColor(46);
+    h_coinW_singlescut_wide->SetFillColor(46);
+    h_coinW_singlescut_wide->SetFillStyle(3345);
+    h_coinW_coincut_wide->SetLineColor(38);
+    h_coinW_coincut_wide->SetFillColor(38);
+    h_coinW_coincut_wide->SetFillStyle(3354);
+    h_coinW_inpeak_wide->SetLineColor(1);
+    h_coinW_inpeak_wide->SetFillColor(1);
+    h_coinW_inpeak_wide->SetFillStyle(3345);
+    h_coinW_open_wide->SetLineColor(30);
+    h_coinW_open_wide->SetFillColor(30);
+    h_coinW_open_wide->SetFillStyle(3002);
+
     pad->cd(8);
     h_singW_cut_wide->SetTitle("W [GeV];W;Counts");
     h_singW_inpeak_wide->SetTitle("W [GeV];W;Counts");
@@ -264,6 +290,10 @@ void generate_histos(Double_t q2) {
     h_coinW_coincut->Write();
     h_coinW_inpeak->Write();
     h_coinW_open->Write();
+    h_coinW_singlescut_wide->Write();
+    h_coinW_coincut_wide->Write();
+    h_coinW_inpeak_wide->Write();
+    h_coinW_open_wide->Write();
     h_singW_cut->Write();
     h_singW_inpeak->Write();
     h_singW_open->Write();
