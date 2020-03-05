@@ -13,10 +13,6 @@
 
 // {
 void generate_histos(Double_t q2) {
-    // Double_t q2=8.0;
-    // Double_t q2=9.5;
-    // Double_t q2=11.5;
-    // Double_t q2=14.3;
 
     std::map<Double_t, TFile*> fcoin, fsing, fdummy;
     TTree *tcoin, *tsing, *tdummy;
@@ -42,13 +38,18 @@ void generate_histos(Double_t q2) {
     fsing[14.3]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/lh2_hms_singles_q2_14.3.root");
     fdummy[14.3] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_q2_14.3.root");
 
-    std::map<Double_t, TCut> hpidcut, emisscut, pdeltacut, hdeltacut, pslopecut, hslopecut, ztarcut;
+    std::map<Double_t, TCut> ppidcut, hpidcut, emisscut, pdeltacut, hdeltacut, pslopecut, hslopecut, ztarcut;
     TCut singlescut, coincut, coinWcut, singWcut;
 
     hpidcut[8.0]  = "H.cer.npeSum>0 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
     hpidcut[9.5]  = "H.cer.npeSum>0 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
     hpidcut[11.5] = "H.cer.npeSum>0 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
     hpidcut[14.3] = "H.cer.npeSum>0 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
+
+    ppidcut[8.0]  = "P.ngcer.npeSum < 0.1";
+    ppidcut[9.5]  = "P.ngcer.npeSum < 0.1";
+    ppidcut[11.5] = "P.ngcer.npeSum < 0.1";
+    ppidcut[14.3] = "P.ngcer.npeSum < 0.1";
 
     emisscut[8.0]  = "P.kin.secondary.emiss<0.03";
     emisscut[9.5]  = "P.kin.secondary.emiss<0.03";
@@ -75,13 +76,13 @@ void generate_histos(Double_t q2) {
     pslopecut[11.5] = "-0.040 < P.gtr.th && P.gtr.th < 0.025 && -0.015 < P.gtr.ph && P.gtr.ph < 0.015";
     pslopecut[14.3] = "-0.025 < P.gtr.th && P.gtr.th < 0.020 && -0.010 < P.gtr.ph && P.gtr.ph < 0.010";
 
-    ztarcut[8.0]  = "abs(H.react.z)<3";
-    ztarcut[9.5]  = "abs(H.react.z)<3";
-    ztarcut[11.5] = "abs(H.react.z)<3";
-    ztarcut[14.3] = "abs(H.react.z)<3";
+    ztarcut[8.0]  = "abs(H.react.z)<4";
+    ztarcut[9.5]  = "abs(H.react.z)<4";
+    ztarcut[11.5] = "abs(H.react.z)<4";
+    ztarcut[14.3] = "abs(H.react.z)<4";
 
-    coinWcut = "0.85 < H.kin.primary.W && H.kin.primary.W < 1.03";
-    singWcut = "0.85 < H.kin.W         && H.kin.W         < 1.03";
+    coinWcut = "0.90 < H.kin.primary.W && H.kin.primary.W < 1.00";
+    singWcut = "0.90 < H.kin.W         && H.kin.W         < 1.00";
 
     TFile fWrite(Form("q2_%.1f_canvas.root", q2), "recreate");
 
@@ -106,14 +107,14 @@ void generate_histos(Double_t q2) {
     tdummy->Draw("H.react.z>>h_react_open(100,-10,10)");
     tdummy->Draw("H.react.z>>h_react_cut(100,-10,10)", hdeltacut[q2]&&hslopecut[q2]);
 
-    singlescut = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2];
-    coincut    = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && pdeltacut[q2] && pslopecut[q2];
+    singlescut = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2];
+    coincut    = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2] && pdeltacut[q2] && pslopecut[q2];
 
     // W
     tcoin->Draw("H.kin.primary.W>>h_coinW_open(160,0.8,1.2)");
     tcoin->Draw("H.kin.primary.W>>h_coinW_singlescut(160,0.8,1.2)", singlescut);
     tcoin->Draw("H.kin.primary.W>>h_coinW_coincut(160,0.8,1.2)", coincut);
-    tcoin->Draw("H.kin.primary.W>>h_coinW_inpeak(160,0.8,1.2)", singlescut && coinWcut);
+    tcoin->Draw("H.kin.primary.W>>h_coinW_inpeak(160,0.8,1.2)", coincut && coinWcut);
 
     tsing->Draw("H.kin.W>>h_singW_open(80,0.8,1.2)");
     tsing->Draw("H.kin.W>>h_singW_cut(80,0.8,1.2)", singlescut);
@@ -123,8 +124,8 @@ void generate_histos(Double_t q2) {
     tsing->Draw("H.kin.W>>h_singW_inpeak_wide(80,0.0,2.0)", singlescut && singWcut);
 
     // These are used for calculating yields in the absorption script
-    tcoin->Draw("H.kin.primary.W>>h_coin_W_count(160,0.8,1.2)", hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && coinWcut);
-    tsing->Draw("H.kin.W>>h_sing_W_count(80,0.8,1.2)",          hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && singWcut);
+    tcoin->Draw("H.kin.primary.W>>h_coin_W_count(160,0.8,1.2)", hpidcut[q2] && ztarcut[q2] && hdeltacut[q2] && hslopecut[q2] && coinWcut && ppidcut[q2]);
+    tsing->Draw("H.kin.W>>h_sing_W_count(80,0.8,1.2)",          hpidcut[q2] && ztarcut[q2] && hdeltacut[q2] && hslopecut[q2] && singWcut);
 
     // Get histos from memory
     TH1F* h_emiss             = (TH1F*) gDirectory->Get("h_emiss");
