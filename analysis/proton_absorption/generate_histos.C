@@ -20,36 +20,36 @@ void generate_histos(Double_t q2) {
 
     // Q^2 = 8
     fcoin[8.0]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/coin_replay_production_LH2_8_smallcoll.root");
-    fsing[8.0]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/hms_coin_replay_production_2049_500000.root");
-    fdummy[8.0] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_q2_8.root");
+    fsing[8.0]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/lh2_hms_singles_q2_8.root");
+    fdummy[8.0] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_hms_q2_8.root");
 
     // Q^2 = 9.5
     fcoin[9.5]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/coin_replay_production_LH2_9.5_smallcoll.root");
     fsing[9.5]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/lh2_hms_singles_q2_9.5.root");
-    fdummy[9.5] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_q2_9.5.root");
+    fdummy[9.5] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_hms_q2_9.5.root");
 
     // Q^2 = 11.5
     fcoin[11.5]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/coin_replay_production_LH2_11.5_largecoll.root");
     fsing[11.5]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/lh2_hms_singles_q2_11.5.root");
-    fdummy[11.5] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_q2_11.5.root");
+    fdummy[11.5] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_hms_q2_11.5.root");
 
     // Q^2 = 14.3
     fcoin[14.3]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/coin_replay_production_LH2_14.3_largecoll.root");
     fsing[14.3]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/lh2_hms_singles_q2_14.3.root");
-    fdummy[14.3] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_q2_14.3.root");
+    fdummy[14.3] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_hms_q2_14.3.root");
 
     std::map<Double_t, TCut> ppidcut, hpidcut, emisscut, pdeltacut, hdeltacut, pslopecut, hslopecut, ztarcut;
     TCut singlescut, coincut, coinWcut, singWcut;
 
-    hpidcut[8.0]  = "H.cer.npeSum>0 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
-    hpidcut[9.5]  = "H.cer.npeSum>0 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
-    hpidcut[11.5] = "H.cer.npeSum>0 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
-    hpidcut[14.3] = "H.cer.npeSum>0 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
+    hpidcut[8.0]  = "H.cer.npeSum>5 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
+    hpidcut[9.5]  = "H.cer.npeSum>5 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
+    hpidcut[11.5] = "H.cer.npeSum>5 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
+    hpidcut[14.3] = "H.cer.npeSum>5 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
 
-    ppidcut[8.0]  = "P.ngcer.npeSum < 0.1";
-    ppidcut[9.5]  = "P.ngcer.npeSum < 0.1";
-    ppidcut[11.5] = "P.ngcer.npeSum < 0.1";
-    ppidcut[14.3] = "P.ngcer.npeSum < 0.1";
+    ppidcut[8.0]  = "P.ngcer.npeSum == 0";
+    ppidcut[9.5]  = "P.ngcer.npeSum == 0";
+    ppidcut[11.5] = "P.ngcer.npeSum == 0";
+    ppidcut[14.3] = "P.ngcer.npeSum == 0";
 
     emisscut[8.0]  = "P.kin.secondary.emiss<0.03";
     emisscut[9.5]  = "P.kin.secondary.emiss<0.03";
@@ -57,23 +57,23 @@ void generate_histos(Double_t q2) {
     emisscut[14.3] = "P.kin.secondary.emiss<0.03";
 
     pdeltacut[8.0]  = "-0.0 < P.gtr.dp && P.gtr.dp < 4.0";
-    pdeltacut[9.5]  = "-3.5 < P.gtr.dp && P.gtr.dp < 8.0";
-    pdeltacut[11.5] = "-3.0 < P.gtr.dp && P.gtr.dp < 6.0";
+    pdeltacut[9.5]  = "-3.5 < P.gtr.dp && P.gtr.dp < 7.5";
+    pdeltacut[11.5] = "-4.0 < P.gtr.dp && P.gtr.dp < 6.0";
     pdeltacut[14.3] = "-0.5 < P.gtr.dp && P.gtr.dp < 3.5";
 
     hdeltacut[8.0]  = "-4.0 < H.gtr.dp && H.gtr.dp < 5.0";
-    hdeltacut[9.5]  = "-4.0 < H.gtr.dp && H.gtr.dp < 6.0";
+    hdeltacut[9.5]  = "-5.0 < H.gtr.dp && H.gtr.dp < 6.5";
     hdeltacut[11.5] = "-6.0 < H.gtr.dp && H.gtr.dp < 8.0";
     hdeltacut[14.3] = "-4.0 < H.gtr.dp && H.gtr.dp < 6.0";
 
     hslopecut[8.0]  = "-0.050 < H.gtr.th && H.gtr.th < 0.050 && -0.020 < H.gtr.ph && H.gtr.ph < 0.025";
-    hslopecut[9.5]  = "-0.045 < H.gtr.th && H.gtr.th < 0.050 && -0.020 < H.gtr.ph && H.gtr.ph < 0.020";
-    hslopecut[11.5] = "-0.070 < H.gtr.th && H.gtr.th < 0.070 && -0.030 < H.gtr.ph && H.gtr.ph < 0.030";
+    hslopecut[9.5]  = "-0.040 < H.gtr.th && H.gtr.th < 0.050 && -0.020 < H.gtr.ph && H.gtr.ph < 0.020";
+    hslopecut[11.5] = "-0.060 < H.gtr.th && H.gtr.th < 0.070 && -0.020 < H.gtr.ph && H.gtr.ph < 0.025";
     hslopecut[14.3] = "-0.060 < H.gtr.th && H.gtr.th < 0.060 && -0.020 < H.gtr.ph && H.gtr.ph < 0.020";
 
     pslopecut[8.0]  = "-0.020 < P.gtr.th && P.gtr.th < 0.020 && -0.010 < P.gtr.ph && P.gtr.ph < 0.010";
-    pslopecut[9.5]  = "-0.050 < P.gtr.th && P.gtr.th < 0.045 && -0.020 < P.gtr.ph && P.gtr.ph < 0.020";
-    pslopecut[11.5] = "-0.050 < P.gtr.th && P.gtr.th < 0.050 && -0.020 < P.gtr.ph && P.gtr.ph < 0.020";
+    pslopecut[9.5]  = "-0.045 < P.gtr.th && P.gtr.th < 0.040 && -0.020 < P.gtr.ph && P.gtr.ph < 0.020";
+    pslopecut[11.5] = "-0.045 < P.gtr.th && P.gtr.th < 0.040 && -0.020 < P.gtr.ph && P.gtr.ph < 0.020";
     pslopecut[14.3] = "-0.025 < P.gtr.th && P.gtr.th < 0.020 && -0.010 < P.gtr.ph && P.gtr.ph < 0.010";
 
     ztarcut[8.0]  = "abs(H.react.z)<4";
@@ -93,6 +93,7 @@ void generate_histos(Double_t q2) {
     tdummy = (TTree*) fdummy[q2]->Get("T");
 
     std::cout << "generate histos" << std::endl;
+
     // Missing energy
     tcoin->Draw("P.kin.secondary.emiss>>h_emiss(120,-0.02,0.1)");
 
@@ -112,10 +113,10 @@ void generate_histos(Double_t q2) {
 
     // W
     // Wcoin
-    tcoin->Draw("H.kin.primary.W>>h_coinW_open(160,0.8,1.2)");
-    tcoin->Draw("H.kin.primary.W>>h_coinW_singlescut(160,0.8,1.2)", singlescut);
-    tcoin->Draw("H.kin.primary.W>>h_coinW_coincut(160,0.8,1.2)", coincut);
-    tcoin->Draw("H.kin.primary.W>>h_coinW_inpeak(160,0.8,1.2)", coincut && coinWcut);
+    tcoin->Draw("H.kin.primary.W>>h_coinW_open(120,0.8,1.2)");
+    tcoin->Draw("H.kin.primary.W>>h_coinW_singlescut(120,0.8,1.2)", singlescut);
+    tcoin->Draw("H.kin.primary.W>>h_coinW_coincut(120,0.8,1.2)", coincut);
+    tcoin->Draw("H.kin.primary.W>>h_coinW_inpeak(120,0.8,1.2)", coincut && coinWcut);
 
     // Wcoin_wide
     tcoin->Draw("H.kin.primary.W>>h_coinW_open_wide(100,0.0,2.0)");
@@ -127,13 +128,14 @@ void generate_histos(Double_t q2) {
     tsing->Draw("H.kin.W>>h_singW_open(80,0.8,1.2)");
     tsing->Draw("H.kin.W>>h_singW_cut(80,0.8,1.2)", singlescut);
     tsing->Draw("H.kin.W>>h_singW_inpeak(80,0.8,1.2)", singlescut && singWcut);
+
     // Wsingwide
     tsing->Draw("H.kin.W>>h_singW_open_wide(80,0.0,2.0)");
     tsing->Draw("H.kin.W>>h_singW_cut_wide(80,0.0,2.0)", singlescut);
     tsing->Draw("H.kin.W>>h_singW_inpeak_wide(80,0.0,2.0)", singlescut && singWcut);
 
     // These are used for calculating yields in the absorption script
-    tcoin->Draw("H.kin.primary.W>>h_coin_W_count(160,0.8,1.2)", hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && coinWcut && ztarcut[q2] && ppidcut[q2] && emisscut[q2] && pslopecut[q2] && pdeltacut[q2]);
+    tcoin->Draw("H.kin.primary.W>>h_coin_W_count(160,0.8,1.2)", hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && coinWcut && ztarcut[q2]);
     tsing->Draw("H.kin.W>>h_sing_W_count(80,0.8,1.2)",          hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && singWcut && ztarcut[q2]);
 
     // Get histos from memory
