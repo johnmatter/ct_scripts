@@ -1,5 +1,5 @@
 {
-    std::vector<Double_t> q2s = {8.0, 9.5, 11.5, 14.3};
+    std::vector<Double_t> q2s = {9.5, 11.5};
     std::map<Double_t, TFile*> file;
     std::map<Double_t, TCanvas*> canvas;
     std::map<Double_t, std::map<TString, TH1*>> histo;
@@ -8,6 +8,7 @@
     std::map<Double_t, Double_t> singQ, coinQ;
     std::map<Double_t, Double_t> singY, coinY;
     std::map<Double_t, Double_t> absorption;
+    std::map<Double_t, Double_t> uncertainty;
 
     std::vector<TString> histoNames = {"h_emiss", "h_delta", "h_hslope", "h_pslope",
                                        "h_react_cut", "h_react_open", "h_coinW_singlescut",
@@ -34,65 +35,22 @@
     }
 
     // ------------------------------------------------------------------------
-    // Load trees for calculating total charge
-    std::map<Double_t, TFile*> fcoin, fsing, fdummy;
-    std::map<Double_t, TTree*> tcoin, tsing;
-    TTree* t;
 
-    // Q^2 = 8
-    fcoin[8.0]  = new TFile("/Volumes/ssd750/ct/pass3/coin_replay_production_LH2_8_smallcoll.root");
-    fsing[8.0]  = new TFile("/Volumes/ssd750/ct/pass3/hms_coin_replay_production_2049_500000.root");
+    // Singles charge
+    singQ[8.0]  = 69051.0/1e3;
+    singQ[9.5]  = 89364.0/1e3;
+    singQ[11.5] = 88359.6/1e3;
+    singQ[14.3] = 245645.0/1e3;
 
-    // Q^2 = 9.5
-    fcoin[9.5]  = new TFile("/Volumes/ssd750/ct/pass3/coin_replay_production_LH2_9.5_smallcoll.root");
-    fsing[9.5]  = new TFile("/Volumes/ssd750/ct/pass3/lh2_hms_singles_q2_9.5.root");
-
-    // Q^2 = 11.5
-    fcoin[11.5]  = new TFile("/Volumes/ssd750/ct/pass3/coin_replay_production_LH2_11.5_largecoll.root");
-    fsing[11.5]  = new TFile("/Volumes/ssd750/ct/pass3/lh2_hms_singles_q2_11.5.root");
-
-    // Q^2 = 14.3
-    fcoin[14.3]  = new TFile("/Volumes/ssd750/ct/pass3/coin_replay_production_LH2_14.3_largecoll.root");
-    fsing[14.3]  = new TFile("/Volumes/ssd750/ct/pass3/lh2_hms_singles_q2_14.3.root");
-
-    // Read
-    for (auto q2: q2s) {
-        fcoin[q2]->GetObject("TSH", tcoin[q2]);
-        fsing[q2]->GetObject("TSH", tsing[q2]);
-    }
+    // Coin charge
+    coinQ[8.0]  = 2465.7;
+    coinQ[9.5]  = 381.221;
+    coinQ[11.5] = 386.161;
+    coinQ[14.3] = 2332.18;
 
     // ------------------------------------------------------------------------
-    // Get charge
-    TString bcmBranchName = "H.BCM4A.scalerChargeCut";
-    Double_t Q, Qprev, Qtot;
-    for (auto q2: q2s) {
-        // Singles
-        t = tsing[q2];
-        t->SetBranchAddress(bcmBranchName.Data(), &Q);
-        Q = Qprev = Qtot = 0;
-        for (int i=1; i<t->GetEntries(); t->GetEntry(i++)) {
-            if ( (Q<Qprev) || (i==(t->GetEntries()-1)) ) {
-               Qtot += Qprev;
-            }
-            Qprev = Q;
-        }
-        singQ[q2] = Qtot/1e3;
-
-        // Coin
-        t = tcoin[q2];
-        t->SetBranchAddress(bcmBranchName.Data(), &Q);
-        Q = Qprev = Qtot = 0;
-        for (int i=1; i<t->GetEntries(); t->GetEntry(i++)) {
-            if ( (Q<Qprev) || (i==(t->GetEntries()-1)) ) {
-               Qtot += Qprev;
-            }
-            Qprev = Q;
-        }
-        coinQ[q2] = Qtot/1e3;
-    }
-
-    // ------------------------------------------------------------------------
-    // Get counts and yield
+    // Get counts, yield, absorption, and uncertainty
+    // For uncertainty, I use Poisson statistics for N and ignore uncertainty in Q.
     TString singHistogramName = "h_sing_W_count";
     TString coinHistogramName = "h_coin_W_count";
     for (auto q2: q2s) {
@@ -101,42 +59,44 @@
 
         singY[q2] = singN[q2]/singQ[q2];
         coinY[q2] = coinN[q2]/coinQ[q2];
+
+        absorption[q2] = 100*(1-(coinY[q2]/singY[q2]));
+        uncertainty[q2] = absorption[q2]*sqrt( (1/coinN[q2]) + (1/Double_t(singN[q2])) );
     }
 
     // ------------------------------------------------------------------------
-    // Calculate and print absorption
-    for (auto q2: q2s) {
-        absorption[q2] = 100*(1-(coinY[q2]/singY[q2]));
-    }
-
-    Int_t q2width     = 12;
-    Int_t absorpwidth = 15;
-    Int_t countwidth  = 8;
-    Int_t chargewidth = 17;
-    Int_t yieldwidth  = 12;
+    // Print
+    Int_t q2Width          = 12;
+    Int_t absorptionWidth  = 15;
+    Int_t uncertaintyWidth = 15;
+    Int_t countWidth       = 8;
+    Int_t chargeWidth      = 17;
+    Int_t yieldWidth       = 12;
 
     // header
     std::cout << std::left
-              << " | " << std::setw(q2width)     << "Q^2 [Gev^2]"
-              << " | " << std::setw(absorpwidth) << "absorption [%]"
-              << " | " << std::setw(countwidth)  << "Coin N"
-              << " | " << std::setw(chargewidth) << "Coin charge [mC]"
-              << " | " << std::setw(yieldwidth)  << "Coin yield"
-              << " | " << std::setw(countwidth)  << "Sing N"
-              << " | " << std::setw(chargewidth) << "Sing charge [mC]"
-              << " | " << std::setw(yieldwidth)  << "Sing yield"
+              << " | " << std::setw(q2Width)          << "Q^2 [Gev^2]"
+              << " | " << std::setw(absorptionWidth)  << "absorption [%]"
+              << " | " << std::setw(uncertaintyWidth) << "uncertainty [%]"
+              << " | " << std::setw(countWidth)       << "Coin N"
+              << " | " << std::setw(chargeWidth)      << "Coin charge [mC]"
+              << " | " << std::setw(yieldWidth)       << "Coin yield"
+              << " | " << std::setw(countWidth)       << "Sing N"
+              << " | " << std::setw(chargeWidth)      << "Sing charge [mC]"
+              << " | " << std::setw(yieldWidth)       << "Sing yield"
               << " | " << std::endl;
 
     for (auto q2: q2s) {
         std::cout << std::left
-                  << " | " << std::setw(q2width)     << q2
-                  << " | " << std::setw(absorpwidth) << absorption[q2]
-                  << " | " << std::setw(countwidth)  << coinN[q2]
-                  << " | " << std::setw(chargewidth) << coinQ[q2]
-                  << " | " << std::setw(yieldwidth)  << coinY[q2]
-                  << " | " << std::setw(countwidth)  << singN[q2]
-                  << " | " << std::setw(chargewidth) << singQ[q2]
-                  << " | " << std::setw(yieldwidth)  << singY[q2]
-                  << " | " << std::endl;
+              << " | " << std::setw(q2Width)          << q2
+              << " | " << std::setw(absorptionWidth)  << absorption[q2]
+              << " | " << std::setw(uncertaintyWidth) << uncertainty[q2]
+              << " | " << std::setw(countWidth)       << coinN[q2]
+              << " | " << std::setw(chargeWidth)      << coinQ[q2]
+              << " | " << std::setw(yieldWidth)       << coinY[q2]
+              << " | " << std::setw(countWidth)       << singN[q2]
+              << " | " << std::setw(chargeWidth)      << singQ[q2]
+              << " | " << std::setw(yieldWidth)       << singY[q2]
+              << " | " << std::endl;
     }
 }
