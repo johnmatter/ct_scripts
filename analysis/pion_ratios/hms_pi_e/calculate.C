@@ -71,13 +71,17 @@ int main() {
     ofs.open(csvFilename.Data());
 
     // print header
-    ofs << "kinematics,run,pions,electrons" << std::endl;
+    ofs << "kinematics,Q2,target,collimator,run,pions,electrons" << std::endl;
     for (auto const &k : kinematics) {
         std::cout << "Printing " << k << std::endl;
         for (auto const &run : data->GetRuns(k)) {
-            ofs << k << "," << run << ","
-                << nPi[std::make_tuple(k,run)] << ","
-                << nElectron[std::make_tuple(k,run)]
+            ofs        << k 
+                << "," << data->GetQ2(k) 
+                << "," << data->GetTarget(k) 
+                << "," << data->GetCollimator(k) 
+                << "," << run
+                << "," << nPi[std::make_tuple(k,run)]
+                << "," << nElectron[std::make_tuple(k,run)]
                 << std::endl;
         }
     }
