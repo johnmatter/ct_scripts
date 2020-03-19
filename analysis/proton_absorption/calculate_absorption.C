@@ -2,7 +2,7 @@
     std::vector<Double_t> q2s = {9.5, 11.5};
     std::map<Double_t, TFile*> file;
     std::map<Double_t, TCanvas*> canvas;
-    std::map<Double_t, std::map<TString, TH1*>> histo;
+    std::map<Double_t, std::map<TString, TH1F*>> histo;
 
     std::map<Double_t, Double_t> singN, coinN;
     std::map<Double_t, Double_t> singQ, coinQ;
@@ -12,6 +12,7 @@
 
     std::vector<TString> histoNames = {"h_emiss", "h_delta", "h_hslope", "h_pslope",
                                        "h_react_cut", "h_react_open", "h_coinW_singlescut",
+                                       "h_ngc_open", "h_ngc_singlescut", "h_ngc_coincut",
                                        "h_coinW_coincut", "h_coinW_inpeak", "h_coinW_open",
                                        "h_singW_cut", "h_singW_inpeak", "h_singW_open",
                                        "h_singW_cut_wide", "h_singW_inpeak_wide",
@@ -30,7 +31,7 @@
 
         // Get histograms
         for (auto histoName: histoNames) {
-        file[q2]->GetObject(histoName.Data(), histo[q2][histoName]);
+            file[q2]->GetObject(histoName.Data(), histo[q2][histoName]);
         }
     }
 
@@ -65,6 +66,19 @@
     }
 
     // ------------------------------------------------------------------------
+    // Estimate number of pi+ that we missed with the HMS-only cuts
+    std::map<Double_t, Double_t> pions;
+    std::map<Double_t, Double_t> protons;
+    std::map<Double_t, Double_t> pipRatio;
+
+    for (auto q2: q2s) {
+        TH1F* htemp = histo[q2][TString("h_ngc_singlescut")];
+        pions[q2]   = htemp->Integral(htemp->FindBin(0.1),htemp->GetNbinsX()+1);
+        protons[q2] = htemp->Integral(htemp->FindBin(0.0),htemp->FindBin(0.1));
+        pipRatio[q2] = pions[q2]/protons[q2];
+    }
+
+    // ------------------------------------------------------------------------
     // Print
     Int_t q2Width          = 12;
     Int_t absorptionWidth  = 15;
@@ -72,6 +86,9 @@
     Int_t countWidth       = 8;
     Int_t chargeWidth      = 17;
     Int_t yieldWidth       = 12;
+    Int_t pionsWidth       = 14;
+    Int_t protonsWidth     = 16;
+    Int_t pipWidth         = 10;
 
     // header
     std::cout << std::left
@@ -84,6 +101,9 @@
               << " | " << std::setw(countWidth)       << "Sing N"
               << " | " << std::setw(chargeWidth)      << "Sing charge [mC]"
               << " | " << std::setw(yieldWidth)       << "Sing yield"
+              << " | " << std::setw(pionsWidth)       << "Missed pions"
+              << " | " << std::setw(protonsWidth)     << "Missed protons"
+              << " | " << std::setw(pipWidth)         << "pi/p ratio"
               << " | " << std::endl;
 
     for (auto q2: q2s) {
@@ -97,6 +117,9 @@
               << " | " << std::setw(countWidth)       << singN[q2]
               << " | " << std::setw(chargeWidth)      << singQ[q2]
               << " | " << std::setw(yieldWidth)       << singY[q2]
+              << " | " << std::setw(pionsWidth)       << pions[q2]
+              << " | " << std::setw(protonsWidth)     << protons[q2]
+              << " | " << std::setw(pipWidth)         << pipRatio[q2]
               << " | " << std::endl;
     }
 }
