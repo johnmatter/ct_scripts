@@ -38,7 +38,8 @@ void generate_histos(Double_t q2) {
     fsing[14.3]  = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/lh2_hms_singles_q2_14.3.root");
     fdummy[14.3] = new TFile("/Volumes/ssd750/ct/ct_scripts/analysis/proton_absorption/dummy_hms_q2_14.3.root");
 
-    std::map<Double_t, TCut> ppidcut, hpidcut, emisscut, pdeltacut, hdeltacut, pslopecut, hslopecut, ztarcut, hfpcut;
+    std::map<Double_t, TCut> ppidcut, hpidcut, emisscut, pdeltacut, hdeltacut, pslopecut, hslopecut, ztarcut;
+    std::map<Double_t, TCutG*> hfpcutg;
     TCut singlescut, coincut, coinWcut, singWcut;
 
     hpidcut[8.0]  = "H.cer.npeSum>5 && 0.9 < H.cal.etottracknorm && H.cal.etottracknorm < 1.1";
@@ -81,10 +82,68 @@ void generate_histos(Double_t q2) {
     ztarcut[11.5] = "abs(H.react.z)<3";
     ztarcut[14.3] = "abs(H.react.z)<3";
 
-    hfpcut[8.0]  = "";
-    hfpcut[9.5]  = "0.0<H.dc.x[0] && H.dc.x[0]<20.0 && -3.0<H.dc.y[0] && H.dc.y[0]<8.0";
-    hfpcut[11.5] = "0.0<H.dc.x[0] && H.dc.x[0]<20.0 && -3.0<H.dc.y[0] && H.dc.y[0]<8.0";
-    hfpcut[14.3] = "";
+    hfpcutg[8.0] = new TCutG("hfpcutg_8", 15);
+    hfpcutg[8.0]->SetVarX("H.dc.y[0]");
+    hfpcutg[8.0]->SetVarY("H.dc.x[0]");
+    hfpcutg[8.0]->SetPoint(0, -4.44874, -1.43035);
+    hfpcutg[8.0]->SetPoint(1, -4.0036, 5.20531);
+    hfpcutg[8.0]->SetPoint(2, 1.98561, 13.1681);
+    hfpcutg[8.0]->SetPoint(3, 9.47212, 18.2725);
+    hfpcutg[8.0]->SetPoint(4, 10.7671, 16.9453);
+    hfpcutg[8.0]->SetPoint(5, 10.8885, 12.7598);
+    hfpcutg[8.0]->SetPoint(6, 5.95144, 5.00113);
+    hfpcutg[8.0]->SetPoint(7, 6.03237, -1.32827);
+    hfpcutg[8.0]->SetPoint(8, 6.96313, -4.39088);
+    hfpcutg[8.0]->SetPoint(9, 6.03237, -11.2307);
+    hfpcutg[8.0]->SetPoint(10, 3.80665, -14.0892);
+    hfpcutg[8.0]->SetPoint(11, -1.81835, -11.9453);
+    hfpcutg[8.0]->SetPoint(12, -4.32734, -6.02427);
+    hfpcutg[8.0]->SetPoint(13, -4.44874, -1.22618);
+    hfpcutg[8.0]->SetPoint(14, -4.44874, -1.43035);
+
+    hfpcutg[9.5] = new TCutG("hfpcutg_95", 11);
+    hfpcutg[9.5]->SetVarX("H.dc.y[0]");
+    hfpcutg[9.5]->SetVarY("H.dc.x[0]");
+
+    hfpcutg[9.5]->SetPoint(0, 2.99893, 14.7566);
+    hfpcutg[9.5]->SetPoint(1, -1.59456, 7.29605);
+    hfpcutg[9.5]->SetPoint(2, -2.17479, 1.96711);
+    hfpcutg[9.5]->SetPoint(3, -2.07808, -2.65132);
+    hfpcutg[9.5]->SetPoint(4, 2.03188, -3.24342);
+    hfpcutg[9.5]->SetPoint(5, 1.88682, 3.15132);
+    hfpcutg[9.5]->SetPoint(6, 4.11103, 9.19079);
+    hfpcutg[9.5]->SetPoint(7, 4.4495, 15.1118);
+    hfpcutg[9.5]->SetPoint(8, 2.99893, 14.7566);
+    hfpcutg[9.5]->SetPoint(9, 2.99893, 14.7566);
+
+    hfpcutg[11.5] = new TCutG("hfpcutg_115", 11);
+    hfpcutg[11.5]->SetVarX("H.dc.y[0]");
+    hfpcutg[11.5]->SetVarY("H.dc.x[0]");
+
+    hfpcutg[11.5]->SetPoint(0, 2.99893, 14.7566);
+    hfpcutg[11.5]->SetPoint(1, -1.59456, 7.29605);
+    hfpcutg[11.5]->SetPoint(2, -2.17479, 1.96711);
+    hfpcutg[11.5]->SetPoint(3, -2.07808, -2.65132);
+    hfpcutg[11.5]->SetPoint(4, 2.03188, -3.24342);
+    hfpcutg[11.5]->SetPoint(5, 1.88682, 3.15132);
+    hfpcutg[11.5]->SetPoint(6, 4.11103, 9.19079);
+    hfpcutg[11.5]->SetPoint(7, 4.4495, 15.1118);
+    hfpcutg[11.5]->SetPoint(8, 2.99893, 14.7566);
+    hfpcutg[11.5]->SetPoint(9, 2.99893, 14.7566);
+
+    hfpcutg[14.3] = new TCutG("hfpcutg_143", 10);
+    hfpcutg[14.3]->SetVarX("H.dc.y[0]");
+    hfpcutg[14.3]->SetVarY("H.dc.x[0]");
+    hfpcutg[14.3]->SetPoint(0, -4.08453, -3.26792);
+    hfpcutg[14.3]->SetPoint(1, -3.88219, 4.28652);
+    hfpcutg[14.3]->SetPoint(2, 4.85881, 20.6205);
+    hfpcutg[14.3]->SetPoint(3, 10.4029, 17.4558);
+    hfpcutg[14.3]->SetPoint(4, 4.29227, 2.04061);
+    hfpcutg[14.3]->SetPoint(5, 9.63399, -13.7829);
+    hfpcutg[14.3]->SetPoint(6, 5.06115, -17.7643);
+    hfpcutg[14.3]->SetPoint(7, -2.10162, -13.5787);
+    hfpcutg[14.3]->SetPoint(8, -4.125, -3.16583);
+    hfpcutg[14.3]->SetPoint(9, -4.08453, -3.26792);
 
     coinWcut = "0.90 < H.kin.primary.W && H.kin.primary.W < 1.00";
     singWcut = "0.90 < H.kin.W         && H.kin.W         < 1.00";
@@ -113,8 +172,8 @@ void generate_histos(Double_t q2) {
     tdummy->Draw("H.react.z>>h_react_open(100,-10,10)");
     tdummy->Draw("H.react.z>>h_react_cut(100,-10,10)", hdeltacut[q2]&&hslopecut[q2]);
 
-    singlescut = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2] && hfpcut[q2];
-    coincut    = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2] && hfpcut[q2] && pdeltacut[q2] && pslopecut[q2] && ppidcut[q2] && emisscut[q2];
+    singlescut = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2] && hfpcutg[q2]->GetName();
+    coincut    = hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2] && hfpcutg[q2]->GetName() && pdeltacut[q2] && pslopecut[q2] && ppidcut[q2] && emisscut[q2];
 
     // W
     // Wcoin
@@ -148,8 +207,8 @@ void generate_histos(Double_t q2) {
     tcoin->Draw("H.dc.x[0]:H.dc.y[0]>>h_focalplane(27,-12,15,45,-20,25)", hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && ztarcut[q2] && coinWcut);
 
     // These are used for calculating yields in the absorption script
-    tcoin->Draw("H.kin.primary.W>>h_coin_W_count(160,0.8,1.2)", hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && coinWcut && ztarcut[q2] && hfpcut[q2]);
-    tsing->Draw("H.kin.W>>h_sing_W_count(80,0.8,1.2)",          hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && singWcut && ztarcut[q2] && hfpcut[q2]);
+    tcoin->Draw("H.kin.primary.W>>h_coin_W_count(160,0.8,1.2)", hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && coinWcut && ztarcut[q2] && hfpcutg[q2]->GetName());
+    tsing->Draw("H.kin.W>>h_sing_W_count(80,0.8,1.2)",          hpidcut[q2] && hdeltacut[q2] && hslopecut[q2] && singWcut && ztarcut[q2] && hfpcutg[q2]->GetName());
 
     // Get histos from memory
     TH1F* h_emiss                 = (TH1F*) gDirectory->Get("h_emiss");
