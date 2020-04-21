@@ -118,11 +118,11 @@
         },
         {
             "name" : "hPiPID",
-            "cut"  : "\"H.cal.etottracknorm<0.8 && H.cer.npeSum==0\""
+            "cut"  : "\"H.cal.etottracknorm<0.8\""
         },
         {
             "name" : "hPi",
-            "cut"  : "hPiPID && hBetaCut && hDeltaCut"
+            "cut"  : "hPiPID && hBetaCut && hDeltaCut && pDeltaCut && pBetaCut"
         },
         {
             "name" : "hElecPID",
@@ -130,7 +130,23 @@
         },
         {
             "name" : "hElec",
-            "cut"  : "hElecPID && hBetaCut && hDeltaCut"
+            "cut"  : "hElecPID && hBetaCut && hDeltaCut && pDeltaCut && pBetaCut"
+        },
+        {
+            "name" : "pPiPID",
+            "cut"  : "\"P.ngcer.npeSum>0.1\""
+        },
+        {
+            "name" : "pPi",
+            "cut"  : "pPiPID && hBetaCut && hDeltaCut && pDeltaCut && pBetaCut"
+        },
+        {
+            "name" : "pProtonPID",
+            "cut"  : "pNGCerCut"
+        },
+        {
+            "name" : "pProton",
+            "cut"  : "pProtonPID && hBetaCut && hDeltaCut && pDeltaCut && pBetaCut"
         },
         {
             "name" : "coinCutsC12",
