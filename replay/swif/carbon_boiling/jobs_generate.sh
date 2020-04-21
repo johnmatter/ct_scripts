@@ -13,10 +13,10 @@ $hcswif_dir/hcswif.py --mode replay --spectrometer COIN --replay SCRIPTS/COIN/PR
 
 f=$runlist_dir/shms_carbon_boiling
 f_base=`basename $f`
-$hcswif_dir/hcswif.py --mode replay --spectrometer SHMS_PROD --replay SCRIPTS/SHMS/PRODUCTION/replay_production_shms.C --events -1 --project c-comm2017 --run file $f --name $f_base
+$hcswif_dir/hcswif.py --mode replay --spectrometer SHMS_PROD --replay SCRIPTS/SHMS/PRODUCTION/replay_production_all_shms.C --events -1 --project c-comm2017 --run file $f --name $f_base
 
 f=$runlist_dir/hms_carbon_boiling
 f_base=`basename $f`
-$hcswif_dir/hcswif.py --mode replay --spectrometer HMS_PROD --replay SCRIPTS/HMS/PRODUCTION/replay_production_hms.C --events -1 --project c-comm2017 --run file $f --name $f_base
+$hcswif_dir/hcswif.py --mode replay --spectrometer HMS_PROD --replay SCRIPTS/HMS/PRODUCTION/replay_production_all_hms.C --events -1 --project c-comm2017 --run file $f --name $f_base
 
 mv $hcswif_dir/output/*.json json
