@@ -8,6 +8,6 @@ hcswif_dir=/home/jmatter/swif/ctswif
 runlist_dir=/home/jmatter/ct_scripts/runlists/singles
 for f in `ls $runlist_dir/runs_*Q2_*`; do
     f_base=`basename $f`
-    $hcswif_dir/hcswif.py --mode replay --spectrometer HMS_COIN --events 500000 --project c-comm2017 --run file $f --name hms_$f_base
+    $hcswif_dir/hcswif.py --mode replay --spectrometer HMS_COIN --events -1 --project c-comm2017 --run file $f --name hms_$f_base
     $hcswif_dir/hcswif.py --mode replay --spectrometer SHMS_COIN --events 500000 --project c-comm2017 --run file $f --name shms_$f_base
 done
