@@ -1,7 +1,7 @@
 {
     "data" : {
         "runlistDir"   : "/home/jmatter/ct_scripts/runlists/singles",
-        "rootfilesDir" : "/work/hallc/e1206107/CT12GeV/ct_replay/ROOTfiles/pass2",
+        "rootfilesDir" : "/home/jmatter/ct_replay/ROOTfiles",
         "chains"       : ["T", "TSH"]
     },
     "kinematics" : [

@@ -1,7 +1,7 @@
 {
     "data" : {
         "runlistDir"   : "/home/jmatter/ct_scripts/runlists/singles",
-        "rootfilesDir" : "/work/hallc/e1206107/CT12GeV/ct_replay/ROOTfiles/pass2",
+        "rootfilesDir" : "/home/jmatter/ct_replay/ROOTfiles",
         "chains"       : ["T", "TSP"]
     },
     "kinematics" : [
@@ -15,7 +15,7 @@
             "target"    : "LH2",
             "collimator": "pion",
             "runlist"   : "runs_LH2_Q2_8_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "LH2_Q2_10",
@@ -27,7 +27,7 @@
             "target"    : "LH2",
             "collimator": "large",
             "runlist"   : "runs_LH2_Q2_10_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "LH2_Q2_12",
@@ -39,7 +39,7 @@
             "target"    : "LH2",
             "collimator": "large",
             "runlist"   : "runs_LH2_Q2_12_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "LH2_Q2_14",
@@ -51,7 +51,7 @@
             "target"    : "LH2",
             "collimator": "large",
             "runlist"   : "runs_LH2_Q2_14_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "C12_Q2_8",
@@ -63,7 +63,7 @@
             "target"    : "C12",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_8_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "C12_Q2_10",
@@ -75,7 +75,7 @@
             "target"    : "C12",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_10_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "C12_Q2_10_thin",
@@ -87,7 +87,7 @@
             "target"    : "C12_thin",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_10_thin_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "C12_Q2_10_thick",
@@ -99,7 +99,7 @@
             "target"    : "C12_thick",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_10_thick_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "C12_Q2_12",
@@ -111,7 +111,7 @@
             "target"    : "C12",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_12_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "C12_Q2_14",
@@ -123,7 +123,7 @@
             "target"    : "C12",
             "collimator": "both",
             "runlist"   : "runs_C12_Q2_14_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "C12_Q2_14_large_singles",
@@ -135,7 +135,7 @@
             "target"    : "C12",
             "collimator": "large",
             "runlist"   : "runs_C12_Q2_14_large_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         },
         {
             "name"      : "C12_Q2_14_pion_singles",
@@ -147,7 +147,7 @@
             "target"    : "C12",
             "collimator": "pion",
             "runlist"   : "runs_C12_Q2_14_pion_singles",
-            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_-1.root"
+            "rootfileTemplate" : "%s/shms_coin_replay_production_%d_500000.root"
         }
     ]
 }

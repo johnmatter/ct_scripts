@@ -1,7 +1,7 @@
 {
     "data" : {
         "runlistDir"   : "/home/jmatter/ct_scripts/runlists/coin",
-        "rootfilesDir" : "/home/jmatter/ct_replay_pass2/ROOTfiles/",
+        "rootfilesDir" : "/home/jmatter/ct_replay/ROOTfiles",
         "chains"       : ["T", "TSH", "TSP"]
     },
     "kinematics" : [
