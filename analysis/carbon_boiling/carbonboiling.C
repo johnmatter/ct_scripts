@@ -43,6 +43,7 @@ struct Run {
     Double_t should;       // [#]
     Double_t did;          // [#]
     Double_t trackingEfficiency;
+    Double_t trackingEfficiencyUncertainty;
     TEventList* shouldList;
     TEventList* didList;
 };
@@ -60,20 +61,23 @@ void calculateTrackingEfficiency(std::map<Int_t, Run*> runs, std::vector<Int_t> 
 
 //--------------------------------------------------------------------------
 // Cuts to be used below
-// Should replace this with a CTCutsShould replace this with a CTCutsShould replace this with a CTCutsShould replace this with a CTCuts
+// Should replace this with something NOT global
 TCut betaCut = "P.gtr.beta > 0.6 && P.gtr.beta < 1.4";
 TCut deltaCut = "P.gtr.dp > -10 && P.gtr.dp < 12";
 TCut hodostartCut = "P.hod.goodstarttime==1";
+
 TCut calCut = "0.2 < P.cal.etottracknorm && P.cal.etottracknorm < 1.2";
 TCut cerCut = "P.ngcer.npeSum > 0";
 TCut pidCut = calCut && cerCut;
+
 TCut qualityCut = betaCut && hodostartCut && cerCut;
+
 TCut pScinGood = "P.hod.goodscinhit==1";
 TCut pGoodBeta = "P.hod.betanotrack > 0.5 && P.hod.betanotrack < 1.4";
 TCut pDC1NoLarge = "(P.dc.1x1.nhit + P.dc.1u2.nhit + P.dc.1u1.nhit + P.dc.1v1.nhit + P.dc.1x2.nhit + P.dc.1v2.nhit) < 21";
 TCut pDC2NoLarge = "(P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nhit + P.dc.2x2.nhit + P.dc.2v2.nhit) < 21";
 TCut pDCNoLarge = pDC1NoLarge && pDC2NoLarge;
-TCut pScinShould = pScinGood && pGoodBeta && pDCNoLarge && pidCut;
+TCut pScinShould = pScinGood && pGoodBeta && pDCNoLarge;
 TCut pScinDid    = pScinShould && "P.dc.ntrack>0";
 
 //--------------------------------------------------------------------------
@@ -90,16 +94,23 @@ void carbonboiling() {
     std::map<Int_t, Run*> runs = load();
     std::vector<Int_t> runNumbers = getRunNumbers(runs);
 
-    //--------------------------------------------------------------------------
     // Generate quality plots
     plot(runs, runNumbers);
 
-    //--------------------------------------------------------------------------
     // Tracking efficiency
     calculateTrackingEfficiency(runs, runNumbers);
 
+    std::cout << "run, bcm4aCurrent, trackingEfficiency, uncertainty, did, should" << std::endl;
     for (auto run: runNumbers) {
-        std::cout << Form("%d,%f", run, runs[run]->trackingEfficiency) << std::endl;
+        std::cout << Form("%d,%f,%f,%f,%d,%d",
+                           run,
+                           runs[run]->hclogCurrent,
+                           runs[run]->trackingEfficiency,
+                           runs[run]->trackingEfficiencyUncertainty,
+                           int(runs[run]->did),
+                           int(runs[run]->should)
+                         )
+                  << std::endl;
     }
 }
 
@@ -298,6 +309,10 @@ void calculateTrackingEfficiency(std::map<Int_t, Run*> runs, std::vector<Int_t> 
 
         runs[run]->trackingEfficiency = runs[run]->did/runs[run]->should;
 
-        // std::cout << Form("%d,%f", run, runs[run]->trackingEfficiency) << std::endl;
+        // uncertainty
+        Double_t k = runs[run]->did;
+        Double_t N = runs[run]->should;
+        runs[run]->trackingEfficiencyUncertainty = sqrt(k*(1-k/N))/N; // binomial error
+
     }
 }
