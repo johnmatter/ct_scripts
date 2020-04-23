@@ -1,3 +1,4 @@
+#include <TEventList.h>
 #include <TCanvas.h>
 #include <TH1F.h>
 #include <TH2F.h>
@@ -29,8 +30,6 @@
 // - Trigger rate vs run (another "is our replay reasonable?" check)
 // - Charge-normalized yield vs beam current (the final desired result)
 
-
-
 struct Run {
     TTree   *T;
     TTree   *TSP;
@@ -41,32 +40,74 @@ struct Run {
     Double_t count;        // [#]
     Double_t charge;       // [uC]
     Double_t yield;        // [#/uC]
+    Double_t should;       // [#]
+    Double_t did;          // [#]
     Double_t trackingEfficiency;
+    TEventList* shouldList;
+    TEventList* didList;
 };
 
-TH1F* drawTH1(TTree *T, TString branch, TString histoname, Int_t bins, Double_t lo, Double_t hi, TCut cut) {
-    TString drawMe = Form("%s>>%s(%d,%f,%f)", branch.Data(), histoname.Data(), bins, lo, hi);
-    T->Draw(drawMe.Data(), cut, "goff");
-    return (TH1F*) gDirectory->Get(histoname);
-}
-
+void carbonboiling();
+std::map<Int_t, Run*> load();
+std::vector<Int_t> getRunNumbers(std::map<Int_t, Run*> runs);
+void plot(std::map<Int_t, Run*> runs, std::vector<Int_t> runNumbers);
+TH1F* drawTH1(TTree *T, TString branch, TString histoname, Int_t bins, Double_t lo, Double_t hi, TCut cut);
 TH2F* drawTH2(TTree *T, TString xbranchstring, TString ybranchstring, TString histoname,
               Int_t xbins, Double_t xlo, Double_t xhi,
               Int_t ybins, Double_t ylo, Double_t yhi,
-              TCut cut) {
-    TString drawMe = Form("%s:%s>>%s(%d,%f,%f,%d,%f,%f)",
-                           xbranchstring.Data(), ybranchstring.Data(), histoname.Data(),
-                           xbins, xlo, xhi, ybins, ylo, yhi);
-    T->Draw(drawMe.Data(), cut, "goff");
-    return (TH2F*) gDirectory->Get(histoname);
+              TCut cut);
+void calculateTrackingEfficiency(std::map<Int_t, Run*> runs, std::vector<Int_t> runNumbers);
+
+//--------------------------------------------------------------------------
+// Cuts to be used below
+// Should replace this with a CTCutsShould replace this with a CTCutsShould replace this with a CTCutsShould replace this with a CTCuts
+TCut betaCut = "P.gtr.beta > 0.6 && P.gtr.beta < 1.4";
+TCut deltaCut = "P.gtr.dp > -10 && P.gtr.dp < 12";
+TCut hodostartCut = "P.hod.goodstarttime==1";
+TCut calCut = "0.2 < P.cal.etottracknorm && P.cal.etottracknorm < 1.2";
+TCut cerCut = "P.ngcer.npeSum > 0";
+TCut pidCut = calCut && cerCut;
+TCut qualityCut = betaCut && hodostartCut && cerCut;
+TCut pScinGood = "P.hod.goodscinhit==1";
+TCut pGoodBeta = "P.hod.betanotrack > 0.5 && P.hod.betanotrack < 1.4";
+TCut pDC1NoLarge = "(P.dc.1x1.nhit + P.dc.1u2.nhit + P.dc.1u1.nhit + P.dc.1v1.nhit + P.dc.1x2.nhit + P.dc.1v2.nhit) < 21";
+TCut pDC2NoLarge = "(P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nhit + P.dc.2x2.nhit + P.dc.2v2.nhit) < 21";
+TCut pDCNoLarge = pDC1NoLarge && pDC2NoLarge;
+TCut pScinShould = pScinGood && pGoodBeta && pDCNoLarge && pidCut;
+TCut pScinDid    = pScinShould && "P.dc.ntrack>0";
+
+//--------------------------------------------------------------------------
+int main() {
+    carbonboiling();
+    return 0;
 }
 
+//--------------------------------------------------------------------------
 void carbonboiling() {
+
     TString pdfFilename;
+
+    std::map<Int_t, Run*> runs = load();
+    std::vector<Int_t> runNumbers = getRunNumbers(runs);
+
+    //--------------------------------------------------------------------------
+    // Generate quality plots
+    plot(runs, runNumbers);
+
+    //--------------------------------------------------------------------------
+    // Tracking efficiency
+    calculateTrackingEfficiency(runs, runNumbers);
+
+    for (auto run: runNumbers) {
+        std::cout << Form("%d,%f", run, runs[run]->trackingEfficiency) << std::endl;
+    }
+}
+
+//--------------------------------------------------------------------------
+std::map<Int_t, Run*> load() {
     TString rootfileFormat = "/Volumes/ssd750/ct/pass5/shms_replay_production_%d_-1.root";
 
-    std::map<Int_t, TFile*> file;
-    std::map<Int_t, TTree*> tree;
+    std::map<Int_t, Run*> runs;
 
     // I'm only looking at a subset of the full list.
     // These data are from January 2018 right around the time we took
@@ -77,7 +118,6 @@ void carbonboiling() {
     };
 
     // Initialize and load each run
-    std::map<Int_t, Run*> runs;
     for (auto run: runNumbers) {
         std::cout << "Load " << run << std::endl;
         runs[run] = new Run;
@@ -112,23 +152,27 @@ void carbonboiling() {
     runs[1993]->hclogCurrent = 7;
     runs[1992]->hclogCurrent = 2;
 
-    //--------------------------------------------------------------------------
-    // Generate quality plots
+    return runs;
+}
+
+//--------------------------------------------------------------------------
+std::vector<Int_t> getRunNumbers(std::map<Int_t, Run*> runs) {
+    std::vector<Int_t> runNumbers;
+    for(map<Int_t, Run*>::iterator it = runs.begin(); it != runs.end(); ++it) {
+        runNumbers.push_back(it->first);
+    }
+    return runNumbers;
+}
+
+//--------------------------------------------------------------------------
+void plot(std::map<Int_t, Run*> runs, std::vector<Int_t> runNumbers) {
+    std::cout << "Generating quality plots" << std::endl;
+
     TFile fWrite("quality_plots.root", "recreate");
     TTree *T, *TSP;
     TH1F *h1;
     TH2F *h2;
     TString histoname;
-
-    TCut betaCut = "P.gtr.beta > 0.6 && P.gtr.beta < 1.4";
-    TCut deltaCut = "P.gtr.dp > -10 && P.gtr.dp < 12";
-    TCut hodostartCut = "P.hod.goodstarttime==1";
-    TCut calCut = "0.2 < P.cal.etottracknorm && P.cal.etottracknorm < 1.2";
-    TCut cerCut = "P.ngcer.npeSum > 0";
-    TCut pidCut = calCut && cerCut;
-    TCut qualityCut = betaCut && hodostartCut && cerCut;
-
-    std::cout << "Generating quality plots" << std::endl;
 
     for (auto run: runNumbers) {
         std::cout << run << std::endl;
@@ -150,7 +194,6 @@ void carbonboiling() {
         histoname = Form("run%d_p", run);
         h1 = drawTH1(T, "P.gtr.p", histoname, 600, 0, 6, qualityCut);
         h1->Write();
-
 
         // delta vs beta
         histoname = Form("run%d_delta_vs_beta", run);
@@ -203,19 +246,58 @@ void carbonboiling() {
         h2 = drawTH2(T, "P.ngcer.npeSum", "P.cal.etottracknorm", histoname, 75, 0, 1.5, 80, 0, 40, betaCut && cerCut && deltaCut);
         h2->Write();
 
-
         // BCM4A current over time
         histoname = Form("run%d_BCM4A_scalerCurrent", run);
         TSP->Draw(Form("P.BCM4A.scalerCurrent:This->GetReadEntry()>>%s", histoname.Data()));
         h2 = (TH2F*) gDirectory->Get(histoname);
         h2->Write();
-
     }
-
     fWrite.Close();
 }
 
-int main() {
-    carbonboiling();
-    return 0;
+//--------------------------------------------------------------------------
+TH1F* drawTH1(TTree *T, TString branch, TString histoname, Int_t bins, Double_t lo, Double_t hi, TCut cut) {
+    TString drawMe = Form("%s>>%s(%d,%f,%f)", branch.Data(), histoname.Data(), bins, lo, hi);
+    T->Draw(drawMe.Data(), cut, "goff");
+    return (TH1F*) gDirectory->Get(histoname);
+}
+
+//--------------------------------------------------------------------------
+TH2F* drawTH2(TTree *T, TString xbranchstring, TString ybranchstring, TString histoname,
+              Int_t xbins, Double_t xlo, Double_t xhi,
+              Int_t ybins, Double_t ylo, Double_t yhi,
+              TCut cut) {
+    TString drawMe = Form("%s:%s>>%s(%d,%f,%f,%d,%f,%f)",
+                           xbranchstring.Data(), ybranchstring.Data(), histoname.Data(),
+                           xbins, xlo, xhi, ybins, ylo, yhi);
+    T->Draw(drawMe.Data(), cut, "goff");
+    return (TH2F*) gDirectory->Get(histoname);
+}
+
+//--------------------------------------------------------------------------
+void calculateTrackingEfficiency(std::map<Int_t, Run*> runs, std::vector<Int_t> runNumbers) {
+    std::cout << "Calculating tracking efficiency" << std::endl;
+    TString drawMe, histoname;
+    TTree *T;
+    for (auto run: runNumbers) {
+        T = runs[run]->T;
+
+        // should
+        histoname.Form("run%d_should", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe, pScinShould);
+        runs[run]->shouldList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->should = runs[run]->shouldList->GetN();
+
+        // did
+        histoname.Form("run%d_did", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe, pScinDid);
+        runs[run]->didList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->did = runs[run]->didList->GetN();
+
+        runs[run]->trackingEfficiency = runs[run]->did/runs[run]->should;
+
+        // std::cout << Form("%d,%f", run, runs[run]->trackingEfficiency) << std::endl;
+    }
 }
