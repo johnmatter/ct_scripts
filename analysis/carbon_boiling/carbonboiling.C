@@ -36,41 +36,60 @@ struct Run {
     TFile   *file;
     Double_t hclogCurrent; // [uA] What did hclog claim?
     Double_t myCurrent;    // [uA] What do I estimate?
-    Double_t eventRate;    // [#/s]
-    Double_t count;        // [#]
+    Double_t ps1Rate;      // [#/s]
+    Double_t ps2Rate;      // [#/s]
+    Double_t goodEvents;   // [#]
     Double_t charge;       // [uC]
+    Double_t time;         // [s]
     Double_t yield;        // [#/uC]
     Double_t should;       // [#]
     Double_t did;          // [#]
+    Int_t ps1;
+    Int_t ps2;
     Double_t trackingEfficiency;
     Double_t trackingEfficiencyUncertainty;
     TEventList* shouldList;
     TEventList* didList;
+    TEventList* goodList;
 };
 
+// Branches needed for yield
+TString bcmChargeBranch = "P.BCM4A.scalerCharge";
+TString bcmCurrentBranch = "P.BCM4A.scalerCurrent";
+TString oneMHzScalerBranch = "P.1MHz.scalerTime";
+TString ps1RateScalerBranch = "P.pTRIG1.scalerRate";
+TString ps2RateScalerBranch = "P.pTRIG2.scalerRate";
+Double_t bcmCurrentCut = 1.0;
+
+// Functions called in main()
 void carbonboiling();
 std::map<Int_t, Run*> load();
 std::vector<Int_t> getRunNumbers(std::map<Int_t, Run*> runs);
-void plot(std::map<Int_t, Run*> runs, std::vector<Int_t> runNumbers);
+void plot(std::map<Int_t, Run*> runs);
 TH1F* drawTH1(TTree *T, TString branch, TString histoname, Int_t bins, Double_t lo, Double_t hi, TCut cut);
 TH2F* drawTH2(TTree *T, TString xbranchstring, TString ybranchstring, TString histoname,
               Int_t xbins, Double_t xlo, Double_t xhi,
               Int_t ybins, Double_t ylo, Double_t yhi,
               TCut cut);
-void calculateTrackingEfficiency(std::map<Int_t, Run*> runs, std::vector<Int_t> runNumbers);
+void calculateTrackingEfficiency(std::map<Int_t, Run*> runs);
+void calculateScalers(std::map<Int_t, Run*> runs);
+void calculateYield(std::map<Int_t, Run*> runs);
+void print(std::map<Int_t, Run*> runs);
+Double_t correctForPrescale(Double_t rate, Int_t ps);
 
 //--------------------------------------------------------------------------
 // Cuts to be used below
 // Should replace this with something NOT global
+TCut insideDipoleExit = "P.dc.InsideDipoleExit==1";
 TCut betaCut = "P.gtr.beta > 0.6 && P.gtr.beta < 1.4";
-TCut deltaCut = "P.gtr.dp > -10 && P.gtr.dp < 12";
+TCut deltaCut = "P.gtr.dp > -10 && P.gtr.dp < 20";
 TCut hodostartCut = "P.hod.goodstarttime==1";
 
 TCut calCut = "0.2 < P.cal.etottracknorm && P.cal.etottracknorm < 1.2";
 TCut cerCut = "P.ngcer.npeSum > 0";
 TCut pidCut = calCut && cerCut;
 
-TCut qualityCut = betaCut && hodostartCut && cerCut;
+TCut qualityCut = betaCut && hodostartCut && cerCut && insideDipoleExit;
 
 TCut pScinGood = "P.hod.goodscinhit==1";
 TCut pGoodBeta = "P.hod.betanotrack > 0.5 && P.hod.betanotrack < 1.4";
@@ -79,6 +98,8 @@ TCut pDC2NoLarge = "(P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nh
 TCut pDCNoLarge = pDC1NoLarge && pDC2NoLarge;
 TCut pScinShould = pScinGood && pGoodBeta && pDCNoLarge;
 TCut pScinDid    = pScinShould && "P.dc.ntrack>0";
+
+TCut goodCut = betaCut && deltaCut && hodostartCut && pidCut && insideDipoleExit;
 
 //--------------------------------------------------------------------------
 int main() {
@@ -92,30 +113,28 @@ void carbonboiling() {
     TString pdfFilename;
 
     std::map<Int_t, Run*> runs = load();
-    std::vector<Int_t> runNumbers = getRunNumbers(runs);
 
     // Generate quality plots
-    plot(runs, runNumbers);
+    // plot(runs);
 
     // Tracking efficiency
-    calculateTrackingEfficiency(runs, runNumbers);
+    calculateTrackingEfficiency(runs);
 
-    std::cout << "run, bcm4aCurrent, trackingEfficiency, uncertainty, did, should" << std::endl;
-    for (auto run: runNumbers) {
-        std::cout << Form("%d,%f,%f,%f,%d,%d",
-                           run,
-                           runs[run]->hclogCurrent,
-                           runs[run]->trackingEfficiency,
-                           runs[run]->trackingEfficiencyUncertainty,
-                           int(runs[run]->did),
-                           int(runs[run]->should)
-                         )
-                  << std::endl;
-    }
+    // Charge
+    calculateScalers(runs);
+
+    // Yield
+    calculateYield(runs);
+
+    // Print
+    print(runs);
+
 }
 
 //--------------------------------------------------------------------------
 std::map<Int_t, Run*> load() {
+    std::cout << "Load" << std::endl;
+
     TString rootfileFormat = "/Volumes/ssd750/ct/pass5/shms_replay_production_%d_-1.root";
 
     std::map<Int_t, Run*> runs;
@@ -130,7 +149,6 @@ std::map<Int_t, Run*> load() {
 
     // Initialize and load each run
     for (auto run: runNumbers) {
-        std::cout << "Load " << run << std::endl;
         runs[run] = new Run;
         runs[run]->file = new TFile(Form(rootfileFormat.Data(), run));
         runs[run]->file->GetObject("T",   runs[run]->T);
@@ -163,6 +181,58 @@ std::map<Int_t, Run*> load() {
     runs[1993]->hclogCurrent = 7;
     runs[1992]->hclogCurrent = 2;
 
+    // PS1 from HCLOG
+    // runs[3225]->ps1 = -1;
+    // runs[3224]->ps1 = -1;
+    // runs[3223]->ps1 = -1;
+    // runs[3222]->ps1 = -1;
+    // runs[3114]->ps1 = -1;
+    // runs[3113]->ps1 = -1;
+    // runs[3112]->ps1 = -1;
+    // runs[3111]->ps1 = -1;
+    // runs[3110]->ps1 = -1;
+    // runs[3109]->ps1 = -1;
+    // runs[2013]->ps1 = 6;
+    // runs[2012]->ps1 = 5;
+    // runs[2011]->ps1 = 5;
+    // runs[2010]->ps1 = 10;
+    // runs[2009]->ps1 = 10;
+    runs[2000]->ps1 = 6;
+    runs[1999]->ps1 = 5;
+    runs[1998]->ps1 = 5;
+    runs[1997]->ps1 = 5;
+    runs[1996]->ps1 = 4;
+    runs[1995]->ps1 = 4;
+    runs[1994]->ps1 = 2;
+    runs[1993]->ps1 = 1;
+    runs[1992]->ps1 = 0;
+
+    // PS2 from HCLOG
+    // runs[3225]->ps2 = 0;
+    // runs[3224]->ps2 = 0;
+    // runs[3223]->ps2 = 0;
+    // runs[3222]->ps2 = 0;
+    // runs[3114]->ps2 = 7;
+    // runs[3113]->ps2 = 6;
+    // runs[3112]->ps2 = 5;
+    // runs[3111]->ps2 = 4;
+    // runs[3110]->ps2 = 2;
+    // runs[3109]->ps2 = 1;
+    // runs[2013]->ps2 = -1;
+    // runs[2012]->ps2 = -1;
+    // runs[2011]->ps2 = -1;
+    // runs[2010]->ps2 = -1;
+    // runs[2009]->ps2 = -1;
+    runs[2000]->ps2 = -1;
+    runs[1999]->ps2 = -1;
+    runs[1998]->ps2 = -1;
+    runs[1997]->ps2 = -1;
+    runs[1996]->ps2 = -1;
+    runs[1995]->ps2 = -1;
+    runs[1994]->ps2 = -1;
+    runs[1993]->ps2 = -1;
+    runs[1992]->ps2 = -1;
+
     return runs;
 }
 
@@ -176,8 +246,10 @@ std::vector<Int_t> getRunNumbers(std::map<Int_t, Run*> runs) {
 }
 
 //--------------------------------------------------------------------------
-void plot(std::map<Int_t, Run*> runs, std::vector<Int_t> runNumbers) {
+void plot(std::map<Int_t, Run*> runs) {
     std::cout << "Generating quality plots" << std::endl;
+
+    std::vector<Int_t> runNumbers = getRunNumbers(runs);
 
     TFile fWrite("quality_plots.root", "recreate");
     TTree *T, *TSP;
@@ -286,8 +358,11 @@ TH2F* drawTH2(TTree *T, TString xbranchstring, TString ybranchstring, TString hi
 }
 
 //--------------------------------------------------------------------------
-void calculateTrackingEfficiency(std::map<Int_t, Run*> runs, std::vector<Int_t> runNumbers) {
+void calculateTrackingEfficiency(std::map<Int_t, Run*> runs) {
     std::cout << "Calculating tracking efficiency" << std::endl;
+
+    std::vector<Int_t> runNumbers = getRunNumbers(runs);
+
     TString drawMe, histoname;
     TTree *T;
     for (auto run: runNumbers) {
@@ -315,4 +390,128 @@ void calculateTrackingEfficiency(std::map<Int_t, Run*> runs, std::vector<Int_t> 
         runs[run]->trackingEfficiencyUncertainty = sqrt(k*(1-k/N))/N; // binomial error
 
     }
+}
+
+//--------------------------------------------------------------------------
+void calculateScalers(std::map<Int_t, Run*> runs) {
+    std::cout << "Calculating total charge" << std::endl;
+
+    std::vector<Int_t> runNumbers = getRunNumbers(runs);
+
+    TTree *T;
+    Double_t scalerCharge, scalerCurrent, scalerTime, ps1Rate, ps2Rate;
+    for (auto run: runNumbers) {
+        T = runs[run]->TSP;
+        T->SetBranchAddress(bcmChargeBranch.Data(),     &scalerCharge);
+        T->SetBranchAddress(bcmCurrentBranch.Data(),    &scalerCurrent);
+        T->SetBranchAddress(oneMHzScalerBranch.Data(),  &scalerTime);
+        T->SetBranchAddress(ps1RateScalerBranch.Data(), &ps1Rate);
+        T->SetBranchAddress(ps2RateScalerBranch.Data(), &ps2Rate);
+
+        // Total charge should be last entry in this run's scaler tree
+        T->GetEntry(T->GetEntries()-1);
+
+        runs[run]->charge = scalerCharge;
+        runs[run]->time   = scalerTime;
+        runs[run]->myCurrent = scalerCharge/scalerTime;
+
+        Double_t averagePS1=0;
+        Double_t averagePS2=0;
+        Int_t n;
+        for (n=0; n<T->GetEntries(); n++) {
+            T->GetEntry(n);
+            if (scalerCurrent > bcmCurrentCut) {
+                averagePS1 += ps1Rate;
+                averagePS2 += ps2Rate;
+            }
+        }
+
+        averagePS1 = correctForPrescale(averagePS1, runs[run]->ps1)/n;
+        averagePS2 = correctForPrescale(averagePS2, runs[run]->ps2)/n;
+
+        runs[run]->ps1Rate = averagePS1;
+        runs[run]->ps2Rate = averagePS2;
+    }
+}
+
+//--------------------------------------------------------------------------
+void calculateYield(std::map<Int_t, Run*> runs) {
+    std::cout << "Calculating yield" << std::endl;
+
+    std::vector<Int_t> runNumbers = getRunNumbers(runs);
+
+    TString drawMe, histoname;
+    TTree *T;
+    for (auto run: runNumbers) {
+        T = runs[run]->T;
+        histoname.Form("run%d_good", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe, goodCut);
+        runs[run]->goodList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->goodEvents = correctForPrescale(runs[run]->goodList->GetN(), runs[run]->ps1);
+        // runs[run]->goodEvents = runs[run]->goodList->GetN();
+        runs[run]->yield = runs[run]->goodEvents / runs[run]->charge / runs[run]->trackingEfficiency;
+    }
+
+}
+
+//--------------------------------------------------------------------------
+void print(std::map<Int_t, Run*> runs) {
+    std::vector<Int_t> runNumbers = getRunNumbers(runs);
+
+    std::cout << "run, hclogCurrent, scalerCurrent, scalerCharge, scalerTime,"
+              << "trackingEfficiency, trackingEfficiencyUncertainty, did, should,"
+              << "goodEvents, uncorrectedYield, correctedYield, ps1Rate, ps2Rate, ps1, ps2"
+              << std::endl;
+    for (auto run: runNumbers) {
+        std::cout << Form("%d,%f,%f,%f,%f,%f,%f,%d,%d,%d,%f,%f,%f,%f,%d,%d",
+                           run,
+                           runs[run]->hclogCurrent,
+                           runs[run]->myCurrent,
+                           runs[run]->charge,
+                           runs[run]->time,
+                           runs[run]->trackingEfficiency,
+                           runs[run]->trackingEfficiencyUncertainty,
+                           int(runs[run]->did),
+                           int(runs[run]->should),
+                           int(runs[run]->goodEvents),
+                           (runs[run]->goodEvents/runs[run]->charge),
+                           runs[run]->yield,
+                           runs[run]->ps1Rate,
+                           runs[run]->ps2Rate,
+                           runs[run]->ps1,
+                           runs[run]->ps2
+                         )
+                  << std::endl;
+    }
+}
+
+//--------------------------------------------------------------------------
+Double_t correctForPrescale(Double_t rate, Int_t ps) {
+    Double_t correctedRate;
+
+    // Lookup table
+    std::map<Int_t,Int_t> psfactor;
+    psfactor[-1] = 0;
+    psfactor[0] = 1;
+    psfactor[1] = 2;
+    psfactor[2] = 3;
+    psfactor[3] = 5;
+    psfactor[4] = 9;
+    psfactor[5] = 17;
+    psfactor[6] = 33;
+    psfactor[7] = 65;
+    psfactor[8] = 129;
+    psfactor[9] = 257;
+    psfactor[10] = 513;
+    psfactor[11] = 1025;
+    psfactor[12] = 2049;
+    psfactor[13] = 4097;
+    psfactor[14] = 8193;
+    psfactor[15] = 16385;
+    psfactor[16] = 32769;
+
+    correctedRate = rate*psfactor[ps];
+
+    return correctedRate;
 }
