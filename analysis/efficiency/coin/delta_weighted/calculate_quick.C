@@ -33,7 +33,7 @@ int main() {
     std::vector<TString> kinematics = data->GetNames();
 
     // Where are we saving the output?
-    TString csvFilename = "by_run/ct_quick_efficiency.csv";
+    TString csvFilename = "quick/ct_quick_efficiency.csv";
 
     // Open file so we can save histograms
     TFile *f = new TFile("by_run/ct_quick_efficiency.root", "RECREATE");

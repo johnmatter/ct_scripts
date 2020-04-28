@@ -1,6 +1,20 @@
 {
     "jobs": [
         {
+            "command": "/home/jmatter/ct_scripts/analysis/efficiency/coin/delta_weighted/run_quick.sh",
+            "cpuCores": 1,
+            "diskBytes": 10000000000,
+            "name": "hcer",
+            "os": "centos7",
+            "project": "c-comm2017",
+            "ramBytes": 8000000000,
+            "shell": "/usr/bin/bash",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/delta_weighted/calculate_quick.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/delta_weighted/calculate_quick.out",
+            "timeSecs": 18000,
+            "track": "analysis"
+        },
+        {
             "command": "/home/jmatter/ct_scripts/analysis/efficiency/coin/delta_weighted/run_all.sh",
             "cpuCores": 1,
             "diskBytes": 10000000000,
