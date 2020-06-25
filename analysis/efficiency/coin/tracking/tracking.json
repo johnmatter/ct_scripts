@@ -1,7 +1,7 @@
 {
     "jobs": [
         {
-            "command": '/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.C("SHMS")',
+            "command": '/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.C SHMS',
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "ct_coin_tracking_shms",
@@ -9,13 +9,13 @@
             "project": "c-comm2017",
             "ramBytes": 8000000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.err",
-            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.out",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/shms_tracking.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/shms_tracking.out",
             "timeSecs": 36000,
             "track": "analysis"
         },
         {
-            "command": '/home/jmatter/ct_scripts/analysis/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.C("HMS")',
+            "command": '/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/run.sh /home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.C HMS',
             "cpuCores": 1,
             "diskBytes": 10000000000,
             "name": "ct_coin_tracking_hms",
@@ -23,8 +23,8 @@
             "project": "c-comm2017",
             "ramBytes": 8000000000,
             "shell": "/usr/bin/bash",
-            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.err",
-            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/tracking.out",
+            "stderr": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/hms_tracking.err",
+            "stdout": "/home/jmatter/ct_scripts/analysis/efficiency/coin/tracking/hms_tracking.out",
             "timeSecs": 36000,
             "track": "analysis"
         }

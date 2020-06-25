@@ -81,8 +81,8 @@ int main() {
                     break;
                 case 'p':
                     scanBranch = "P.gtr.dp";
-                    scanBins = 22;
-                    scanLo = -10;
+                    scanBins = 24;
+                    scanLo = -12;
                     scanHi = +12;
                     break;
             }
@@ -209,7 +209,9 @@ int main() {
     ofs << "kinematics,detector,target,Q2,collimator,"
               << "hmsAngle,shmsAngle,hmsMomentum,shmsMomentum,"
               << "efficiency,efficiencyError,"
-              << "efficiencyUnweighted,efficiencyUnweightedErrorUp,efficiencyUnweightedErrorLo" << std::endl;
+              << "efficiencyUnweighted,efficiencyUnweightedErrorUp,efficiencyUnweightedErrorLo,"
+              << "did,should"
+              << std::endl;
     for (auto &k: kinematics) {
         for (auto const &d : detectors) {
             TString key_1D = Form("%s_%s_1D", k.Data(), d.Data());
@@ -231,14 +233,19 @@ int main() {
             Double_t efficiencyUnweightedErrorUp = efficiencyCalculators0D[key_0D]->GetEfficiencyErrorUp();
             Double_t efficiencyUnweightedErrorLo = efficiencyCalculators0D[key_0D]->GetEfficiencyErrorLow();
 
+            Int_t did         = efficiencyCalculators0D[key_0D]->GetTEfficiency()->GetCopyPassedHisto()->GetBinContent(1);
+            Int_t should      = efficiencyCalculators0D[key_0D]->GetTEfficiency()->GetCopyTotalHisto()->GetBinContent(1);
+
             // Form print string
-            TString printMe = Form("%s,%s,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+            TString printMe = Form("%s,%s,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d",
                                     k.Data(), d.Data(), target.Data(), Q2, collimator.Data(),
                                     hmsAngle, shmsAngle, hmsMomentum, shmsMomentum,
                                     efficiency, efficiencyError,
                                     efficiencyUnweighted,
                                     efficiencyUnweightedErrorUp,
-                                    efficiencyUnweightedErrorLo);
+                                    efficiencyUnweightedErrorLo,
+                                    did,
+                                    should);
             ofs << printMe << std::endl;
         }
     }
