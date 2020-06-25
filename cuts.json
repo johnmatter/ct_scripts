@@ -6,7 +6,7 @@
         },
         {
             "name" : "pDeltaCut",
-            "cut"  : "\"P.gtr.dp > -10 && P.gtr.dp < 12\""
+            "cut"  : "\"P.gtr.dp > -12 && P.gtr.dp < 12\""
         },
         {
             "name" : "pBetaCut",
@@ -30,7 +30,7 @@
         },
         {
             "name" : "pLH2EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss < 0.1 && abs(P.kin.secondary.pmiss) < 0.1\""
+            "cut"  : "\"-0.03 < P.kin.secondary.emiss && P.kin.secondary.emiss < 0.05 && abs(P.kin.secondary.pmiss) < 0.05\""
         },
         {
             "name" : "pC12EMissPMissCut",
@@ -242,7 +242,7 @@
         },
         {
             "name" : "pNGCerShould",
-            "cut"  : "pBetaCut && pDeltaCut && pHodoTimeCut"
+            "cut"  : "pBetaCut && pDeltaCut && pHodoTimeCut && hCalCut"
         },
         {
             "name" : "pNGCerDid",
