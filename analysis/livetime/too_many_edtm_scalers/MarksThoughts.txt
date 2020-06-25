@@ -1,0 +1,39 @@
+Thoughts from Mark on the fact that for some runs (Q2=14, LH2 in particular) we have more EDTM counts than pTRIG6!
+
+--------------------------------------------------------------------------------
+
+Scaler_EDTM = number of EDTM pulses produced by the 3Hz clock
+            = time_tot * 3 Hz
+This is not effected by computer or electronic livetime.
+
+N_ev6_EDTM = number of EDTM pulses which are input to the trigger module as event 6. 
+
+Since the electronic deadtime of the trigger circuit ELT eliminates a fraction of the initial EDTM pulses, we have
+N_ev6_EDTM = Scaler_EDTM * ELT
+
+N_ev6_phys = number of physics coincidence triggers that go into the trigger module.
+
+The scaler, Scaler_ev6, that counts the total number of input trig6 to the trigger module is
+Scaler_ev6 = N_ev6_phys + N_ev6_EDTM
+           = N_ev6_phys + (Scaler_EDTM * ELT)
+
+Suppose that for a run of length time_tot, the following inequality is true.
+Scaler_EDTM/time_tot > Scaler_ev6/time_tot
+                     > N_ev6_phys/time_tot + (Scaler_EDTM/time_tot) * ELT
+
+R_E = Scaler_EDTM/time_tot = 3 Hz
+R_P = N_ev6_phys/time_tot = R_true_coin + R_hms_single*R_shms_single*100ns
+
+R_E > R_P + R_E*ELT
+
+R_E*(1-ELT) > R_P
+
+This is the condition for having more scaler counts for the EDTM than for pTRIG6.
+So for example if ELT = 0.9 is R_P < 0.3 Hz then the Scaler_EDTM will be greater than the Scaler_ev6
+The CT R_P was low and it could have be less than 3Hz*(1-ELT).
+
+R_P would be the (ACC_ev6 - ACC_EDTM_ev6)/tot_time, which also gives you a measure of the ELT
+
+The ELT is also proportional to the R_shms_single rate so there could be
+some interplay between running at different current and whether this
+inequality is met.

@@ -15,8 +15,8 @@
 
 #include <CTData.h>
 
-// run this before print_tdcTime_histos_to_pdf
-void generate_tdcTime_histos() {
+// run this before print_tdcTimeRaw_histos_to_pdf
+void generate_tdcTimeRaw_histos() {
     // ------------------------------------------------------------------------
     // Load our data and cuts
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
@@ -25,10 +25,10 @@ void generate_tdcTime_histos() {
     std::vector<TString> kinematics = data->GetNames();
 
     // Which triggers
-    std::vector<TString> trigBranches = {"T.coin.pEDTM_tdcTime", "T.coin.pTRIG6_ROC2_tdcTime"};
+    std::vector<TString> trigBranches = {"T.coin.pEDTM_tdcTimeRaw", "T.coin.pTRIG6_ROC2_tdcTimeRaw"};
 
     // Open file so we can save histograms
-    TFile *f = new TFile("ct_tdcTime.root", "RECREATE");
+    TFile *f = new TFile("ct_tdcTimeRaw.root", "RECREATE");
 
     // key is histoName
     std::map<TString, TH1F*> histos;
@@ -37,14 +37,13 @@ void generate_tdcTime_histos() {
     TCut EDTMOnly = "T.coin.pEDTM_tdcTimeRaw!=0";
     TCut noEDTM = "T.coin.pEDTM_tdcTimeRaw==0";
     TCut noCut = "";
-    TCut bcmCut = " P.bcm.bcm4a.AvgCurrent>3.0";
     std::vector<TCut> cuts = {noCut, EDTMOnly, noEDTM};
 
     // ------------------------------------------------------------------------
     // Draw
     Int_t xBins = 5000;
     Double_t xMin = 0;
-    Double_t xMax = 500;
+    Double_t xMax = 5000;
     TString histoName, drawStr;
 
     TCanvas* c = new TCanvas("c", "canvas", 800, 600);
@@ -68,22 +67,10 @@ void generate_tdcTime_histos() {
                                xBins, xMin, xMax);
 
                 // Draw
-                data->GetChain(k)->Draw(drawStr.Data(), cut && bcmCut);
+                data->GetChain(k)->Draw(drawStr.Data(), cut);
 
                 // Add to map for printing PDF
                 histos[histoName] = (TH1F*) gDirectory->Get(histoName.Data());
-
-                // Add some colors
-                if (cut==EDTMOnly) {
-                    histos[histoName]->SetLineColor(kRed-4);
-                    histos[histoName]->SetFillColor(kRed-4);
-                    histos[histoName]->SetFillStyle(3345);
-                }
-                if (cut==noEDTM) {
-                    histos[histoName]->SetLineColor(kGreen-6);
-                    histos[histoName]->SetFillColor(kGreen-6);
-                    histos[histoName]->SetFillStyle(3354);
-                }
 
                 // Write to root file
                 histos[histoName]->Write();
