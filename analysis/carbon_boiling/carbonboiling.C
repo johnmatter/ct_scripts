@@ -42,14 +42,22 @@ struct Run {
     Double_t charge;       // [uC]
     Double_t time;         // [s]
     Double_t yield;        // [#/uC]
-    Double_t should;       // [#]
-    Double_t did;          // [#]
+    Double_t trackShould;  // [#]
+    Double_t trackDid;     // [#]
+    Double_t calShould;    // [#]
+    Double_t calDid;       // [#]
+    Double_t cerShould;    // [#]
+    Double_t cerDid;       // [#]
     Int_t ps1;
     Int_t ps2;
     Double_t trackingEfficiency;
     Double_t trackingEfficiencyUncertainty;
-    TEventList* shouldList;
-    TEventList* didList;
+    Double_t cerEfficiency;
+    Double_t cerEfficiencyUncertainty;
+    Double_t calEfficiency;
+    Double_t calEfficiencyUncertainty;
+    TEventList* trackShouldList;
+    TEventList* trackDidList;
     TEventList* goodList;
 };
 
@@ -59,7 +67,7 @@ TString bcmCurrentBranch = "P.BCM4A.scalerCurrent";
 TString oneMHzScalerBranch = "P.1MHz.scalerTime";
 TString ps1RateScalerBranch = "P.pTRIG1.scalerRate";
 TString ps2RateScalerBranch = "P.pTRIG2.scalerRate";
-Double_t bcmCurrentCut = 1.0;
+Double_t bcmCurrentCutDelta = 3.0; // How many uA must we be within the nominal current?
 
 // Functions called in main()
 void carbonboiling();
@@ -72,6 +80,7 @@ TH2F* drawTH2(TTree *T, TString xbranchstring, TString ybranchstring, TString hi
               Int_t ybins, Double_t ylo, Double_t yhi,
               TCut cut);
 void calculateTrackingEfficiency(std::map<Int_t, Run*> runs);
+void calculatePIDEfficiency(std::map<Int_t, Run*> runs);
 void calculateScalers(std::map<Int_t, Run*> runs);
 void calculateYield(std::map<Int_t, Run*> runs);
 void print(std::map<Int_t, Run*> runs);
@@ -88,6 +97,12 @@ TCut hodostartCut = "P.hod.goodstarttime==1";
 TCut calCut = "0.2 < P.cal.etottracknorm && P.cal.etottracknorm < 1.2";
 TCut cerCut = "P.ngcer.npeSum > 0";
 TCut pidCut = calCut && cerCut;
+
+TCut calShouldCut = insideDipoleExit && betaCut && deltaCut && && hodostartCut && cerCut;
+TCut calDidCut    = insideDipoleExit && betaCut && deltaCut && && hodostartCut && cerCut && calCut;
+
+TCut cerShouldCut = insideDipoleExit && betaCut && deltaCut && && hodostartCut && calCut;
+TCut cerDidCut    = insideDipoleExit && betaCut && deltaCut && && hodostartCut && calCut && cerCut;
 
 TCut qualityCut = betaCut && hodostartCut && cerCut && insideDipoleExit;
 
@@ -119,6 +134,9 @@ void carbonboiling() {
 
     // Tracking efficiency
     calculateTrackingEfficiency(runs);
+
+    // PID efficiency
+    calculatePIDEfficiency(runs);
 
     // Charge
     calculateScalers(runs);
@@ -179,7 +197,7 @@ std::map<Int_t, Run*> load() {
     runs[1995]->hclogCurrent = 20;
     runs[1994]->hclogCurrent = 10;
     runs[1993]->hclogCurrent = 7;
-    runs[1992]->hclogCurrent = 2;
+    runs[1992]->hclogCurrent = 2; // Ignore this one?
 
     // PS1 from HCLOG
     // runs[3225]->ps1 = -1;
@@ -369,25 +387,85 @@ void calculateTrackingEfficiency(std::map<Int_t, Run*> runs) {
         T = runs[run]->T;
 
         // should
-        histoname.Form("run%d_should", run);
+        histoname.Form("run%d_trackShould", run);
         drawMe.Form(">>%s", histoname.Data());
         T->Draw(drawMe, pScinShould);
-        runs[run]->shouldList = (TEventList*) gDirectory->Get(histoname.Data());
-        runs[run]->should = runs[run]->shouldList->GetN();
+        runs[run]->trackShouldList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->trackShould = runs[run]->trackShouldList->GetN();
 
         // did
-        histoname.Form("run%d_did", run);
+        histoname.Form("run%d_trackDid", run);
         drawMe.Form(">>%s", histoname.Data());
         T->Draw(drawMe, pScinDid);
-        runs[run]->didList = (TEventList*) gDirectory->Get(histoname.Data());
-        runs[run]->did = runs[run]->didList->GetN();
+        runs[run]->trackDidList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->trackDid = runs[run]->trackDidList->GetN();
 
-        runs[run]->trackingEfficiency = runs[run]->did/runs[run]->should;
+        runs[run]->trackingEfficiency = runs[run]->trackDid/runs[run]->trackShould;
 
         // uncertainty
-        Double_t k = runs[run]->did;
-        Double_t N = runs[run]->should;
+        Double_t k = runs[run]->trackDid;
+        Double_t N = runs[run]->trackShould;
         runs[run]->trackingEfficiencyUncertainty = sqrt(k*(1-k/N))/N; // binomial error
+
+    }
+}
+
+//--------------------------------------------------------------------------
+void calculatePIDEfficiency(std::map<Int_t, Run*> runs) {
+    std::cout << "Calculating PID efficiency" << std::endl;
+
+    std::vector<Int_t> runNumbers = getRunNumbers(runs);
+
+    TString drawMe, histoname;
+    TTree *T;
+    for (auto run: runNumbers) {
+        T = runs[run]->T;
+
+        //------------------------------
+        // NGCER
+        // should
+        histoname.Form("run%d_cerShould", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe, cerShouldCut);
+        runs[run]->cerShouldList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->cerShould = runs[run]->cerShouldList->GetN();
+
+        // did
+        histoname.Form("run%d_cerDid", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe, cerDidCut);
+        runs[run]->cerDidList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->cerDid = runs[run]->cerDidList->GetN();
+
+        //------------------------------
+        // Calorimeter
+        // should
+        histoname.Form("run%d_calShould", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe, calShouldCut);
+        runs[run]->calShouldList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->calShould = runs[run]->calShouldList->GetN();
+
+        // did
+        histoname.Form("run%d_calDid", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe, calDidCut);
+        runs[run]->calDidList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->calDid = runs[run]->calDidList->GetN();
+
+        //------------------------------
+        // efficiency
+        runs[run]->cerEfficiency = (runs[run]->cerDid/runs[run]->cerShould);
+        runs[run]->calEfficiency = (runs[run]->calDid/runs[run]->calShould);
+
+        // uncertainty (binomial error)
+        Double_t k1 = runs[run]->cerDid;
+        Double_t N1 = runs[run]->cerShould;
+        Double_t k2 = runs[run]->calDid;
+        Double_t N2 = runs[run]->calShould;
+
+        runs[run]->cerEfficiencyUncertainty = sqrt(k1*(1-k1/N1))/N1;
+        runs[run]->calEfficiencyUncertainty = sqrt(k2*(1-k2/N2))/N2;
 
     }
 }
@@ -420,7 +498,7 @@ void calculateScalers(std::map<Int_t, Run*> runs) {
         Int_t n;
         for (n=0; n<T->GetEntries(); n++) {
             T->GetEntry(n);
-            if (scalerCurrent > bcmCurrentCut) {
+            if ((scalerCurrent-runs[run]->hclogCurrent) <= bcmCurrentCutDelta) {
                 averagePS1 += ps1Rate;
                 averagePS2 += ps2Rate;
             }
@@ -449,7 +527,6 @@ void calculateYield(std::map<Int_t, Run*> runs) {
         T->Draw(drawMe, goodCut);
         runs[run]->goodList = (TEventList*) gDirectory->Get(histoname.Data());
         runs[run]->goodEvents = correctForPrescale(runs[run]->goodList->GetN(), runs[run]->ps1);
-        // runs[run]->goodEvents = runs[run]->goodList->GetN();
         runs[run]->yield = runs[run]->goodEvents / runs[run]->charge / runs[run]->trackingEfficiency;
     }
 
@@ -460,11 +537,13 @@ void print(std::map<Int_t, Run*> runs) {
     std::vector<Int_t> runNumbers = getRunNumbers(runs);
 
     std::cout << "run, hclogCurrent, scalerCurrent, scalerCharge, scalerTime,"
-              << "trackingEfficiency, trackingEfficiencyUncertainty, did, should,"
+              << "trackingEfficiency, trackingEfficiencyUncertainty, trackDid, trackShould,"
+              << "cerEfficiency, cerEfficiencyUncertainty, cerDid, cerShould,"
+              << "calEfficiency, calEfficiencyUncertainty, calDid, calShould,"
               << "goodEvents, uncorrectedYield, correctedYield, ps1Rate, ps2Rate, ps1, ps2"
               << std::endl;
     for (auto run: runNumbers) {
-        std::cout << Form("%d,%f,%f,%f,%f,%f,%f,%d,%d,%d,%f,%f,%f,%f,%d,%d",
+        std::cout << Form("%d,%f,%f,%f,%f,%f,%f,%d,%d,%f,%f,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f,%d,%d",
                            run,
                            runs[run]->hclogCurrent,
                            runs[run]->myCurrent,
@@ -472,8 +551,16 @@ void print(std::map<Int_t, Run*> runs) {
                            runs[run]->time,
                            runs[run]->trackingEfficiency,
                            runs[run]->trackingEfficiencyUncertainty,
-                           int(runs[run]->did),
-                           int(runs[run]->should),
+                           int(runs[run]->trackDid),
+                           int(runs[run]->trackShould),
+                           runs[run]->cerEfficiency,
+                           runs[run]->cerEfficiencyUncertainty,
+                           int(runs[run]->caldid),
+                           int(runs[run]->cerShould),
+                           runs[run]->calEfficiency,
+                           runs[run]->calEfficiencyUncertainty,
+                           int(runs[run]->caldid),
+                           int(runs[run]->calShould),
                            int(runs[run]->goodEvents),
                            (runs[run]->goodEvents/runs[run]->charge),
                            runs[run]->yield,
