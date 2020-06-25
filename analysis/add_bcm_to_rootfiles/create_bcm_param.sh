@@ -5,7 +5,7 @@ list=$1
 while read line
 do
 
-    fname=/home/jmatter/ROOTfiles/pass3_with_edtm_decode/coin_replay_production_${line}_-1.root
+    fname=/home/jmatter/ROOTfiles/pass5/coin_replay_production_${line}_-1.root
     calib_directory=/home/jmatter/CT12GeV/ct_replay/CALIBRATION/bcm_current_map
     calib_script=$calib_directory/run.C
 
