@@ -1,8 +1,13 @@
 #include <TEventList.h>
 #include <TCanvas.h>
+#include <TTree.h>
+#include <TFile.h>
+#include <TCut.h>
 #include <TH1F.h>
 #include <TH2F.h>
 
+#include <iostream>
+#include <fstream>
 #include <vector>
 #include <map>
 
@@ -56,18 +61,32 @@ struct Run {
     Double_t cerEfficiencyUncertainty;
     Double_t calEfficiency;
     Double_t calEfficiencyUncertainty;
+    Double_t livetime;
+    Double_t livetimeUncertainty;
+    Double_t physScalerCount;
+    Double_t physTriggerCount;
     TEventList* trackShouldList;
     TEventList* trackDidList;
+    TEventList* calShouldList;
+    TEventList* calDidList;
+    TEventList* cerShouldList;
+    TEventList* cerDidList;
     TEventList* goodList;
 };
 
-// Branches needed for yield
-TString bcmChargeBranch = "P.BCM4A.scalerCharge";
-TString bcmCurrentBranch = "P.BCM4A.scalerCurrent";
+// Branches needed for yield and livetime
+TString bcmScalerChargeBranch = "P.BCM4A.scalerCharge";
+TString bcmScalerCurrentBranch = "P.BCM4A.scalerCurrent";
 TString oneMHzScalerBranch = "P.1MHz.scalerTime";
 TString ps1RateScalerBranch = "P.pTRIG1.scalerRate";
 TString ps2RateScalerBranch = "P.pTRIG2.scalerRate";
-Double_t bcmCurrentCutDelta = 3.0; // How many uA must we be within the nominal current?
+TString physScalerBranch = "P.pTRIG1.scaler";
+TString physTDCBranch = "T.shms.pTRIG1_tdcTimeRaw";
+TString bcmBranch = "P.bcm.bcm4a.AvgCurrent";
+
+// "Beam on" condition:
+// How many uA must we be within the nominal current to count events?
+Double_t bcmCurrentCutDelta = 3.0;
 
 // Functions called in main()
 void carbonboiling();
@@ -79,9 +98,10 @@ TH2F* drawTH2(TTree *T, TString xbranchstring, TString ybranchstring, TString hi
               Int_t xbins, Double_t xlo, Double_t xhi,
               Int_t ybins, Double_t ylo, Double_t yhi,
               TCut cut);
+void calculateScalers(std::map<Int_t, Run*> runs);
+void calculateLivetime(std::map<Int_t, Run*> runs);
 void calculateTrackingEfficiency(std::map<Int_t, Run*> runs);
 void calculatePIDEfficiency(std::map<Int_t, Run*> runs);
-void calculateScalers(std::map<Int_t, Run*> runs);
 void calculateYield(std::map<Int_t, Run*> runs);
 void print(std::map<Int_t, Run*> runs);
 Double_t correctForPrescale(Double_t rate, Int_t ps);
@@ -98,11 +118,11 @@ TCut calCut = "0.2 < P.cal.etottracknorm && P.cal.etottracknorm < 1.2";
 TCut cerCut = "P.ngcer.npeSum > 0";
 TCut pidCut = calCut && cerCut;
 
-TCut calShouldCut = insideDipoleExit && betaCut && deltaCut && && hodostartCut && cerCut;
-TCut calDidCut    = insideDipoleExit && betaCut && deltaCut && && hodostartCut && cerCut && calCut;
+TCut calShouldCut = insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut;
+TCut calDidCut    = insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut && calCut;
 
-TCut cerShouldCut = insideDipoleExit && betaCut && deltaCut && && hodostartCut && calCut;
-TCut cerDidCut    = insideDipoleExit && betaCut && deltaCut && && hodostartCut && calCut && cerCut;
+TCut cerShouldCut = insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut;
+TCut cerDidCut    = insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut && cerCut;
 
 TCut qualityCut = betaCut && hodostartCut && cerCut && insideDipoleExit;
 
@@ -113,6 +133,30 @@ TCut pDC2NoLarge = "(P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nh
 TCut pDCNoLarge = pDC1NoLarge && pDC2NoLarge;
 TCut pScinShould = pScinGood && pGoodBeta && pDCNoLarge;
 TCut pScinDid    = pScinShould && "P.dc.ntrack>0";
+
+
+// Deepak's tracking cuts
+TCut DeepakShould = "P.cal.etotnorm > 0.7 && P.ngcer.npeSum > 2. && P.hod.betanotrack < 1.2 && (P.dc.1x1.nhit + P.dc.1u2.nhit + P.dc.1u1.nhit + P.dc.1v1.nhit + P.dc.1x2.nhit + P.dc.1v2.nhit) < 21 && (P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nhit + P.dc.2x2.nhit + P.dc.2v2.nhit) < 21 && P.hod.goodscinhit==1 && P.hod.goodstarttime==1 && P.dc.InsideDipoleExit==1";
+
+TCut DeepakDelta4 = "-20 < P.gtr.dp && P.gtr.dp < 20";
+TCut DeepakDelta5 = "-15 < P.gtr.dp && P.gtr.dp < 15";
+TCut DeepakDelta7 = "-15 < P.gtr.dp && P.gtr.dp < 15";
+TCut DeepakY = "-5 < P.gtr.y && P.gtr.y < 5";
+TCut DeepakAngle = "-0.2 < P.gtr.th && P.gtr.th < 0.2 && -0.2 < P.gtr.ph && P.gtr.ph< 0.2 ";
+TCut fewNegADChits = "P.hod.1x.totNumGoodNegAdcHits<5 && P.hod.1y.totNumGoodNegAdcHits<5 && P.hod.2x.totNumGoodNegAdcHits<5 && P.hod.2y.totNumGoodNegAdcHits<5";
+TCut goodFpTime = "-10 < P.hod.1x.fptime && P.hod.1x.fptime < 50 && -10 < P.hod.1y.fptime && P.hod.1y.fptime < 50 && -10 < P.hod.2x.fptime && P.hod.2x.fptime < 50 && -10 < P.hod.2y.fptime && P.hod.2y.fptime < 50";
+
+TCut oneTrack = "P.dc.ntrack==1";
+TCut multiTrack = "P.dc.ntrack>1";
+
+TCut DeepakDid4 = DeepakShould && ( (oneTrack && DeepakDelta4) || (multiTrack && DeepakDelta4 && DeepakY) );
+TCut DeepakDid5 = DeepakShould && ( (oneTrack && DeepakDelta5) || (multiTrack && DeepakDelta5 && DeepakY) );
+TCut DeepakDid7 = DeepakShould && ( (oneTrack                ) || (multiTrack && DeepakDelta7 && DeepakY && DeepakAngle && goodFpTime && fewNegADChits) );
+
+// Which tracking cuts should we use? 
+// TODO: this should be a command line argument instead
+TCut trackShouldCut = DeepakShould;
+TCut trackDidCut = DeepakDid7;
 
 TCut goodCut = betaCut && deltaCut && hodostartCut && pidCut && insideDipoleExit;
 
@@ -129,17 +173,20 @@ void carbonboiling() {
 
     std::map<Int_t, Run*> runs = load();
 
+    // Scalers
+    calculateScalers(runs);
+
     // Generate quality plots
     // plot(runs);
+
+    // Livetime
+    calculateLivetime(runs);
 
     // Tracking efficiency
     calculateTrackingEfficiency(runs);
 
     // PID efficiency
     calculatePIDEfficiency(runs);
-
-    // Charge
-    calculateScalers(runs);
 
     // Yield
     calculateYield(runs);
@@ -153,7 +200,7 @@ void carbonboiling() {
 std::map<Int_t, Run*> load() {
     std::cout << "Load" << std::endl;
 
-    TString rootfileFormat = "/Volumes/ssd750/ct/pass5/shms_replay_production_%d_-1.root";
+    TString rootfileFormat = "/home/jmatter/ROOTfiles/pass5/shms_replay_production_all_%d_-1.root";
 
     std::map<Int_t, Run*> runs;
 
@@ -376,6 +423,32 @@ TH2F* drawTH2(TTree *T, TString xbranchstring, TString ybranchstring, TString hi
 }
 
 //--------------------------------------------------------------------------
+void calculateLivetime(std::map<Int_t, Run*> runs) {
+    std::cout << "Calculating livetime" << std::endl;
+
+    std::vector<Int_t> runNumbers = getRunNumbers(runs);
+
+    TString drawMe, histoname;
+    TTree *T;
+    TCut bcmCut, tdcCut;
+    for (auto run: runNumbers) {
+        T = runs[run]->T;
+        bcmCut = Form("abs(%s-%f) <= %f", bcmBranch.Data(), runs[run]->hclogCurrent, bcmCurrentCutDelta);
+        tdcCut = Form("%s > 0", physTDCBranch.Data());
+
+        histoname.Form("run%d_tdcNonZero", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe.Data(), bcmCut && tdcCut);
+        runs[run]->physTriggerCount = ((TEventList*)gDirectory->Get(histoname.Data()))->GetN();
+        runs[run]->physTriggerCount = correctForPrescale(runs[run]->physTriggerCount, runs[run]->ps1);
+
+        runs[run]->livetime = (runs[run]->physTriggerCount) / (runs[run]->physScalerCount);
+
+        runs[run]->livetimeUncertainty = runs[run]->livetime * sqrt(1/(runs[run]->physTriggerCount) + 1/(runs[run]->physScalerCount));
+    }
+}
+
+//--------------------------------------------------------------------------
 void calculateTrackingEfficiency(std::map<Int_t, Run*> runs) {
     std::cout << "Calculating tracking efficiency" << std::endl;
 
@@ -389,14 +462,14 @@ void calculateTrackingEfficiency(std::map<Int_t, Run*> runs) {
         // should
         histoname.Form("run%d_trackShould", run);
         drawMe.Form(">>%s", histoname.Data());
-        T->Draw(drawMe, pScinShould);
+        T->Draw(drawMe, trackShouldCut);
         runs[run]->trackShouldList = (TEventList*) gDirectory->Get(histoname.Data());
         runs[run]->trackShould = runs[run]->trackShouldList->GetN();
 
         // did
         histoname.Form("run%d_trackDid", run);
         drawMe.Form(">>%s", histoname.Data());
-        T->Draw(drawMe, pScinDid);
+        T->Draw(drawMe, trackDidCut);
         runs[run]->trackDidList = (TEventList*) gDirectory->Get(histoname.Data());
         runs[run]->trackDid = runs[run]->trackDidList->GetN();
 
@@ -477,38 +550,47 @@ void calculateScalers(std::map<Int_t, Run*> runs) {
     std::vector<Int_t> runNumbers = getRunNumbers(runs);
 
     TTree *T;
-    Double_t scalerCharge, scalerCurrent, scalerTime, ps1Rate, ps2Rate;
+    Double_t scalerCharge, scalerCurrent, scalerTime, ps1Rate, ps2Rate, physScalerCount;
     for (auto run: runNumbers) {
         T = runs[run]->TSP;
-        T->SetBranchAddress(bcmChargeBranch.Data(),     &scalerCharge);
-        T->SetBranchAddress(bcmCurrentBranch.Data(),    &scalerCurrent);
-        T->SetBranchAddress(oneMHzScalerBranch.Data(),  &scalerTime);
-        T->SetBranchAddress(ps1RateScalerBranch.Data(), &ps1Rate);
-        T->SetBranchAddress(ps2RateScalerBranch.Data(), &ps2Rate);
-
-        // Total charge should be last entry in this run's scaler tree
-        T->GetEntry(T->GetEntries()-1);
-
-        runs[run]->charge = scalerCharge;
-        runs[run]->time   = scalerTime;
-        runs[run]->myCurrent = scalerCharge/scalerTime;
+        T->SetBranchAddress(bcmScalerChargeBranch.Data(),  &scalerCharge);
+        T->SetBranchAddress(bcmScalerCurrentBranch.Data(), &scalerCurrent);
+        T->SetBranchAddress(oneMHzScalerBranch.Data(),     &scalerTime);
+        T->SetBranchAddress(ps1RateScalerBranch.Data(),    &ps1Rate);
+        T->SetBranchAddress(ps2RateScalerBranch.Data(),    &ps2Rate);
+        T->SetBranchAddress(physScalerBranch.Data(),       &physScalerCount);
 
         Double_t averagePS1=0;
         Double_t averagePS2=0;
-        Int_t n;
+        Double_t averageCurrent=0;
+        Double_t totalScalerTime=0;
+        Double_t totalScalerCharge=0;
+        Double_t totalScalerCounts=0;
+        Int_t n, beamOnN;
+        beamOnN = 0;
         for (n=0; n<T->GetEntries(); n++) {
             T->GetEntry(n);
-            if ((scalerCurrent-runs[run]->hclogCurrent) <= bcmCurrentCutDelta) {
+            if (abs(scalerCurrent-runs[run]->hclogCurrent) <= bcmCurrentCutDelta) {
+                beamOnN++;
                 averagePS1 += ps1Rate;
                 averagePS2 += ps2Rate;
+                averageCurrent += scalerCurrent;
+                totalScalerTime += scalerTime;
+                totalScalerCharge += scalerCharge;
+                totalScalerCounts += physScalerCount;
             }
         }
 
-        averagePS1 = correctForPrescale(averagePS1, runs[run]->ps1)/n;
-        averagePS2 = correctForPrescale(averagePS2, runs[run]->ps2)/n;
+        averagePS1 /= beamOnN;
+        averagePS2 /= beamOnN;
+        averageCurrent /= beamOnN;
 
         runs[run]->ps1Rate = averagePS1;
         runs[run]->ps2Rate = averagePS2;
+        runs[run]->myCurrent = averageCurrent;
+        runs[run]->charge = totalScalerCharge;
+        runs[run]->time = totalScalerTime;
+        runs[run]->physScalerCount = totalScalerCounts;
     }
 }
 
@@ -527,7 +609,12 @@ void calculateYield(std::map<Int_t, Run*> runs) {
         T->Draw(drawMe, goodCut);
         runs[run]->goodList = (TEventList*) gDirectory->Get(histoname.Data());
         runs[run]->goodEvents = correctForPrescale(runs[run]->goodList->GetN(), runs[run]->ps1);
-        runs[run]->yield = runs[run]->goodEvents / runs[run]->charge / runs[run]->trackingEfficiency;
+
+        runs[run]->yield = runs[run]->goodEvents / runs[run]->charge;
+        runs[run]->yield /= runs[run]->livetime;
+        runs[run]->yield /= runs[run]->trackingEfficiency;
+        runs[run]->yield /= runs[run]->calEfficiency;
+        runs[run]->yield /= runs[run]->cerEfficiency;
     }
 
 }
@@ -536,41 +623,56 @@ void calculateYield(std::map<Int_t, Run*> runs) {
 void print(std::map<Int_t, Run*> runs) {
     std::vector<Int_t> runNumbers = getRunNumbers(runs);
 
-    std::cout << "run, hclogCurrent, scalerCurrent, scalerCharge, scalerTime,"
-              << "trackingEfficiency, trackingEfficiencyUncertainty, trackDid, trackShould,"
-              << "cerEfficiency, cerEfficiencyUncertainty, cerDid, cerShould,"
-              << "calEfficiency, calEfficiencyUncertainty, calDid, calShould,"
-              << "goodEvents, uncorrectedYield, correctedYield, ps1Rate, ps2Rate, ps1, ps2"
-              << std::endl;
+    // Open file
+    std::ofstream ofs;
+    ofs.open("carbonboiling.csv");
+
+    ofs << "run, hclogCurrent, scalerCurrent, scalerCharge, scalerTime,"
+        << "livetime, livetimeUncertainty, physScalerCount, physTriggerCount,"
+        << "trackingEfficiency, trackingEfficiencyUncertainty, trackDid, trackShould,"
+        << "cerEfficiency, cerEfficiencyUncertainty, cerDid, cerShould,"
+        << "calEfficiency, calEfficiencyUncertainty, calDid, calShould,"
+        << "goodEvents, uncorrectedYield, correctedYield, ps1Rate, ps2Rate, ps1, ps2"
+        << std::endl;
     for (auto run: runNumbers) {
-        std::cout << Form("%d,%f,%f,%f,%f,%f,%f,%d,%d,%f,%f,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f,%d,%d",
-                           run,
-                           runs[run]->hclogCurrent,
-                           runs[run]->myCurrent,
-                           runs[run]->charge,
-                           runs[run]->time,
-                           runs[run]->trackingEfficiency,
-                           runs[run]->trackingEfficiencyUncertainty,
-                           int(runs[run]->trackDid),
-                           int(runs[run]->trackShould),
-                           runs[run]->cerEfficiency,
-                           runs[run]->cerEfficiencyUncertainty,
-                           int(runs[run]->caldid),
-                           int(runs[run]->cerShould),
-                           runs[run]->calEfficiency,
-                           runs[run]->calEfficiencyUncertainty,
-                           int(runs[run]->caldid),
-                           int(runs[run]->calShould),
-                           int(runs[run]->goodEvents),
-                           (runs[run]->goodEvents/runs[run]->charge),
-                           runs[run]->yield,
-                           runs[run]->ps1Rate,
-                           runs[run]->ps2Rate,
-                           runs[run]->ps1,
-                           runs[run]->ps2
-                         )
-                  << std::endl;
+        ofs << Form("%d,%f,%f,%f,%f,"
+                    "%f,%f,%d,%d,"
+                    "%f,%f,%d,%d,"
+                    "%f,%f,%d,%d,"
+                    "%f,%f,%d,%d,"
+                    "%d,%f,%f,%f,%f,%d,%d",
+                    run,
+                    runs[run]->hclogCurrent,
+                    runs[run]->myCurrent,
+                    runs[run]->charge,
+                    runs[run]->time,
+                    runs[run]->livetime,
+                    runs[run]->livetimeUncertainty,
+                    int(runs[run]->physScalerCount),
+                    int(runs[run]->physTriggerCount),
+                    runs[run]->trackingEfficiency,
+                    runs[run]->trackingEfficiencyUncertainty,
+                    int(runs[run]->trackDid),
+                    int(runs[run]->trackShould),
+                    runs[run]->cerEfficiency,
+                    runs[run]->cerEfficiencyUncertainty,
+                    int(runs[run]->calDid),
+                    int(runs[run]->cerShould),
+                    runs[run]->calEfficiency,
+                    runs[run]->calEfficiencyUncertainty,
+                    int(runs[run]->calDid),
+                    int(runs[run]->calShould),
+                    int(runs[run]->goodEvents),
+                    (runs[run]->goodEvents/runs[run]->charge),
+                    runs[run]->yield,
+                    runs[run]->ps1Rate,
+                    runs[run]->ps2Rate,
+                    runs[run]->ps1,
+                    runs[run]->ps2
+                   )
+            << std::endl;
     }
+    ofs.close();
 }
 
 //--------------------------------------------------------------------------
