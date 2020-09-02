@@ -39,6 +39,7 @@ struct Run {
     TTree   *T;
     TTree   *TSP;
     TFile   *file;
+    TString target;
     Double_t hclogCurrent; // [uA] What did hclog claim?
     Double_t myCurrent;    // [uA] What do I estimate?
     Double_t ps1Rate;      // [#/s]
@@ -61,10 +62,14 @@ struct Run {
     Double_t cerEfficiencyUncertainty;
     Double_t calEfficiency;
     Double_t calEfficiencyUncertainty;
-    Double_t livetime;
-    Double_t livetimeUncertainty;
+    Double_t clta;
+    Double_t cltaUncertainty;
     Double_t physScalerCount;
     Double_t physTriggerCount;
+    Double_t lte;
+    Double_t lteUncertainty;
+    Double_t edtmScalerCount;
+    Double_t edtmTriggerCount;
     TEventList* trackShouldList;
     TEventList* trackDidList;
     TEventList* calShouldList;
@@ -80,8 +85,12 @@ TString bcmScalerCurrentBranch = "P.BCM4A.scalerCurrent";
 TString oneMHzScalerBranch = "P.1MHz.scalerTime";
 TString ps1RateScalerBranch = "P.pTRIG1.scalerRate";
 TString ps2RateScalerBranch = "P.pTRIG2.scalerRate";
-TString physScalerBranch = "P.pTRIG1.scaler";
-TString physTDCBranch = "T.shms.pTRIG1_tdcTimeRaw";
+TString pTRIG1ScalerBranch = "P.pTRIG1.scaler";
+TString pTRIG2ScalerBranch = "P.pTRIG2.scaler";
+TString pTRIG1TDCBranch = "T.shms.pTRIG1_tdcTimeRaw";
+TString pTRIG2TDCBranch = "T.shms.pTRIG2_tdcTimeRaw";
+TString edtmScalerBranch = "P.EDTM.scaler";
+TString edtmTDCBranch = "T.shms.pEDTM_tdcTimeRaw";
 TString bcmBranch = "P.bcm.bcm4a.AvgCurrent";
 
 // "Beam on" condition:
@@ -89,7 +98,7 @@ TString bcmBranch = "P.bcm.bcm4a.AvgCurrent";
 Double_t bcmCurrentCutDelta = 3.0;
 
 // Functions called in main()
-void carbonboiling();
+void targetboiling();
 std::map<Int_t, Run*> load();
 std::vector<Int_t> getRunNumbers(std::map<Int_t, Run*> runs);
 void plot(std::map<Int_t, Run*> runs);
@@ -104,6 +113,7 @@ void calculateTrackingEfficiency(std::map<Int_t, Run*> runs);
 void calculatePIDEfficiency(std::map<Int_t, Run*> runs);
 void calculateYield(std::map<Int_t, Run*> runs);
 void print(std::map<Int_t, Run*> runs);
+Double_t getPrescaleFactor(Int_t ps);
 Double_t correctForPrescale(Double_t rate, Int_t ps);
 
 //--------------------------------------------------------------------------
@@ -111,32 +121,49 @@ Double_t correctForPrescale(Double_t rate, Int_t ps);
 // Should replace this with something NOT global
 TCut insideDipoleExit = "P.dc.InsideDipoleExit==1";
 TCut betaCut = "P.gtr.beta > 0.6 && P.gtr.beta < 1.4";
-TCut deltaCut = "P.gtr.dp > -10 && P.gtr.dp < 20";
+TCut deltaCut = "P.gtr.dp > -10 && P.gtr.dp < 12";
 TCut hodostartCut = "P.hod.goodstarttime==1";
 
-TCut calCut = "0.2 < P.cal.etottracknorm && P.cal.etottracknorm < 1.2";
-TCut cerCut = "P.ngcer.npeSum > 0";
+TCut calCut = "P.cal.etottracknorm > 0.7 && P.cal.eprtracknorm > 0.035";
+TCut cerCut = "P.ngcer.npeSum > 5.0";
 TCut pidCut = calCut && cerCut;
 
-TCut calShouldCut = insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut;
-TCut calDidCut    = insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut && calCut;
-
-TCut cerShouldCut = insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut;
-TCut cerDidCut    = insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut && cerCut;
-
-TCut qualityCut = betaCut && hodostartCut && cerCut && insideDipoleExit;
+TCut qualityCut = betaCut && hodostartCut && cerCut && calCut && insideDipoleExit;
 
 TCut pScinGood = "P.hod.goodscinhit==1";
-TCut pGoodBeta = "P.hod.betanotrack > 0.5 && P.hod.betanotrack < 1.4";
-TCut pDC1NoLarge = "(P.dc.1x1.nhit + P.dc.1u2.nhit + P.dc.1u1.nhit + P.dc.1v1.nhit + P.dc.1x2.nhit + P.dc.1v2.nhit) < 21";
-TCut pDC2NoLarge = "(P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nhit + P.dc.2x2.nhit + P.dc.2v2.nhit) < 21";
+TCut pGoodBeta = " P.hod.betanotrack < 1.4";
+TCut pDC1NoLarge = "(P.dc.1x1.nhit + P.dc.1u2.nhit + P.dc.1u1.nhit + P.dc.1v1.nhit + P.dc.1x2.nhit + P.dc.1v2.nhit) < 25";
+TCut pDC2NoLarge = "(P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nhit + P.dc.2x2.nhit + P.dc.2v2.nhit) < 25";
 TCut pDCNoLarge = pDC1NoLarge && pDC2NoLarge;
 TCut pScinShould = pScinGood && pGoodBeta && pDCNoLarge;
 TCut pScinDid    = pScinShould && "P.dc.ntrack>0";
 
 
 // Deepak's tracking cuts
-TCut DeepakShould = "P.cal.etotnorm > 0.7 && P.ngcer.npeSum > 2. && P.hod.betanotrack < 1.2 && (P.dc.1x1.nhit + P.dc.1u2.nhit + P.dc.1u1.nhit + P.dc.1v1.nhit + P.dc.1x2.nhit + P.dc.1v2.nhit) < 21 && (P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nhit + P.dc.2x2.nhit + P.dc.2v2.nhit) < 21 && P.hod.goodscinhit==1 && P.hod.goodstarttime==1 && P.dc.InsideDipoleExit==1";
+TCut DeepakBetaCut = "P.gtr.beta < 1.4 && P.gtr.beta > 0.8";
+TCut DeepakCerCut = "P.ngcer.npeSum > 5.0";
+TCut DeepakCalCut = "P.cal.eprtracknorm > 0.035 && P.cal.etottracknorm > 0.7";
+TCut tightAcceptanceCut = "P.gtr.th < 0.05 && P.gtr.th > -0.05 && P.gtr.dp < 12 && P.gtr.dp > -10.0 && P.gtr.ph < 0.05 && P.gtr.ph > -0.05 && P.dc.y_fp > -20 && P.dc.y_fp < 25 && P.dc.x_fp > -25 && P.dc.x_fp < 20";
+TCut DeepakCalShould = DeepakBetaCut && pScinGood && insideDipoleExit && tightAcceptanceCut && DeepakCerCut;
+TCut DeepakCalDid    = DeepakBetaCut && pScinGood && insideDipoleExit && tightAcceptanceCut && DeepakCerCut && DeepakCalCut;
+TCut DeepakCerShould = DeepakBetaCut && pScinGood && insideDipoleExit && tightAcceptanceCut && DeepakCalCut;
+TCut DeepakCerDid    = DeepakBetaCut && pScinGood && insideDipoleExit && tightAcceptanceCut && DeepakCalCut && DeepakCerCut;
+
+// TCut calShouldCut = DeepakCalShould;
+// TCut calDidCut = DeepakCalDid;
+// TCut cerShouldCut = DeepakCerShould;
+// TCut cerDidCut = DeepakCerDid;
+
+TCut calShouldCut = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut;
+TCut calDidCut    = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut && calCut;
+TCut cerShouldCut = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut;
+TCut cerDidCut    = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut && cerCut;
+
+TCut DeepakTrackCer = "P.ngcer.npeSum > 5.0";
+TCut DeepakTrackCal = "P.cal.etotnorm > 0.7";
+TCut DeepakBetanotrack = "P.hod.betanotrack < 1.4";
+
+TCut DeepakTrackShould = DeepakTrackCer && DeepakTrackCal && DeepakBetanotrack && pDC1NoLarge && pDC2NoLarge && pScinGood && hodostartCut && insideDipoleExit;
 
 TCut DeepakDelta4 = "-20 < P.gtr.dp && P.gtr.dp < 20";
 TCut DeepakDelta5 = "-15 < P.gtr.dp && P.gtr.dp < 15";
@@ -149,25 +176,25 @@ TCut goodFpTime = "-10 < P.hod.1x.fptime && P.hod.1x.fptime < 50 && -10 < P.hod.
 TCut oneTrack = "P.dc.ntrack==1";
 TCut multiTrack = "P.dc.ntrack>1";
 
-TCut DeepakDid4 = DeepakShould && ( (oneTrack && DeepakDelta4) || (multiTrack && DeepakDelta4 && DeepakY) );
-TCut DeepakDid5 = DeepakShould && ( (oneTrack && DeepakDelta5) || (multiTrack && DeepakDelta5 && DeepakY) );
-TCut DeepakDid7 = DeepakShould && ( (oneTrack                ) || (multiTrack && DeepakDelta7 && DeepakY && DeepakAngle && goodFpTime && fewNegADChits) );
+TCut DeepakTrackDid4 = DeepakTrackShould && ( (oneTrack && DeepakDelta4) || (multiTrack && DeepakDelta4 && DeepakY) );
+TCut DeepakTrackDid5 = DeepakTrackShould && ( (oneTrack && DeepakDelta5) || (multiTrack && DeepakDelta5 && DeepakY) );
+TCut DeepakTrackDid7 = DeepakTrackShould && ( (oneTrack                ) || (multiTrack && DeepakDelta7 && DeepakY && DeepakAngle && goodFpTime && fewNegADChits) );
 
-// Which tracking cuts should we use? 
+// Which tracking cuts should we use?
 // TODO: this should be a command line argument instead
-TCut trackShouldCut = DeepakShould;
-TCut trackDidCut = DeepakDid7;
+TCut trackShouldCut = DeepakTrackShould;
+TCut trackDidCut = DeepakTrackDid7;
 
 TCut goodCut = betaCut && deltaCut && hodostartCut && pidCut && insideDipoleExit;
 
 //--------------------------------------------------------------------------
 int main() {
-    carbonboiling();
+    targetboiling();
     return 0;
 }
 
 //--------------------------------------------------------------------------
-void carbonboiling() {
+void targetboiling() {
 
     TString pdfFilename;
 
@@ -176,7 +203,7 @@ void carbonboiling() {
     // Scalers
     calculateScalers(runs);
 
-    // Generate quality plots
+    // // Generate quality plots
     // plot(runs);
 
     // Livetime
@@ -200,7 +227,8 @@ void carbonboiling() {
 std::map<Int_t, Run*> load() {
     std::cout << "Load" << std::endl;
 
-    TString rootfileFormat = "/home/jmatter/ROOTfiles/pass5/shms_replay_production_all_%d_-1.root";
+    // TString rootfileFormat = "/volatile/hallc/comm2017/e1206107/ROOTfiles/lumi_scan/lumi_scan/edtm/shms_replay_production_all_%d_-1.root";
+    TString rootfileFormat = "/home/jmatter/ROOTfiles/pass5/shms_replay_production_all_%d_1000000.root";
 
     std::map<Int_t, Run*> runs;
 
@@ -208,8 +236,11 @@ std::map<Int_t, Run*> load() {
     // These data are from January 2018 right around the time we took
     // our first batch of data.
     std::vector<Int_t> runNumbers = {
-        // 2013, 2012, 2011, 2010, 2009,
-        2000, 1999, 1998, 1997, 1996, 1995, 1994, 1993, 1992
+        3225, 3224, 3223, 3222,
+        3114, 3113, 3112, 3111, 3110, 3109,
+        // 2013, 2012, 2010,
+        2000, 1999, 1998, 1997, 1996, 1995, // 1994, 1993, 1992,
+        3215, 3214, 3213, 3212, 3211, 3210, 3207, 3206
     };
 
     // Initialize and load each run
@@ -220,83 +251,134 @@ std::map<Int_t, Run*> load() {
         runs[run]->file->GetObject("TSP", runs[run]->TSP);
     }
 
+    // Add targets from the HCLOG comments
+    runs[3225]->target = "C12";
+    runs[3224]->target = "C12";
+    runs[3223]->target = "C12";
+    runs[3222]->target = "C12";
+    runs[3114]->target = "C12";
+    runs[3113]->target = "C12";
+    runs[3112]->target = "C12";
+    runs[3111]->target = "C12";
+    runs[3110]->target = "C12";
+    runs[3109]->target = "C12";
+    // runs[2013]->target = "C12";
+    // runs[2012]->target = "C12";
+    // runs[2010]->target = "C12";
+    runs[2000]->target = "C12";
+    runs[1999]->target = "C12";
+    runs[1998]->target = "C12";
+    runs[1997]->target = "C12";
+    runs[1996]->target = "C12";
+    runs[1995]->target = "C12";
+    // runs[1994]->target = "C12";
+    // runs[1993]->target = "C12";
+    // runs[1992]->target = "C12";
+    runs[3206]->target = "LH2";
+    runs[3207]->target = "LH2";
+    runs[3210]->target = "LH2";
+    runs[3211]->target = "LH2";
+    runs[3212]->target = "LH2";
+    runs[3213]->target = "LH2";
+    runs[3214]->target = "LH2";
+    runs[3215]->target = "LH2";
+
     // Add currents from the HCLOG comments
-    // runs[3225]->hclogCurrent = 35;
-    // runs[3224]->hclogCurrent = 50;
-    // runs[3223]->hclogCurrent = 60;
-    // runs[3222]->hclogCurrent = 65;
-    // runs[3114]->hclogCurrent = 60;
-    // runs[3113]->hclogCurrent = 50;
-    // runs[3112]->hclogCurrent = 25;
-    // runs[3111]->hclogCurrent = 10;
-    // runs[3110]->hclogCurrent = 5;
-    // runs[3109]->hclogCurrent = 2.5;
+    runs[3225]->hclogCurrent = 35;
+    runs[3224]->hclogCurrent = 50;
+    runs[3223]->hclogCurrent = 60;
+    runs[3222]->hclogCurrent = 60;
+    runs[3114]->hclogCurrent = 60;
+    runs[3113]->hclogCurrent = 50;
+    runs[3112]->hclogCurrent = 25;
+    runs[3111]->hclogCurrent = 10;
+    runs[3110]->hclogCurrent = 5;
+    runs[3109]->hclogCurrent = 2.5;
     // runs[2013]->hclogCurrent = 65;
     // runs[2012]->hclogCurrent = 55;
-    // runs[2011]->hclogCurrent = 55;
     // runs[2010]->hclogCurrent = 65;
-    // runs[2009]->hclogCurrent = 55;
     runs[2000]->hclogCurrent = 65;
     runs[1999]->hclogCurrent = 60;
     runs[1998]->hclogCurrent = 50;
     runs[1997]->hclogCurrent = 40;
     runs[1996]->hclogCurrent = 30;
     runs[1995]->hclogCurrent = 20;
-    runs[1994]->hclogCurrent = 10;
-    runs[1993]->hclogCurrent = 7;
-    runs[1992]->hclogCurrent = 2; // Ignore this one?
+    // runs[1994]->hclogCurrent = 10;
+    // runs[1993]->hclogCurrent = 7;
+    // runs[1992]->hclogCurrent = 2;
+    runs[3206]->hclogCurrent = 75;
+    runs[3207]->hclogCurrent = 70;
+    runs[3210]->hclogCurrent = 10;
+    runs[3211]->hclogCurrent = 20;
+    runs[3212]->hclogCurrent = 35;
+    runs[3213]->hclogCurrent = 35;
+    runs[3214]->hclogCurrent = 45;
+    runs[3215]->hclogCurrent = 55;
 
     // PS1 from HCLOG
-    // runs[3225]->ps1 = -1;
-    // runs[3224]->ps1 = -1;
-    // runs[3223]->ps1 = -1;
-    // runs[3222]->ps1 = -1;
-    // runs[3114]->ps1 = -1;
-    // runs[3113]->ps1 = -1;
-    // runs[3112]->ps1 = -1;
-    // runs[3111]->ps1 = -1;
-    // runs[3110]->ps1 = -1;
-    // runs[3109]->ps1 = -1;
+    runs[3225]->ps1 = -1;
+    runs[3224]->ps1 = -1;
+    runs[3223]->ps1 = -1;
+    runs[3222]->ps1 = -1;
+    runs[3114]->ps1 = -1;
+    runs[3113]->ps1 = -1;
+    runs[3112]->ps1 = -1;
+    runs[3111]->ps1 = -1;
+    runs[3110]->ps1 = -1;
+    runs[3109]->ps1 = -1;
     // runs[2013]->ps1 = 6;
     // runs[2012]->ps1 = 5;
-    // runs[2011]->ps1 = 5;
-    // runs[2010]->ps1 = 10;
-    // runs[2009]->ps1 = 10;
+    // runs[2010]->ps1 = 0;
     runs[2000]->ps1 = 6;
     runs[1999]->ps1 = 5;
     runs[1998]->ps1 = 5;
     runs[1997]->ps1 = 5;
     runs[1996]->ps1 = 4;
     runs[1995]->ps1 = 4;
-    runs[1994]->ps1 = 2;
-    runs[1993]->ps1 = 1;
-    runs[1992]->ps1 = 0;
+    // runs[1994]->ps1 = 2;
+    // runs[1993]->ps1 = 1;
+    // runs[1992]->ps1 = 0;
+    runs[3206]->ps1 = -1;
+    runs[3207]->ps1 = -1;
+    runs[3210]->ps1 = -1;
+    runs[3211]->ps1 = -1;
+    runs[3212]->ps1 = -1;
+    runs[3213]->ps1 = -1;
+    runs[3214]->ps1 = -1;
+    runs[3215]->ps1 = -1;
+
 
     // PS2 from HCLOG
-    // runs[3225]->ps2 = 0;
-    // runs[3224]->ps2 = 0;
-    // runs[3223]->ps2 = 0;
-    // runs[3222]->ps2 = 0;
-    // runs[3114]->ps2 = 7;
-    // runs[3113]->ps2 = 6;
-    // runs[3112]->ps2 = 5;
-    // runs[3111]->ps2 = 4;
-    // runs[3110]->ps2 = 2;
-    // runs[3109]->ps2 = 1;
+    runs[3225]->ps2 = 0;
+    runs[3224]->ps2 = 0;
+    runs[3223]->ps2 = 0;
+    runs[3222]->ps2 = 0;
+    runs[3114]->ps2 = 7;
+    runs[3113]->ps2 = 6;
+    runs[3112]->ps2 = 5;
+    runs[3111]->ps2 = 4;
+    runs[3110]->ps2 = 2;
+    runs[3109]->ps2 = 1;
     // runs[2013]->ps2 = -1;
     // runs[2012]->ps2 = -1;
-    // runs[2011]->ps2 = -1;
     // runs[2010]->ps2 = -1;
-    // runs[2009]->ps2 = -1;
     runs[2000]->ps2 = -1;
     runs[1999]->ps2 = -1;
     runs[1998]->ps2 = -1;
     runs[1997]->ps2 = -1;
     runs[1996]->ps2 = -1;
     runs[1995]->ps2 = -1;
-    runs[1994]->ps2 = -1;
-    runs[1993]->ps2 = -1;
-    runs[1992]->ps2 = -1;
+    // runs[1994]->ps2 = -1;
+    // runs[1993]->ps2 = -1;
+    // runs[1992]->ps2 = -1;
+    runs[3206]->ps2 = 0;
+    runs[3207]->ps2 = 0;
+    runs[3210]->ps2 = 0;
+    runs[3211]->ps2 = 0;
+    runs[3212]->ps2 = 0;
+    runs[3213]->ps2 = 0;
+    runs[3214]->ps2 = 0;
+    runs[3215]->ps2 = 0;
 
     return runs;
 }
@@ -387,11 +469,11 @@ void plot(std::map<Int_t, Run*> runs) {
 
         // NGC NPE sum vs etottracknorm
         histoname = Form("run%d_NGC_vs_etottracknorm", run);
-        h2 = drawTH2(T, "P.ngcer.npeSum", "P.cal.etottracknorm", histoname, 75, 0, 1.5, 80, 0, 40, betaCut && cerCut);
+        h2 = drawTH2(T, "P.ngcer.npeSum", "P.cal.etottracknorm", histoname, 75, 0, 1.5, 80, 0, 40, betaCut);
         h2->Write();
         // NGC NPE sum vs etottracknorm
         histoname = Form("run%d_NGC_vs_etottracknorm_deltacut", run);
-        h2 = drawTH2(T, "P.ngcer.npeSum", "P.cal.etottracknorm", histoname, 75, 0, 1.5, 80, 0, 40, betaCut && cerCut && deltaCut);
+        h2 = drawTH2(T, "P.ngcer.npeSum", "P.cal.etottracknorm", histoname, 75, 0, 1.5, 80, 0, 40, betaCut && deltaCut);
         h2->Write();
 
         // BCM4A current over time
@@ -431,20 +513,51 @@ void calculateLivetime(std::map<Int_t, Run*> runs) {
     TString drawMe, histoname;
     TTree *T;
     TCut bcmCut, tdcCut;
+    TString trigTDCBranch;
+    Int_t ps;
     for (auto run: runNumbers) {
+        std::cout << run << std::endl;
         T = runs[run]->T;
         bcmCut = Form("abs(%s-%f) <= %f", bcmBranch.Data(), runs[run]->hclogCurrent, bcmCurrentCutDelta);
-        tdcCut = Form("%s > 0", physTDCBranch.Data());
+        if (runs[run]->hclogCurrent<bcmCurrentCutDelta) {
+            bcmCut = Form("abs(%s-%f) <= %f", bcmBranch.Data(), runs[run]->hclogCurrent, 1.0);
+        }
 
-        histoname.Form("run%d_tdcNonZero", run);
+        ps = -1;
+        if (run>=3109 && run<=3225) {
+            ps = runs[run]->ps2;
+            trigTDCBranch = pTRIG2TDCBranch;
+        }
+        if (run>=1992 && run<=2013) {
+            ps = runs[run]->ps1;
+            trigTDCBranch = pTRIG1TDCBranch;
+        }
+
+        // ------------------------------------------
+        // Calculate CLT_A
+        tdcCut = Form("%s > 0", trigTDCBranch.Data());
+
+        histoname.Form("run%d_physTdcNonZero", run);
         drawMe.Form(">>%s", histoname.Data());
         T->Draw(drawMe.Data(), bcmCut && tdcCut);
         runs[run]->physTriggerCount = ((TEventList*)gDirectory->Get(histoname.Data()))->GetN();
-        runs[run]->physTriggerCount = correctForPrescale(runs[run]->physTriggerCount, runs[run]->ps1);
+        // runs[run]->physTriggerCount = correctForPrescale(runs[run]->physTriggerCount, ps);
 
-        runs[run]->livetime = (runs[run]->physTriggerCount) / (runs[run]->physScalerCount);
+        runs[run]->clta = correctForPrescale(runs[run]->physTriggerCount, ps) / (runs[run]->physScalerCount);
+        runs[run]->cltaUncertainty = runs[run]->clta * sqrt(1/correctForPrescale(runs[run]->physTriggerCount, ps) + 1/(runs[run]->physScalerCount));
 
-        runs[run]->livetimeUncertainty = runs[run]->livetime * sqrt(1/(runs[run]->physTriggerCount) + 1/(runs[run]->physScalerCount));
+        // ------------------------------------------
+        // Calculate LT_E
+        tdcCut = Form("%s > 0", edtmTDCBranch.Data());
+
+        histoname.Form("run%d_edtmTdcNonZero", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe.Data(), bcmCut && tdcCut);
+        runs[run]->edtmTriggerCount = ((TEventList*)gDirectory->Get(histoname.Data()))->GetN();
+        // runs[run]->edtmTriggerCount = correctForPrescale(runs[run]->edtmTriggerCount, ps);
+
+        runs[run]->lte = correctForPrescale(runs[run]->edtmTriggerCount, ps) / (runs[run]->edtmScalerCount);
+        runs[run]->lteUncertainty = runs[run]->lte * sqrt(1/correctForPrescale(runs[run]->edtmTriggerCount, ps) + 1/(runs[run]->edtmScalerCount));
     }
 }
 
@@ -545,13 +658,22 @@ void calculatePIDEfficiency(std::map<Int_t, Run*> runs) {
 
 //--------------------------------------------------------------------------
 void calculateScalers(std::map<Int_t, Run*> runs) {
-    std::cout << "Calculating total charge" << std::endl;
+    std::cout << "Calculating scalers" << std::endl;
 
     std::vector<Int_t> runNumbers = getRunNumbers(runs);
 
     TTree *T;
-    Double_t scalerCharge, scalerCurrent, scalerTime, ps1Rate, ps2Rate, physScalerCount;
+    TString physScalerBranch;
+    Double_t scalerCharge, scalerCurrent, scalerTime, ps1Rate, ps2Rate, physScalerCount, edtmScalerCount;
     for (auto run: runNumbers) {
+
+        if (run>=3109 && run<=3114) {
+            physScalerBranch = pTRIG2ScalerBranch;
+        }
+        if (run>=1992 && run<=2000) {
+            physScalerBranch = pTRIG1ScalerBranch;
+        }
+
         T = runs[run]->TSP;
         T->SetBranchAddress(bcmScalerChargeBranch.Data(),  &scalerCharge);
         T->SetBranchAddress(bcmScalerCurrentBranch.Data(), &scalerCurrent);
@@ -559,26 +681,45 @@ void calculateScalers(std::map<Int_t, Run*> runs) {
         T->SetBranchAddress(ps1RateScalerBranch.Data(),    &ps1Rate);
         T->SetBranchAddress(ps2RateScalerBranch.Data(),    &ps2Rate);
         T->SetBranchAddress(physScalerBranch.Data(),       &physScalerCount);
+        T->SetBranchAddress(edtmScalerBranch.Data(),       &edtmScalerCount);
 
         Double_t averagePS1=0;
         Double_t averagePS2=0;
         Double_t averageCurrent=0;
         Double_t totalScalerTime=0;
         Double_t totalScalerCharge=0;
-        Double_t totalScalerCounts=0;
+        Double_t totalPhysScalerCounts=0;
+        Double_t totalEDTMScalerCounts=0;
+
+        Double_t lastReadPS1=0;
+        Double_t lastReadPS2=0;
+        Double_t lastReadCurrent=0;
+        Double_t lastReadScalerTime=0;
+        Double_t lastReadScalerCharge=0;
+        Double_t lastReadPhysScalerCounts=0;
+        Double_t lastReadEDTMScalerCounts=0;
+
         Int_t n, beamOnN;
         beamOnN = 0;
         for (n=0; n<T->GetEntries(); n++) {
             T->GetEntry(n);
+
             if (abs(scalerCurrent-runs[run]->hclogCurrent) <= bcmCurrentCutDelta) {
                 beamOnN++;
                 averagePS1 += ps1Rate;
                 averagePS2 += ps2Rate;
                 averageCurrent += scalerCurrent;
-                totalScalerTime += scalerTime;
-                totalScalerCharge += scalerCharge;
-                totalScalerCounts += physScalerCount;
+                totalScalerTime += (scalerTime-lastReadScalerTime);
+                totalScalerCharge += (scalerCharge-lastReadScalerCharge);
+                totalPhysScalerCounts += (physScalerCount-lastReadPhysScalerCounts);
+                totalEDTMScalerCounts += (edtmScalerCount-lastReadEDTMScalerCounts);
             }
+
+            lastReadScalerTime = scalerTime;
+            lastReadScalerCharge = scalerCharge;
+            lastReadPhysScalerCounts = physScalerCount;
+            lastReadEDTMScalerCounts = edtmScalerCount;
+
         }
 
         averagePS1 /= beamOnN;
@@ -590,7 +731,8 @@ void calculateScalers(std::map<Int_t, Run*> runs) {
         runs[run]->myCurrent = averageCurrent;
         runs[run]->charge = totalScalerCharge;
         runs[run]->time = totalScalerTime;
-        runs[run]->physScalerCount = totalScalerCounts;
+        runs[run]->physScalerCount = totalPhysScalerCounts;
+        runs[run]->edtmScalerCount = totalEDTMScalerCounts;
     }
 }
 
@@ -602,16 +744,26 @@ void calculateYield(std::map<Int_t, Run*> runs) {
 
     TString drawMe, histoname;
     TTree *T;
+    Int_t ps;
     for (auto run: runNumbers) {
         T = runs[run]->T;
         histoname.Form("run%d_good", run);
         drawMe.Form(">>%s", histoname.Data());
         T->Draw(drawMe, goodCut);
         runs[run]->goodList = (TEventList*) gDirectory->Get(histoname.Data());
-        runs[run]->goodEvents = correctForPrescale(runs[run]->goodList->GetN(), runs[run]->ps1);
+
+        ps = -1;
+        if (run>=3109 && run<=3225) {
+            ps = runs[run]->ps2;
+        }
+        if (run>=1992 && run<=2013) {
+            ps = runs[run]->ps1;
+        }
+
+        runs[run]->goodEvents = correctForPrescale(runs[run]->goodList->GetN(), ps);
 
         runs[run]->yield = runs[run]->goodEvents / runs[run]->charge;
-        runs[run]->yield /= runs[run]->livetime;
+        runs[run]->yield /= runs[run]->clta;
         runs[run]->yield /= runs[run]->trackingEfficiency;
         runs[run]->yield /= runs[run]->calEfficiency;
         runs[run]->yield /= runs[run]->cerEfficiency;
@@ -625,31 +777,40 @@ void print(std::map<Int_t, Run*> runs) {
 
     // Open file
     std::ofstream ofs;
-    ofs.open("carbonboiling.csv");
+    ofs.open("targetboiling.csv");
 
-    ofs << "run, hclogCurrent, scalerCurrent, scalerCharge, scalerTime,"
-        << "livetime, livetimeUncertainty, physScalerCount, physTriggerCount,"
+    ofs << "run, target, hclogCurrent, scalerCurrent, scalerCharge, scalerTime,"
+        << "clta, cltaUncertainty, physScalerCount, physTriggerCount,"
+        << "lte, lteUncertainty, edtmScalerCount, edtmTriggerCount,"
         << "trackingEfficiency, trackingEfficiencyUncertainty, trackDid, trackShould,"
         << "cerEfficiency, cerEfficiencyUncertainty, cerDid, cerShould,"
         << "calEfficiency, calEfficiencyUncertainty, calDid, calShould,"
-        << "goodEvents, uncorrectedYield, correctedYield, ps1Rate, ps2Rate, ps1, ps2"
+        << "goodEvents, uncorrectedYield, correctedYield,"
+        << "ps1Rate, ps2Rate, ps1, ps2, ps1Factor, ps2Factor"
         << std::endl;
     for (auto run: runNumbers) {
-        ofs << Form("%d,%f,%f,%f,%f,"
+        ofs << Form("%d,%s,%f,%f,%f,%f,"
                     "%f,%f,%d,%d,"
                     "%f,%f,%d,%d,"
                     "%f,%f,%d,%d,"
                     "%f,%f,%d,%d,"
-                    "%d,%f,%f,%f,%f,%d,%d",
+                    "%f,%f,%d,%d,"
+                    "%d,%f,%f,"
+                    "%f,%f,%d,%d,%d,%d",
                     run,
+                    runs[run]->target.Data(),
                     runs[run]->hclogCurrent,
                     runs[run]->myCurrent,
                     runs[run]->charge,
                     runs[run]->time,
-                    runs[run]->livetime,
-                    runs[run]->livetimeUncertainty,
+                    runs[run]->clta,
+                    runs[run]->cltaUncertainty,
                     int(runs[run]->physScalerCount),
                     int(runs[run]->physTriggerCount),
+                    runs[run]->lte,
+                    runs[run]->lteUncertainty,
+                    int(runs[run]->edtmScalerCount),
+                    int(runs[run]->edtmTriggerCount),
                     runs[run]->trackingEfficiency,
                     runs[run]->trackingEfficiencyUncertainty,
                     int(runs[run]->trackDid),
@@ -668,7 +829,9 @@ void print(std::map<Int_t, Run*> runs) {
                     runs[run]->ps1Rate,
                     runs[run]->ps2Rate,
                     runs[run]->ps1,
-                    runs[run]->ps2
+                    runs[run]->ps2,
+                    int(getPrescaleFactor(runs[run]->ps1)),
+                    int(getPrescaleFactor(runs[run]->ps2))
                    )
             << std::endl;
     }
@@ -676,8 +839,7 @@ void print(std::map<Int_t, Run*> runs) {
 }
 
 //--------------------------------------------------------------------------
-Double_t correctForPrescale(Double_t rate, Int_t ps) {
-    Double_t correctedRate;
+Double_t getPrescaleFactor(Int_t ps) {
 
     // Lookup table
     std::map<Int_t,Int_t> psfactor;
@@ -700,7 +862,10 @@ Double_t correctForPrescale(Double_t rate, Int_t ps) {
     psfactor[15] = 16385;
     psfactor[16] = 32769;
 
-    correctedRate = rate*psfactor[ps];
+    return psfactor[ps];
+}
 
-    return correctedRate;
+//--------------------------------------------------------------------------
+Double_t correctForPrescale(Double_t x, Int_t ps) {
+    return x * getPrescaleFactor(ps);
 }
