@@ -6,11 +6,11 @@
         },
         {
             "name" : "pDeltaCut",
-            "cut"  : "\"P.gtr.dp > -12 && P.gtr.dp < 12\""
+            "cut"  : "\"P.gtr.dp > -10 && P.gtr.dp < 12\""
         },
         {
             "name" : "pBetaCut",
-            "cut"  : "\"P.gtr.beta > 0.6 && P.gtr.beta < 1.4\""
+            "cut"  : "\"P.gtr.beta < 1.4\""
         },
         {
             "name" : "pCalCut",
@@ -30,11 +30,11 @@
         },
         {
             "name" : "pLH2EMissPMissCut",
-            "cut"  : "\"-0.03 < P.kin.secondary.emiss && P.kin.secondary.emiss < 0.05 && abs(P.kin.secondary.pmiss) < 0.05\""
+            "cut"  : "\"-0.03 < P.kin.secondary.emiss && P.kin.secondary.emiss < 0.09 && abs(P.kin.secondary.pmiss) < 0.09\""
         },
         {
             "name" : "pC12EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.08 && abs(P.kin.secondary.pmiss) < 0.3\""
+            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.09 && abs(P.kin.secondary.pmiss) < 0.3\""
         },
         {
             "name" : "hHodoTimeCut",
@@ -149,12 +149,24 @@
             "cut"  : "pProtonPID && hBetaCut && hDeltaCut && pDeltaCut && pBetaCut"
         },
         {
+            "name" : "hInsideDipole",
+            "cut"  : "\"H.dc.InsideDipoleExit==1\""
+        },
+        {
+            "name" : "pInsideDipole",
+            "cut"  : "\"P.dc.InsideDipoleExit==1\""
+        },
+        {
+            "name" : "coinTime",
+            "cut"  : "\"8.5 < CTime.epCoinTime_ROC2 && CTime.epCoinTime_ROC2 < 12.5\""
+        },
+        {
             "name" : "coinCutsC12",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pC12EMissPMissCut"
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pC12EMissPMissCut && hInsideDipole && pInsideDipole && coinTime"
         },
         {
             "name" : "coinCutsLH2",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pLH2EMissPMissCut"
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pLH2EMissPMissCut && coinTime"
         },
         {
             "name" : "pScinGood",

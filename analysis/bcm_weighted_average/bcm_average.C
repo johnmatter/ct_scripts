@@ -61,9 +61,11 @@ struct bcm_avg_t {
     std::vector<Double_t> weights;
     std::vector<Double_t> rawScalerIncrements;
     std::vector<Double_t> charges;
+    std::vector<Double_t> goodEvents;
     Double_t myCharge;
     Double_t scalerCharge;
     Double_t scalerChargeCut;
+    Double_t goodEventsTotal;
 };
 
 void bcm_average();
@@ -74,8 +76,10 @@ int main () {
 }
 
 void bcm_average() {
-    // Load data
+    // Load data and cuts
     CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
+    CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
+    TCut goodCut;
 
     // Which bcm?
     TString scalerRawBranch       = "P.BCM4A.scaler";
@@ -466,9 +470,12 @@ void bcm_average() {
 
     TString rootFilename;
     TFile *file;
-    TTree *T;
+    TTree *TSP, *T;
 
     Int_t regionBegin, regionEnd;
+    Int_t event;
+    Int_t firstEvent;
+    Int_t lastEvent;
     Double_t bcmCurrent;    // in uA
     Double_t bcmCharge;     // in uC
     Double_t bcmChargeCut;  // in uC
@@ -493,22 +500,30 @@ void bcm_average() {
                                 data->GetRootfileDirectory().Data(),
                                 run);
             file = new TFile(rootFilename.Data(), "READ");
-            file->GetObject("TSP", T);
+            file->GetObject("TSP", TSP);
+            file->GetObject("T", T);
 
             // Draw diagnostic histogram
             canvasName = Form("run%d_%s", run, scalerCurrentBranch.Data());
             drawMe = Form("%s:This->GetReadEntry()", scalerCurrentBranch.Data());
-            N = T->Draw(drawMe.Data(), "", "goff");
+            N = TSP->Draw(drawMe.Data(), "", "goff");
 
-            graphs[run] = new TGraph(N, T->GetV2(), T->GetV1());
+            graphs[run] = new TGraph(N, TSP->GetV2(), TSP->GetV1());
             graphs[run]->SetTitle(Form("run %d; Entry; %s", run, scalerCurrentBranch.Data()));
             graphs[run]->Draw("AL");
 
             // Set branch addresses
-            T->SetBranchAddress(scalerRawBranch.Data(),       &thisRawScalerRead);
-            T->SetBranchAddress(scalerCurrentBranch.Data(),   &bcmCurrent);
-            T->SetBranchAddress(scalerChargeBranch.Data(),    &bcmCharge);
-            T->SetBranchAddress(scalerChargeCutBranch.Data(), &bcmChargeCut);
+            TSP->SetBranchAddress(scalerRawBranch.Data(),       &thisRawScalerRead);
+            TSP->SetBranchAddress(scalerCurrentBranch.Data(),   &bcmCurrent);
+            TSP->SetBranchAddress(scalerChargeBranch.Data(),    &bcmCharge);
+            TSP->SetBranchAddress(scalerChargeCutBranch.Data(), &bcmChargeCut);
+            TSP->SetBranchAddress("evNum",                      &event);
+
+            if (data->GetTarget(k) == "LH2") {
+                goodCut = cuts->Get("coinCutsLH2");
+            } else {
+                goodCut = cuts->Get("coinCutsC12");
+            }
 
             // If not weighted, we need to set the beginning and end of the
             // region to be the size of the tree. Should we do this for the
@@ -516,7 +531,7 @@ void bcm_average() {
             // the averages are.
             if (!(bcm_avgs[run].weighted)) {
                 bcm_avgs[run].begin.push_back(0);
-                bcm_avgs[run].end.push_back(T->GetEntries());
+                bcm_avgs[run].end.push_back(TSP->GetEntries());
             }
 
             // How many regions are there?
@@ -528,8 +543,8 @@ void bcm_average() {
                 regionEnd   = bcm_avgs[run].end[n];
 
                 // Check that region ends aren't longer than the tree
-                if (regionEnd >= T->GetEntries()) {
-                    regionEnd = (T->GetEntries()-1);
+                if (regionEnd >= TSP->GetEntries()) {
+                    regionEnd = (TSP->GetEntries()-1);
                 }
 
                 // ---------------------------------------
@@ -537,7 +552,7 @@ void bcm_average() {
                 bcm_avgs[run].countWithNoCut.push_back(0);
                 bcm_avgs[run].averagesWithNoCut.push_back(0);
                 for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
-                    T->GetEntry(scalerRead);
+                    TSP->GetEntry(scalerRead);
 
                     bcm_avgs[run].averagesWithNoCut[n] += bcmCurrent;
 
@@ -551,7 +566,7 @@ void bcm_average() {
                 bcm_avgs[run].countWithOneCut.push_back(0);
                 bcm_avgs[run].averagesWithOneCut.push_back(0);
                 for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
-                    T->GetEntry(scalerRead);
+                    TSP->GetEntry(scalerRead);
 
                     // Only count this read if it's above 95% of average
                     if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithNoCut[n])) {
@@ -569,6 +584,7 @@ void bcm_average() {
                 bcm_avgs[run].averagesWithTwoCuts.push_back(0);
                 bcm_avgs[run].rawScalerIncrements.push_back(0);
                 bcm_avgs[run].charges.push_back(0);
+                bcm_avgs[run].goodEvents.push_back(0);
                 thisRawScalerRead = 0;
                 lastRawScalerRead = 0;
                 lastChargeRead = 0;
@@ -578,7 +594,7 @@ void bcm_average() {
                     lastRawScalerRead = thisRawScalerRead;
                     lastChargeRead = bcmCharge;
 
-                    T->GetEntry(scalerRead);
+                    TSP->GetEntry(scalerRead);
 
                     // Only count this read if it's above 95% of average
                     if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithOneCut[n])) {
@@ -592,6 +608,25 @@ void bcm_average() {
 
                         // Charge increment
                         bcm_avgs[run].charges[n] += (bcmCharge - lastChargeRead);
+
+                        // Count good events for this scaler read
+                        // First, need the first/last event numbers for this region
+
+                        if (scalerRead < TSP->GetEntries()) { // make sure we're NOT at the last read
+                            firstEvent = event-1;
+                            TSP->GetEntry(scalerRead+1); // get next read
+                            lastEvent = event-2;
+                        } else { // for last read, get size of T tree
+                            firstEvent = event-1;
+                            lastEvent = T->GetEntries() - 1;
+                        }
+
+                        for (int evNum = firstEvent; evNum <= lastEvent; evNum++) {
+                            // Count event if it passes our "good" cut
+                            if (tree->Query("", goodCut.GetTitle(), "", 1, currentEntry)->GetRowCount() == 1) {
+                                bcm_avgs[run].goodEvents[n]++;
+                            }
+                        }
                     }
                 }
                 bcm_avgs[run].averagesWithTwoCuts[n] /= bcm_avgs[run].countWithTwoCuts[n];
@@ -654,7 +689,7 @@ void bcm_average() {
             c->Update();
 
             // Get scaler charge calculated by hcana
-            T->GetEntry(T->GetEntries()-1);
+            TSP->GetEntry(TSP->GetEntries()-1);
             bcm_avgs[run].scalerCharge    = bcmCharge;
             bcm_avgs[run].scalerChargeCut = bcmChargeCut;
 
