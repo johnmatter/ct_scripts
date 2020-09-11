@@ -1,7 +1,7 @@
 {
     "data" : {
         "runlistDir"   : "/home/jmatter/ct_scripts/runlists/coin",
-        "rootfilesDir" : "/home/jmatter/ROOTfiles/pass3_with_edtm_decode",
+        "rootfilesDir" : "/home/jmatter/ROOTfiles/pass5",
         "chains"       : ["T", "TSH", "TSP"]
     },
     "kinematics" : [

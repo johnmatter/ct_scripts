@@ -73,6 +73,7 @@ void write_to_csv() {
     csv << "kinematics"
         << "," << "Q2"
         << "," << "target"
+        << "," << "collimator"
         << "," << "run"
         << "," << "i"
         << "," << "bcm1current"
@@ -142,6 +143,7 @@ void write_to_csv() {
 
         Double_t Q2 = data->GetQ2(k);
         TString target = data->GetTarget(k);
+        TString collimator = data->GetCollimator(k);
 
         for (int n=0; n<runs.size(); n++) {
             Int_t run = runs[n];
@@ -232,6 +234,7 @@ void write_to_csv() {
                 csv << k
                     << "," << Q2
                     << "," << target
+                    << "," << collimator
                     << "," << run
                     << "," << i
                     << "," << bcm1current

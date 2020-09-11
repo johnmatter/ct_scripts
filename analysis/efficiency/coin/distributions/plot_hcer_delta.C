@@ -16,7 +16,7 @@
 // Investigating what the distribution of delta look like
 // for events that should, do, and don't fire the HMS Cherenkov.
 void plot_hcer_delta() {
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_edtmdecode.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // PDF to print to
@@ -26,8 +26,7 @@ void plot_hcer_delta() {
     std::map<TString, TH1F*> histograms;
 
     // Which kinematics
-    std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
-                                       "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14"};
+    std::vector<TString> kinematics = data->GetNames();
 
     // ------------------------------------------------------------------------
     // Generate histograms
@@ -35,16 +34,18 @@ void plot_hcer_delta() {
         TString drawMe, histoName;
 
         // Define cuts
-        TCut shouldCut = cuts->Get("betaCut") && cuts->Get("hCalCut") && cuts->Get("pCerCut");
-        TCut didCut    = cuts->Get("betaCut") && cuts->Get("hCalCut") && cuts->Get("pCerCut") && cuts->Get("hCerCut");
-        TCut didntCut  = cuts->Get("betaCut") && cuts->Get("hCalCut") && cuts->Get("pCerCut") && !(cuts->Get("hCerCut"));
+        TCut shouldCut = cuts->Get("hCerShould");
+        TCut didCut    = cuts->Get("hCerShould") && cuts->Get("hCerCut");
+        TCut didntCut  = cuts->Get("hCerShould") && !(cuts->Get("hCerCut"));
         TCut openCut   = cuts->Get("betaCut");
 
-        // Target-specific cuts
-        TString targetCut = Form("p%sEMissPMissCut", k(0,3).Data()); // Assume target is first 3 characters; not true for Al
-        shouldCut = shouldCut && cuts->Get(targetCut);
-        didCut    = didCut    && cuts->Get(targetCut);
-        didntCut  = didntCut  && cuts->Get(targetCut);
+        // For carbon, also include missing energy and momentum cut
+        if (k.Contains("C12")) {
+            shouldCut = shouldCut && cuts->Get("pC12EMissPMissCut");
+            didCut    = didCut && cuts->Get("pC12EMissPMissCut");
+            didntCut  = didntCut && cuts->Get("pC12EMissPMissCut");
+        }
+
 
         // Should
         histoName = Form("%s_should", k.Data());
@@ -110,8 +111,8 @@ void plot_hcer_delta() {
         // hDidnt->Scale(1/hDidnt->Integral());
         // hOpen->Scale(1/hOpen->Integral());
 
-        hOpen->Draw("hist");
-        // hShould->Draw("same hist");
+        // hOpen->Draw("hist");
+        hShould->Draw("hist");
         hDid->Draw("same hist");
         hDidnt->Draw("same hist");
 

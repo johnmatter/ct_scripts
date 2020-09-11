@@ -81,8 +81,8 @@ int main() {
                         break;
                     case 'p':
                         scanBranch = "P.gtr.dp";
-                        scanBins = 24;
-                        scanLo = -12;
+                        scanBins = 22;
+                        scanLo = -10;
                         scanHi = +12;
                         break;
                 }

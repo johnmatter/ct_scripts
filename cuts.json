@@ -34,7 +34,7 @@
         },
         {
             "name" : "pC12EMissPMissCut",
-            "cut"  : "\"P.kin.secondary.emiss_nuc < 0.09 && abs(P.kin.secondary.pmiss) < 0.3\""
+            "cut"  : "\"-0.03 < P.kin.secondary.emiss_nuc && P.kin.secondary.emiss_nuc < 0.08 && abs(P.kin.secondary.pmiss) < 0.3\""
         },
         {
             "name" : "hHodoTimeCut",
@@ -166,7 +166,7 @@
         },
         {
             "name" : "coinCutsLH2",
-            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pLH2EMissPMissCut && coinTime"
+            "cut"  : "betaCut && deltaCut && PIDCut && hodoTimeCut && pLH2EMissPMissCut && hInsideDipole && pInsideDipole && coinTime"
         },
         {
             "name" : "pScinGood",
@@ -178,15 +178,67 @@
         },
         {
             "name" : "pDC1NoLarge",
-            "cut"  : "\"(P.dc.1x1.nhit + P.dc.1u2.nhit + P.dc.1u1.nhit + P.dc.1v1.nhit + P.dc.1x2.nhit + P.dc.1v2.nhit) < 21\""
+            "cut"  : "\"(P.dc.1x1.nhit + P.dc.1u2.nhit + P.dc.1u1.nhit + P.dc.1v1.nhit + P.dc.1x2.nhit + P.dc.1v2.nhit) < 25\""
         },
         {
             "name" : "pDC2NoLarge",
-            "cut"  : "\"(P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nhit + P.dc.2x2.nhit + P.dc.2v2.nhit) < 21\""
+            "cut"  : "\"(P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nhit + P.dc.2x2.nhit + P.dc.2v2.nhit) < 25\""
         },
         {
             "name" : "pDCNoLarge",
             "cut"  : "pDC1NoLarge && pDC2NoLarge"
+        },
+        {
+            "name" : "DeepakDelta4",
+            "cut"  : "\"-20 < P.gtr.dp && P.gtr.dp < 20\""
+        },
+        {
+            "name" : "DeepakDelta5",
+            "cut"  : "\"-15 < P.gtr.dp && P.gtr.dp < 15\""
+        },
+        {
+            "name" : "DeepakDelta7",
+            "cut"  : "\"-15 < P.gtr.dp && P.gtr.dp < 15\""
+        },
+        {
+            "name" : "DeepakY",
+            "cut"  : "\"-5 < P.gtr.y && P.gtr.y < 5\""
+        },
+        {
+            "name" : "DeepakAngle",
+            "cut"  : "\"-0.2 < P.gtr.th && P.gtr.th < 0.2 && -0.2 < P.gtr.ph && P.gtr.ph< 0.2 \""
+        },
+        {
+            "name" : "fewNegADChits",
+            "cut"  : "\"P.hod.1x.totNumGoodNegAdcHits<5 && P.hod.1y.totNumGoodNegAdcHits<5 && P.hod.2x.totNumGoodNegAdcHits<5 && P.hod.2y.totNumGoodNegAdcHits<5\""
+        },
+        {
+            "name" : "goodFpTime",
+            "cut"  : "\"-10 < P.hod.1x.fptime && P.hod.1x.fptime < 50 && -10 < P.hod.1y.fptime && P.hod.1y.fptime < 50 && -10 < P.hod.2x.fptime && P.hod.2x.fptime < 50 && -10 < P.hod.2y.fptime && P.hod.2y.fptime < 50\""
+        },
+        {
+            "name" : "oneTrack",
+            "cut"  : "\"P.dc.ntrack==1\""
+        },
+        {
+            "name" : "multiTrack",
+            "cut"  : "\"P.dc.ntrack>1\""
+        },
+        {
+            "name" : "pTrackDeepakShouldProton",
+            "cut"  : "pPIDCut && hPIDCut && \"P.hod.betanotrack < 1.2 && (P.dc.1x1.nhit + P.dc.1u2.nhit + P.dc.1u1.nhit + P.dc.1v1.nhit + P.dc.1x2.nhit + P.dc.1v2.nhit) < 25 && (P.dc.2x1.nhit + P.dc.2u2.nhit + P.dc.2u1.nhit + P.dc.2v1.nhit + P.dc.2x2.nhit + P.dc.2v2.nhit) < 25 && P.hod.goodscinhit==1 && P.hod.goodstarttime==1 && P.dc.InsideDipoleExit==1\""
+        },
+        {
+            "name" : "pTrackDeepakDid4",
+            "cut"  : "( (oneTrack && DeepakDelta4) || (multiTrack && DeepakDelta4 && DeepakY) )"
+        },
+        {
+            "name" : "pTrackDeepakDid5",
+            "cut"  : "( (oneTrack && DeepakDelta5) || (multiTrack && DeepakDelta5 && DeepakY) )"
+        },
+        {
+            "name" : "pTrackDeepakDid7",
+            "cut"  : "( (oneTrack                ) || (multiTrack && DeepakDelta7 && DeepakY && DeepakAngle && goodFpTime && fewNegADChits) )"
         },
         {
             "name" : "pScinShould",
@@ -222,11 +274,11 @@
         },
         {
             "name" : "hDC1NoLarge",
-            "cut"  : "\"(H.dc.1x1.nhit + H.dc.1u2.nhit + H.dc.1u1.nhit + H.dc.1v1.nhit + H.dc.1x2.nhit + H.dc.1v2.nhit) < 21\""
+            "cut"  : "\"(H.dc.1x1.nhit + H.dc.1u2.nhit + H.dc.1u1.nhit + H.dc.1v1.nhit + H.dc.1x2.nhit + H.dc.1v2.nhit) < 35\""
         },
         {
             "name" : "hDC2NoLarge",
-            "cut"  : "\"(H.dc.2x1.nhit + H.dc.2u2.nhit + H.dc.2u1.nhit + H.dc.2v1.nhit + H.dc.2x2.nhit + H.dc.2v2.nhit) < 21\""
+            "cut"  : "\"(H.dc.2x1.nhit + H.dc.2u2.nhit + H.dc.2u1.nhit + H.dc.2v1.nhit + H.dc.2x2.nhit + H.dc.2v2.nhit) < 35\""
         },
         {
             "name" : "hDCNoLarge",
@@ -299,6 +351,14 @@
         {
             "name" : "hCalDid",
             "cut"  : "hCalShould && hCalCut"
+        },
+        {
+            "name" : "explicitLH2CoinCut",
+            "cut"  : "\"P.gtr.dp > -10 && P.gtr.dp < 12 && H.gtr.dp > -10 && H.gtr.dp < 10 && P.gtr.beta < 1.4 && H.gtr.beta>0.8 && H.gtr.beta < 1.2 && P.ngcer.npeSum < 0.1 && H.cer.npeSum > 0. && H.cal.etottracknorm > 0.8 && H.cal.etottracknorm < 1.15 && P.kin.secondary.emiss < 0.05 && P.kin.secondary.emiss > -0.03 && abs(P.kin.secondary.pmiss) < 0.05 &&P.dc.InsideDipoleExit==1 && H.dc.InsideDipoleExit==1 &&H.gtr.beta>0.8 && P.hod.goodstarttime==1&&H.hod.goodstarttime==1 && CTime.epCoinTime_ROC2 > 8.5 && CTime.epCoinTime_ROC2 < 12.5\""
+        },
+        {
+            "name" : "explicitC12CoinCut",
+            "cut"  : "\"P.gtr.dp > -10 && P.gtr.dp < 12 && H.gtr.dp > -10 && H.gtr.dp < 10 && P.gtr.beta < 1.4 && H.gtr.beta > 0.8 &&  H.gtr.beta < 1.2 && P.ngcer.npeSum < 0.1 && H.cer.npeSum > 0. && H.cal.etottracknorm > 0.8 && H.cal.etottracknorm < 1.15 && P.hod.goodstarttime == 1 && H.hod.goodstarttime == 1 && P.kin.secondary.emiss_nuc < 0.08 &&  P.kin.secondary.emiss_nuc > -0.03 && abs(P.kin.secondary.pmiss) < 0.3 && H.dc.InsideDipoleExit == 1 && P.dc.InsideDipoleExit == 1 && CTime.epCoinTime_ROC2 > 8.5 && CTime.epCoinTime_ROC2 < 12.5\""
         }
     ]
 }

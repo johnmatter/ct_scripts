@@ -75,14 +75,16 @@ int main() {
             switch (d[0]) {
                 case 'h':
                     scanBranch = "H.gtr.dp";
-                    scanBins = 20;
+                    scanBins = 4;
+                    // scanBins = 20;
                     scanLo = -10;
                     scanHi = +10;
                     break;
                 case 'p':
                     scanBranch = "P.gtr.dp";
-                    scanBins = 24;
-                    scanLo = -12;
+                    scanBins = 4;
+                    // scanBins = 24;
+                    scanLo = -10;
                     scanHi = +12;
                     break;
             }
@@ -109,6 +111,11 @@ int main() {
             efficiencyCalculators0D[key_0D]->SetEvents(-1);
             efficiencyCalculators0D[key_0D]->Init();
             efficiencyCalculators0D[key_0D]->Calculate();
+
+            // Set statistic option
+            // It is legal to change this after "calculating"
+            efficiencyCalculators1D[key_1D]->GetTEfficiency()->SetStatisticOption(TEfficiency::kFNormal);
+            efficiencyCalculators0D[key_0D]->GetTEfficiency()->SetStatisticOption(TEfficiency::kFNormal);
 
             // Formatting
             efficiencyCalculators1D[key_1D]->SetTitle(key_1D.Data());

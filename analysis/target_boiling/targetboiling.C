@@ -46,10 +46,14 @@ struct Run {
     Double_t ps2Rate;      // [#/s]
     Double_t goodEvents;   // [#]
     Double_t charge;       // [uC]
+    Double_t scalerChargeCut; // [uC]
+    Double_t scalerCharge;    // [uC]
     Double_t time;         // [s]
     Double_t yield;        // [#/uC]
     Double_t trackShould;  // [#]
     Double_t trackDid;     // [#]
+    Double_t pshShould;    // [#]
+    Double_t pshDid;       // [#]
     Double_t calShould;    // [#]
     Double_t calDid;       // [#]
     Double_t cerShould;    // [#]
@@ -62,6 +66,8 @@ struct Run {
     Double_t cerEfficiencyUncertainty;
     Double_t calEfficiency;
     Double_t calEfficiencyUncertainty;
+    Double_t pshEfficiency;
+    Double_t pshEfficiencyUncertainty;
     Double_t clta;
     Double_t cltaUncertainty;
     Double_t physScalerCount;
@@ -72,6 +78,8 @@ struct Run {
     Double_t edtmTriggerCount;
     TEventList* trackShouldList;
     TEventList* trackDidList;
+    TEventList* pshShouldList;
+    TEventList* pshDidList;
     TEventList* calShouldList;
     TEventList* calDidList;
     TEventList* cerShouldList;
@@ -81,6 +89,7 @@ struct Run {
 
 // Branches needed for yield and livetime
 TString bcmScalerChargeBranch = "P.BCM4A.scalerCharge";
+TString bcmScalerChargeCutBranch = "P.BCM4A.scalerChargeCut";
 TString bcmScalerCurrentBranch = "P.BCM4A.scalerCurrent";
 TString oneMHzScalerBranch = "P.1MHz.scalerTime";
 TString ps1RateScalerBranch = "P.pTRIG1.scalerRate";
@@ -144,20 +153,24 @@ TCut DeepakBetaCut = "P.gtr.beta < 1.4 && P.gtr.beta > 0.8";
 TCut DeepakCerCut = "P.ngcer.npeSum > 5.0";
 TCut DeepakCalCut = "P.cal.eprtracknorm > 0.035 && P.cal.etottracknorm > 0.7";
 TCut tightAcceptanceCut = "P.gtr.th < 0.05 && P.gtr.th > -0.05 && P.gtr.dp < 12 && P.gtr.dp > -10.0 && P.gtr.ph < 0.05 && P.gtr.ph > -0.05 && P.dc.y_fp > -20 && P.dc.y_fp < 25 && P.dc.x_fp > -25 && P.dc.x_fp < 20";
-TCut DeepakCalShould = DeepakBetaCut && pScinGood && insideDipoleExit && tightAcceptanceCut && DeepakCerCut;
-TCut DeepakCalDid    = DeepakBetaCut && pScinGood && insideDipoleExit && tightAcceptanceCut && DeepakCerCut && DeepakCalCut;
-TCut DeepakCerShould = DeepakBetaCut && pScinGood && insideDipoleExit && tightAcceptanceCut && DeepakCalCut;
-TCut DeepakCerDid    = DeepakBetaCut && pScinGood && insideDipoleExit && tightAcceptanceCut && DeepakCalCut && DeepakCerCut;
+TCut DeepakCalShould = "P.gtr.beta < 1.4 && P.gtr.dp < 12 && P.gtr.dp > -10.0 && P.gtr.beta > 0.8 && P.ngcer.npeSum > 5.0 && P.cal.eprtracknorm > 0.035 && P.dc.InsideDipoleExit==1 && P.gtr.th < 0.05 && P.gtr.th > -0.05 && P.gtr.ph < 0.05 && P.gtr.ph > -0.05 && P.dc.y_fp > -20 && P.dc.y_fp < 25 && P.dc.x_fp > -25 && P.dc.x_fp > -25 && P.dc.x_fp < 20 && P.hod.goodscinhit==1 ";
+TCut DeepakCalDid    = "P.gtr.beta < 1.4 && P.gtr.dp < 12 && P.gtr.dp > -10.0 && P.gtr.beta > 0.8 && P.ngcer.npeSum > 5.0 && P.cal.eprtracknorm > 0.035 && P.dc.InsideDipoleExit==1 && P.gtr.th < 0.05 && P.gtr.th > -0.05 && P.gtr.ph < 0.05 && P.gtr.ph > -0.05 && P.dc.y_fp > -20 && P.dc.y_fp < 25 && P.dc.x_fp > -25 && P.dc.x_fp > -25 && P.dc.x_fp < 20 && P.hod.goodscinhit==1  && P.cal.etottracknorm > 0.7";
+TCut DeepakPshShould = "P.gtr.beta < 1.4 && P.gtr.dp < 12 && P.gtr.dp > -10.0 && P.gtr.beta > 0.8 && P.cal.etottracknorm > 0.85 && P.dc.InsideDipoleExit==1 && P.gtr.th < 0.05 && P.gtr.th > -0.05 && P.gtr.ph < 0.05 && P.gtr.ph > -0.05 && P.dc.y_fp > -20 && P.dc.y_fp < 25 && P.dc.x_fp > -25 && P.dc.x_fp > -25 && P.dc.x_fp < 20 && P.ngcer.npeSum > 5.0 && P.hod.goodscinhit==1 ";
+TCut DeepakPshDid    = "P.gtr.beta < 1.4 && P.gtr.dp < 12 && P.gtr.dp > -10.0 && P.gtr.beta > 0.8 && P.cal.etottracknorm > 0.85 && P.dc.InsideDipoleExit==1 && P.gtr.th < 0.05 && P.gtr.th > -0.05 && P.gtr.ph < 0.05 && P.gtr.ph > -0.05 && P.dc.y_fp > -20 && P.dc.y_fp < 25 && P.dc.x_fp > -25 && P.dc.x_fp > -25 && P.dc.x_fp < 20 && P.ngcer.npeSum > 5.0 && P.hod.goodscinhit==1 && P.cal.eprtracknorm > 0.035";
+TCut DeepakCerShould = "P.gtr.beta < 1.4 && P.gtr.dp < 12 && P.gtr.dp > -10.0 && P.gtr.beta > 0.8 && P.cal.etottracknorm > 0.85 && P.cal.eprtracknorm > 0.035 && P.dc.InsideDipoleExit==1 && P.gtr.th < 0.05 && P.gtr.th > -0.05 && P.gtr.ph < 0.05 && P.gtr.ph > -0.05 && P.dc.y_fp > -20 && P.dc.y_fp < 25 && P.dc.x_fp > -25 && P.dc.x_fp > -25 && P.dc.x_fp < 20 && P.hod.goodscinhit==1 ";
+TCut DeepakCerDid    = "P.gtr.beta < 1.4 && P.gtr.dp < 12 && P.gtr.dp > -10.0 && P.gtr.beta > 0.8 && P.cal.etottracknorm > 0.85 && P.cal.eprtracknorm > 0.035 && P.dc.InsideDipoleExit==1 && P.gtr.th < 0.05 && P.gtr.th > -0.05 && P.gtr.ph < 0.05 && P.gtr.ph > -0.05 && P.dc.y_fp > -20 && P.dc.y_fp < 25 && P.dc.x_fp > -25 && P.dc.x_fp > -25 && P.dc.x_fp < 20 && P.hod.goodscinhit==1  && P.ngcer.npeSum > 2.0";
 
-// TCut calShouldCut = DeepakCalShould;
-// TCut calDidCut = DeepakCalDid;
-// TCut cerShouldCut = DeepakCerShould;
-// TCut cerDidCut = DeepakCerDid;
+TCut calShouldCut = DeepakCalShould;
+TCut calDidCut    = DeepakCalDid;
+TCut pshShouldCut = DeepakPshShould;
+TCut pshDidCut    = DeepakPshDid;
+TCut cerShouldCut = DeepakCerShould;
+TCut cerDidCut    = DeepakCerDid;
 
-TCut calShouldCut = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut;
-TCut calDidCut    = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut && calCut;
-TCut cerShouldCut = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut;
-TCut cerDidCut    = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut && cerCut;
+// TCut calShouldCut = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut;
+// TCut calDidCut    = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && cerCut && calCut;
+// TCut cerShouldCut = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut;
+// TCut cerDidCut    = tightAcceptanceCut && insideDipoleExit && betaCut && deltaCut && hodostartCut && calCut && cerCut;
 
 TCut DeepakTrackCer = "P.ngcer.npeSum > 5.0";
 TCut DeepakTrackCal = "P.cal.etotnorm > 0.7";
@@ -640,18 +653,38 @@ void calculatePIDEfficiency(std::map<Int_t, Run*> runs) {
         runs[run]->calDid = runs[run]->calDidList->GetN();
 
         //------------------------------
+        // Preshower
+        // should
+        histoname.Form("run%d_pshShould", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe, pshShouldCut);
+        runs[run]->pshShouldList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->pshShould = runs[run]->pshShouldList->GetN();
+
+        // did
+        histoname.Form("run%d_pshDid", run);
+        drawMe.Form(">>%s", histoname.Data());
+        T->Draw(drawMe, pshDidCut);
+        runs[run]->pshDidList = (TEventList*) gDirectory->Get(histoname.Data());
+        runs[run]->pshDid = runs[run]->pshDidList->GetN();
+
+        //------------------------------
         // efficiency
         runs[run]->cerEfficiency = (runs[run]->cerDid/runs[run]->cerShould);
         runs[run]->calEfficiency = (runs[run]->calDid/runs[run]->calShould);
+        runs[run]->pshEfficiency = (runs[run]->pshDid/runs[run]->pshShould);
 
         // uncertainty (binomial error)
         Double_t k1 = runs[run]->cerDid;
         Double_t N1 = runs[run]->cerShould;
         Double_t k2 = runs[run]->calDid;
         Double_t N2 = runs[run]->calShould;
+        Double_t k3 = runs[run]->pshDid;
+        Double_t N3 = runs[run]->pshShould;
 
         runs[run]->cerEfficiencyUncertainty = sqrt(k1*(1-k1/N1))/N1;
         runs[run]->calEfficiencyUncertainty = sqrt(k2*(1-k2/N2))/N2;
+        runs[run]->pshEfficiencyUncertainty = sqrt(k2*(1-k2/N2))/N2;
 
     }
 }
@@ -664,18 +697,22 @@ void calculateScalers(std::map<Int_t, Run*> runs) {
 
     TTree *T;
     TString physScalerBranch;
-    Double_t scalerCharge, scalerCurrent, scalerTime, ps1Rate, ps2Rate, physScalerCount, edtmScalerCount;
+    Double_t scalerCharge, scalerChargeCut, scalerCurrent, scalerTime, ps1Rate, ps2Rate, physScalerCount, edtmScalerCount;
     for (auto run: runNumbers) {
 
-        if (run>=3109 && run<=3114) {
+        if (runs[run]->ps2 > -1) {
             physScalerBranch = pTRIG2ScalerBranch;
-        }
-        if (run>=1992 && run<=2000) {
-            physScalerBranch = pTRIG1ScalerBranch;
+        } else {
+            if (runs[run]->ps1 > -1) {
+                physScalerBranch = pTRIG1ScalerBranch;
+            } else {
+                std::cout << "!!!!!!!!!! I DONT KNOW WHICH TRIGGER TO USE !!!!!!!!" << std::endl;
+            }
         }
 
         T = runs[run]->TSP;
         T->SetBranchAddress(bcmScalerChargeBranch.Data(),  &scalerCharge);
+        T->SetBranchAddress(bcmScalerChargeCutBranch.Data(),  &scalerChargeCut);
         T->SetBranchAddress(bcmScalerCurrentBranch.Data(), &scalerCurrent);
         T->SetBranchAddress(oneMHzScalerBranch.Data(),     &scalerTime);
         T->SetBranchAddress(ps1RateScalerBranch.Data(),    &ps1Rate);
@@ -730,6 +767,8 @@ void calculateScalers(std::map<Int_t, Run*> runs) {
         runs[run]->ps2Rate = averagePS2;
         runs[run]->myCurrent = averageCurrent;
         runs[run]->charge = totalScalerCharge;
+        runs[run]->scalerCharge = scalerCharge;
+        runs[run]->scalerChargeCut = scalerChargeCut;
         runs[run]->time = totalScalerTime;
         runs[run]->physScalerCount = totalPhysScalerCounts;
         runs[run]->edtmScalerCount = totalEDTMScalerCounts;
@@ -766,6 +805,7 @@ void calculateYield(std::map<Int_t, Run*> runs) {
         runs[run]->yield /= runs[run]->clta;
         runs[run]->yield /= runs[run]->trackingEfficiency;
         runs[run]->yield /= runs[run]->calEfficiency;
+        runs[run]->yield /= runs[run]->pshEfficiency;
         runs[run]->yield /= runs[run]->cerEfficiency;
     }
 
@@ -779,17 +819,19 @@ void print(std::map<Int_t, Run*> runs) {
     std::ofstream ofs;
     ofs.open("targetboiling.csv");
 
-    ofs << "run, target, hclogCurrent, scalerCurrent, scalerCharge, scalerTime,"
+    ofs << "run, target, hclogCurrent, scalerCurrent, myCharge, scalerCharge, scalerChargeCut, scalerTime,"
         << "clta, cltaUncertainty, physScalerCount, physTriggerCount,"
         << "lte, lteUncertainty, edtmScalerCount, edtmTriggerCount,"
         << "trackingEfficiency, trackingEfficiencyUncertainty, trackDid, trackShould,"
         << "cerEfficiency, cerEfficiencyUncertainty, cerDid, cerShould,"
         << "calEfficiency, calEfficiencyUncertainty, calDid, calShould,"
+        << "pshEfficiency, pshEfficiencyUncertainty, pshDid, pshShould,"
         << "goodEvents, uncorrectedYield, correctedYield,"
         << "ps1Rate, ps2Rate, ps1, ps2, ps1Factor, ps2Factor"
         << std::endl;
     for (auto run: runNumbers) {
-        ofs << Form("%d,%s,%f,%f,%f,%f,"
+        ofs << Form("%d,%s,%f,%f,%f,%f,%f,%f,"
+                    "%f,%f,%d,%d,"
                     "%f,%f,%d,%d,"
                     "%f,%f,%d,%d,"
                     "%f,%f,%d,%d,"
@@ -802,6 +844,8 @@ void print(std::map<Int_t, Run*> runs) {
                     runs[run]->hclogCurrent,
                     runs[run]->myCurrent,
                     runs[run]->charge,
+                    runs[run]->scalerCharge,
+                    runs[run]->scalerChargeCut,
                     runs[run]->time,
                     runs[run]->clta,
                     runs[run]->cltaUncertainty,
@@ -819,6 +863,10 @@ void print(std::map<Int_t, Run*> runs) {
                     runs[run]->cerEfficiencyUncertainty,
                     int(runs[run]->calDid),
                     int(runs[run]->cerShould),
+                    runs[run]->calEfficiency,
+                    runs[run]->calEfficiencyUncertainty,
+                    int(runs[run]->calDid),
+                    int(runs[run]->calShould),
                     runs[run]->calEfficiency,
                     runs[run]->calEfficiencyUncertainty,
                     int(runs[run]->calDid),

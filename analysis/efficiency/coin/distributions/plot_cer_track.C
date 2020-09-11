@@ -16,7 +16,7 @@
 #include <CTCuts.h>
 
 void plot_cer_track() {
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_edtmdecode.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
     CTCuts *cuts = new CTCuts("/home/jmatter/ct_scripts/cuts.json");
 
     // PDF to print to
@@ -30,18 +30,12 @@ void plot_cer_track() {
     std::vector<TString> keys;
 
     // Which detectors
-    std::vector<TString> detectors = {"pHGCer","pNGCer","hCer"};
+    // std::vector<TString> detectors = {"pNGCer","hCer"};
+    std::vector<TString> detectors = {"hCer"};
     TString detectorBranch;
 
     // Which kinematics
-    std::vector<TString> kinematics = {"LH2_Q2_8","LH2_Q2_10","LH2_Q2_12","LH2_Q2_14",
-                                       "C12_Q2_8","C12_Q2_10","C12_Q2_12","C12_Q2_14"};
-                                       // "LH2_Q2_10_pion_collimator",
-                                       // "LH2_Q2_10_large_collimator",
-                                       // "LH2_Q2_14_large_collimator",
-                                       // "LH2_Q2_14_pion_collimator",
-                                       // "C12_Q2_14_pion_collimator",
-                                       // "C12_Q2_14_large_collimator"};
+    std::vector<TString> kinematics = data->GetNames();
 
     // ------------------------------------------------------------------------
     // Create histograms for each (kinematics,detector) pair.
@@ -57,26 +51,19 @@ void plot_cer_track() {
             spec.ToUpper();
 
             // Which cuts?
-            TCut shouldCut = cuts->Get("pBetaCut") && cuts->Get("hBetaCut");
+            TCut shouldCut;
             TCut didCut;
 
             // HMS Cherenkov
             if (d=="hCer") {
-                shouldCut = shouldCut && cuts->Get("hCalCut") && cuts->Get("pCerCut");
-                didCut = cuts->Get("hCerCut");
+                shouldCut = cuts->Get("hCerShould");
+                didCut = cuts->Get("hCerDid");
                 detectorBranch = "cer";
-            }
-
-            // SHMS HG Cherenkov
-            if (d=="pHGCer") {
-                shouldCut = shouldCut && cuts->Get("hCalCut") && cuts->Get("hCerCut");
-                didCut = cuts->Get("pHGCerCut");
-                detectorBranch = "hgcer";
             }
 
             // SHMS NG Cherenkov
             if (d=="pNGCer") {
-                shouldCut = shouldCut && cuts->Get("hCalCut") && cuts->Get("hCerCut");
+                shouldCut = cuts->Get("pNGCerShould");
                 didCut = cuts->Get("pNGCerCut");
                 detectorBranch = "ngcer";
             }
@@ -98,7 +85,7 @@ void plot_cer_track() {
             drawXHi = +50;
 
             drawYBranch = Form("%s.%s.xAtCer", spec.Data(), detectorBranch.Data());
-            drawYBins = 100;
+            drawYBins = 120;
             drawYLo = -60;
             drawYHi = +60;
 

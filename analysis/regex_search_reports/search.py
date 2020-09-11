@@ -8,7 +8,7 @@ import sys
 
 runlistDir = '/home/jmatter/ct_scripts/runlists/coin'
 
-reportDir = '/home/jmatter/ct_replay_pass2/REPORT_OUTPUT/COIN/PRODUCTION/'
+reportDir = '/home/jmatter/ct_replay/REPORT_OUTPUT/COIN/PRODUCTION/'
 reportTemplate = 'replay_coin_production_%d_-1.report'
 
 # regexQuery = input("Enter regex to use as search: ")
@@ -17,9 +17,24 @@ regexQuery = sys.argv[1]
 #------------------------------------------------------------------------------
 def main():
     # Define explicit list of runlists to process
-    lists = ["all_coin_LH2_runs"]
+    lists = [
+             "runs_LH2_Q2_8",
+             "runs_LH2_Q2_10_pion_collimator",
+             "runs_LH2_Q2_10_large_collimator",
+             "runs_LH2_Q2_12",
+             "runs_LH2_Q2_14_large_collimator",
+             "runs_LH2_Q2_14_pion_collimator",
+             "runs_C12_Q2_8_thin",
+             "runs_C12_Q2_8_thick",
+             "runs_C12_Q2_10_thin",
+             "runs_C12_Q2_10_thick",
+             "runs_C12_Q2_12",
+             "runs_C12_Q2_14_pion_collimator",
+             "runs_C12_Q2_14_large_collimator"
+            ]
 
     # Loop over each runlist and store matches in a list
+    print('list,run,match')
     for listname in lists:
         runlistFilename = os.path.join(runlistDir,listname)
 
@@ -33,7 +48,6 @@ def main():
                 runs.append(int(run))
 
         # Scan each run's report output for desired string and print it
-        print('list,run,match')
         for run in runs:
             matches = parseReport(run, regexQuery)
             for match in matches:

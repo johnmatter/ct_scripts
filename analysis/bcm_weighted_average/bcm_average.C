@@ -8,6 +8,7 @@
 #include <TLine.h>
 #include <TGraph.h>
 #include <TCanvas.h>
+#include <TSQLResult.h>
 
 #include <CTData.h>
 #include <CTCuts.h>
@@ -60,9 +61,12 @@ struct bcm_avg_t {
     std::vector<Double_t> regionUncertainty;
     std::vector<Double_t> weights;
     std::vector<Double_t> rawScalerIncrements;
+    std::vector<Double_t> scalerCharges;
     std::vector<Double_t> charges;
-    std::vector<Double_t> goodEvents;
+    std::vector<Int_t> goodEvents;
+    std::vector<Double_t> times;
     Double_t myCharge;
+    Double_t time;
     Double_t scalerCharge;
     Double_t scalerChargeCut;
     Double_t goodEventsTotal;
@@ -86,19 +90,23 @@ void bcm_average() {
     TString scalerCurrentBranch   = "P.BCM4A.scalerCurrent";
     TString scalerChargeBranch    = "P.BCM4A.scalerCharge";
     TString scalerChargeCutBranch = "P.BCM4A.scalerChargeCut";
+    TString scalerTimeBranch      = "P.1MHz.scalerTime";
 
     // Where should we save diagnostic plots?
     TFile *fWrite = new TFile("/home/jmatter/ct_scripts/analysis/bcm_weighted_average/bcm_average.root", "RECREATE");
 
-    // Where should we save the calculated averages?
-    TString averageCsvFilename = "/home/jmatter/ct_scripts/analysis/bcm_weighted_average/csv/bcm_average.csv";
-    TString segmentCsvFilename = "/home/jmatter/ct_scripts/analysis/bcm_weighted_average/csv/segments.csv";
+    // // Where should we save the calculated averages?
+    // TString averageCsvFilename = "/home/jmatter/ct_scripts/analysis/bcm_weighted_average/csv/bcm_average.csv";
+    // TString segmentCsvFilename = "/home/jmatter/ct_scripts/analysis/bcm_weighted_average/csv/segments.csv";
+    TString averageCsvFilename;
+    TString segmentCsvFilename;
 
     // These are used to indicate on histograms what the average is
     // lines[run][region] = new TF1(etc)
     std::map<Int_t, std::map<Int_t, TF1*>> lines;
     std::map<Int_t, std::map<Int_t, TGraph*>> shades;
     std::map<Int_t, TGraph*> graphs;
+    std::map<Int_t, TGraph*> graphs2;
 
     // Weighting with SEM gives funny results. I haven't thought hard about why,
     // but weighting by number of scaler reads is a reasonable choice so I'm
@@ -436,20 +444,20 @@ void bcm_average() {
     bcm_avg.weighted = true;
     bcm_avg.begin.push_back(0);
     bcm_avg.end.push_back(1044);
-    bcm_avg.begin.push_back(1046);
-    bcm_avg.end.push_back(1064);
+    // bcm_avg.begin.push_back(1046);
+    // bcm_avg.end.push_back(1064);
     bcm_avg.begin.push_back(1067);
     bcm_avg.end.push_back(2050);
     bcm_avg.begin.push_back(2060);
     bcm_avg.end.push_back(2148);
-    bcm_avg.begin.push_back(2198);
-    bcm_avg.end.push_back(2210);
-    bcm_avg.begin.push_back(2214);
-    bcm_avg.end.push_back(2225);
-    bcm_avg.begin.push_back(2258);
-    bcm_avg.end.push_back(2263);
-    bcm_avg.begin.push_back(2266);
-    bcm_avg.end.push_back(2280);
+    // bcm_avg.begin.push_back(2198);
+    // bcm_avg.end.push_back(2210);
+    // bcm_avg.begin.push_back(2214);
+    // bcm_avg.end.push_back(2225);
+    // bcm_avg.begin.push_back(2258);
+    // bcm_avg.end.push_back(2263);
+    // bcm_avg.begin.push_back(2266);
+    // bcm_avg.end.push_back(2280);
     bcm_avg.begin.push_back(2300);
     bcm_avg.end.push_back(2566);
     bcm_avgs[bcm_avg.run] = bcm_avg;
@@ -473,16 +481,18 @@ void bcm_average() {
     TTree *TSP, *T;
 
     Int_t regionBegin, regionEnd;
-    Int_t event;
     Int_t firstEvent;
     Int_t lastEvent;
+    Double_t event;
     Double_t bcmCurrent;    // in uA
     Double_t bcmCharge;     // in uC
     Double_t bcmChargeCut;  // in uC
+    Double_t scalerTime;
     Double_t thisRawScalerRead;
     Double_t lastRawScalerRead;
     Double_t thisChargeRead;
     Double_t lastChargeRead;
+    Double_t lastTimeRead;
     Double_t numerator, denominator; // for calculating averages, uncertainty
 
     for (auto const &k : data->GetNames()) {
@@ -517,12 +527,13 @@ void bcm_average() {
             TSP->SetBranchAddress(scalerCurrentBranch.Data(),   &bcmCurrent);
             TSP->SetBranchAddress(scalerChargeBranch.Data(),    &bcmCharge);
             TSP->SetBranchAddress(scalerChargeCutBranch.Data(), &bcmChargeCut);
-            TSP->SetBranchAddress("evNum",                      &event);
+            TSP->SetBranchAddress(scalerTimeBranch.Data(),      &scalerTime);
+            TSP->SetBranchAddress("evNumber",                   &event);
 
             if (data->GetTarget(k) == "LH2") {
-                goodCut = cuts->Get("coinCutsLH2");
+                goodCut = cuts->Get("explicitLH2CoinCut");
             } else {
-                goodCut = cuts->Get("coinCutsC12");
+                goodCut = cuts->Get("explicitC12CoinCut");
             }
 
             // If not weighted, we need to set the beginning and end of the
@@ -585,19 +596,26 @@ void bcm_average() {
                 bcm_avgs[run].rawScalerIncrements.push_back(0);
                 bcm_avgs[run].charges.push_back(0);
                 bcm_avgs[run].goodEvents.push_back(0);
+                bcm_avgs[run].times.push_back(0);
+
                 thisRawScalerRead = 0;
                 lastRawScalerRead = 0;
                 lastChargeRead = 0;
                 bcmCharge = 0;
+                lastTimeRead = 0;
+                scalerTime = 0;
+
                 for (int scalerRead = regionBegin; scalerRead <= regionEnd; scalerRead++) {
                     // Keep track of last read
                     lastRawScalerRead = thisRawScalerRead;
                     lastChargeRead = bcmCharge;
+                    lastTimeRead = scalerTime;
 
                     TSP->GetEntry(scalerRead);
 
                     // Only count this read if it's above 95% of average
                     if (bcmCurrent > (0.95*bcm_avgs[run].averagesWithOneCut[n])) {
+                        std::cout << Form("%d,%d,%d,%f,%f", run, n, scalerRead, lastChargeRead, bcmCharge) << std::endl;
                         bcm_avgs[run].averagesWithTwoCuts[n] += bcmCurrent;
 
                         // Scaler read counts
@@ -616,6 +634,7 @@ void bcm_average() {
                             firstEvent = event-1;
                             TSP->GetEntry(scalerRead+1); // get next read
                             lastEvent = event-2;
+                            TSP->GetEntry(scalerRead); // get next read
                         } else { // for last read, get size of T tree
                             firstEvent = event-1;
                             lastEvent = T->GetEntries() - 1;
@@ -623,13 +642,25 @@ void bcm_average() {
 
                         for (int evNum = firstEvent; evNum <= lastEvent; evNum++) {
                             // Count event if it passes our "good" cut
-                            if (tree->Query("", goodCut.GetTitle(), "", 1, currentEntry)->GetRowCount() == 1) {
+                            if (T->Query("", goodCut.GetTitle(), "", 1, evNum)->GetRowCount() != 0) {
                                 bcm_avgs[run].goodEvents[n]++;
                             }
                         }
+                        std::cout << Form("event %d to %d: events = %d\n", firstEvent, lastEvent, bcm_avgs[run].goodEvents[n]);
+
+                        // Time increment
+                        bcm_avgs[run].times[n] += (scalerTime - lastTimeRead);
                     }
                 }
                 bcm_avgs[run].averagesWithTwoCuts[n] /= bcm_avgs[run].countWithTwoCuts[n];
+
+                // ---------------------------------------
+                // Calculate change in scaler charge (without cut)
+                T->GetEntry(regionBegin);
+                Double_t startCharge = bcmCharge;
+                T->GetEntry(regionEnd-1);
+                Double_t endCharge = bcmCharge;
+                bcm_avgs[run].scalerCharges.push_back(endCharge - startCharge);
 
                 // ---------------------------------------
                 // Calculate this region's uncertainty
@@ -651,14 +682,15 @@ void bcm_average() {
 
                 // ---------------------------------------
                 // Print result to cout for progress indication
-                std::cout << Form("Run %5d region %3d: start %-4d end %-4d avgs = %-5.2f | %-5.2f | %-5.2f +- %-5.2f (n=%9d) \t %f \n",
+                std::cout << Form("Run %5d region %3d: start %-4d end %-4d avgs = %-5.2f | %-5.2f | %-5.2f +- %-5.2f (n=%9d) \t charge=%f \t time=%f\n",
                                   run, n, regionBegin, regionEnd,
                                   bcm_avgs[run].averagesWithNoCut[n],
                                   bcm_avgs[run].averagesWithOneCut[n],
                                   bcm_avgs[run].averagesWithTwoCuts[n],
                                   bcm_avgs[run].regionUncertainty[n],
                                   bcm_avgs[run].countWithTwoCuts[n],
-                                  bcm_avgs[run].weights[n] * bcm_avgs[run].averagesWithTwoCuts[n]
+                                  bcm_avgs[run].charges[n],
+                                  bcm_avgs[run].times[n]
                                   );
 
                 // ---------------------------------------
@@ -699,6 +731,18 @@ void bcm_average() {
                 bcm_avgs[run].myCharge += bcm_avgs[run].charges[n];
             }
 
+            // Calculate total time
+            bcm_avgs[run].time = 0;
+            for (int n = 0; n < bcm_avgs[run].regions; n++) {
+                bcm_avgs[run].time += bcm_avgs[run].times[n];
+            }
+
+            // Calculate total good events
+            bcm_avgs[run].goodEventsTotal = 0;
+            for (int n = 0; n < bcm_avgs[run].regions; n++) {
+                bcm_avgs[run].goodEventsTotal += bcm_avgs[run].goodEvents[n];
+            }
+
             // Calculate the weighted average
             numerator = 0;
             denominator = 0;
@@ -714,45 +758,59 @@ void bcm_average() {
             // Write histogram to file
             fWrite->WriteObject(c, canvasName.Data());
 
-        } // loop over runs
-    } // loop over kinematics
+            canvasName = Form("run%d_%s_vs_time", run, scalerCurrentBranch.Data());
+            drawMe = Form("%s:%s", scalerCurrentBranch.Data(), scalerTimeBranch.Data());
+            N = TSP->Draw(drawMe.Data(), "", "goff");
 
-    // Write histograms to disk
-    fWrite->Close();
+            graphs2[run] = new TGraph(N, T->GetV2(), T->GetV1());
+            graphs2[run]->SetTitle(Form("run %d; time; %s", run, scalerCurrentBranch.Data()));
+            graphs2[run]->Draw("AL");
 
-    //-------------------------------------------------------------------------
-    // Write weighted averages to csv
-    std::ofstream ofs;
-    ofs.open(averageCsvFilename.Data());
-    ofs << "run, bcm4aAverage, bcm4AUncertainty, myCharge, scalerCharge, scalerChargeCut" << std::endl;
-    for (auto const &k : data->GetNames()) {
+            fWrite->WriteObject(c, canvasName.Data());
 
-        // LH2 only
-        if (lh2Only && (data->GetTarget(k) != "LH2"))
-            continue;
+        // } // loop over runs
+    // } // loop over kinematics
 
-        for (auto const &run : data->GetRuns(k)) {
+            //-------------------------------------------------------------------------
+            // Write weighted averages to csv
+
+            // Where should we save the calculated averages?
+            averageCsvFilename = Form("/home/jmatter/ct_scripts/analysis/bcm_weighted_average/csv/bcm_average_run%d.csv", run);
+            segmentCsvFilename = Form("/home/jmatter/ct_scripts/analysis/bcm_weighted_average/csv/segments_run%d.csv", run);
+
+            std::ofstream ofs;
+            ofs.open(averageCsvFilename.Data());
+            ofs << "run, bcm4aAverage, bcm4AUncertainty, myCharge, scalerCharge, scalerChargeCut, scalerTime, goodEvents" << std::endl;
+    // for (auto const &k : data->GetNames()) {
+
+        // // LH2 only
+        // if (lh2Only && (data->GetTarget(k) != "LH2"))
+        //     continue;
+
+        // for (auto const &run : data->GetRuns(k)) {
             ofs << run
                 << "," << bcm_avgs[run].avg
                 << "," << bcm_avgs[run].sem
                 << "," << bcm_avgs[run].myCharge
                 << "," << bcm_avgs[run].scalerCharge
                 << "," << bcm_avgs[run].scalerChargeCut
+                << "," << bcm_avgs[run].time
+                << "," << bcm_avgs[run].goodEventsTotal
                 << std::endl;
-        }
-    }
-    ofs.close();
+        // }
+    // }
+            ofs.close();
 
-    // Write each segment to csv for further investigation
-    ofs.open(segmentCsvFilename.Data());
-    ofs << "run, segment, begin, end, averagesWithNoCut, averagesWithOneCut, averagesWithTwoCuts, regionUncertainty, countTwoCuts, rawScalerWeight, charge" << std::endl;
-    for (auto const &k : data->GetNames()) {
+            // Write each segment to csv for further investigation
+            ofs.open(segmentCsvFilename.Data());
+            ofs << "run, segment, begin, end, averagesWithNoCut, averagesWithOneCut, averagesWithTwoCuts, regionUncertainty, countTwoCuts, rawScalerWeight, scalerCharge, myCharge, myTime, goodEvents" << std::endl;
+    // for (auto const &k : data->GetNames()) {
 
-        // LH2 only
-        if (lh2Only && (data->GetTarget(k) != "LH2"))
-            continue;
+        // // LH2 only
+        // if (lh2Only && (data->GetTarget(k) != "LH2"))
+        //     continue;
 
-        for (auto const &run : data->GetRuns(k)) {
+        // for (auto const &run : data->GetRuns(k)) {
             for (int n = 0; n < bcm_avgs[run].regions; n++) {
                 regionBegin = bcm_avgs[run].begin[n];
                 regionEnd   = bcm_avgs[run].end[n];
@@ -767,11 +825,17 @@ void bcm_average() {
                     << "," << bcm_avgs[run].regionUncertainty[n]
                     << "," << bcm_avgs[run].countWithTwoCuts[n]
                     << "," << bcm_avgs[run].rawScalerIncrements[n]
+                    << "," << bcm_avgs[run].scalerCharges[n]
                     << "," << bcm_avgs[run].charges[n]
+                    << "," << bcm_avgs[run].times[n]
+                    << "," << bcm_avgs[run].goodEvents[n]
                     << std::endl;
             }
+            ofs.close();
         }
     }
-    ofs.close();
+
+    // Write histograms to disk
+    fWrite->Close();
 
 }

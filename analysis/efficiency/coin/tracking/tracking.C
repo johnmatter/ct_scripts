@@ -34,10 +34,10 @@ void tracking(TString spectrometer) {
     // Set up our cuts
     TCut cutShould;
     TCut hCutShould = cuts->Get("hScinShoulde");
-    TCut pCutShould = cuts->Get("pScinShouldh");
+    TCut pCutShould = cuts->Get("pTrackDeepakShouldProton");
     TCut cutDid;
     TCut hCutDid    = cuts->Get("hScinDide");
-    TCut pCutDid    = cuts->Get("pScinDidh");
+    TCut pCutDid    = cuts->Get("pTrackDeepakShouldProton") && cuts->Get("pTrackDeepakDid7");
 
     TString dummyBranch;
 
@@ -87,6 +87,7 @@ void tracking(TString spectrometer) {
 
             // Dummy branch for histogram
             efficiencyCalculators[key]->SetScanBranch(dummyBranch);
+            efficiencyCalculators[key]->SetScanRange(0,2);
 
             // Calculate
             efficiencyCalculators[key]->SetEvents(-1);

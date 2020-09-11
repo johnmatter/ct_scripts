@@ -5,7 +5,7 @@
 # to hcana or hallc_replay.
 
 hcswif_dir=/home/jmatter/swif/ctswif/
-runlist_dir=/home/jmatter/ct_scripts/runlists/carbon_boiling
+runlist_dir=/home/jmatter/ct_scripts/runlists/target_boiling
 
 f=$runlist_dir/coin_carbon_boiling
 f_base=`basename $f`

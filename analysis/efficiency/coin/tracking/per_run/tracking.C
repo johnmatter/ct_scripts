@@ -34,10 +34,10 @@ void tracking(TString spectrometer) {
     // Set up our cuts
     TCut cutShould;
     TCut hCutShould = cuts->Get("hScinShoulde");
-    TCut pCutShould = cuts->Get("pScinShouldh");
+    TCut pCutShould = cuts->Get("pTrackDeepakShouldProton");
     TCut cutDid;
     TCut hCutDid    = cuts->Get("hScinDide");
-    TCut pCutDid    = cuts->Get("pScinDidh");
+    TCut pCutDid    = cuts->Get("pTrackDeepakShouldProton") && cuts->Get("pTrackDeepakDid7");
 
     TString dummyBranch;
 

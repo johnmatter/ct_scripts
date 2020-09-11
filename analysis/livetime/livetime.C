@@ -28,7 +28,7 @@ void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
 
     //-------------------------------------------------------------------------------------------------------------------------
     // Load our data and cuts
-    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data.json");
+    CTData *data = new CTData("/home/jmatter/ct_scripts/ct_coin_data_edtmdecode.json");
 
     // Which kinematics
     std::vector<TString> kinematics = data->GetNames();
@@ -84,6 +84,8 @@ void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
 
     // Mean threshold for removing trips
     Double_t averageCurrent;
+    Double_t acceptableCurrentDrop = 3.0;
+    Bool_t currentCheck;
 
     // Data we need from T
     TString physBranch = "T.coin.pTRIG6_ROC2_tdcTimeRaw";
@@ -160,14 +162,14 @@ void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
                 bcmHistos[run] = (TH1F*) gDirectory->Get(histoName.Data());
 
                 // Get cut by fitting bcm histogram
-                // This method is, emphatically, not good as it stands.
+                // This method is, emphatically, *not good* as it currently stands.
                 // fit = bcmHistos[run]->Fit("gaus", "S");
                 // averageCurrent = fit->Parameter(1);
 
                 // Explicitly set cut value
-                // averageCurrent = beamCut[run]; // per run
-                averageCurrent = 3; // global
-                std::cout << Form("bcmCut=%f", averageCurrent) << std::endl;
+                averageCurrent = beamCut[run]; // per run
+                // averageCurrent = 3; // global
+                std::cout << Form("bcmCut average value=%f", averageCurrent) << std::endl;
 
                 fWrite->WriteObject(bcmHistos[run], histoName.Data());
 
@@ -179,9 +181,15 @@ void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
                     }
                     TS->GetEntry(i);
 
-                    // If current not 5% below average, increment scalerTotal by an amount
-                    // equal to the difference between this read and the previous one
-                    if (thisRead[bcmScaler] >= averageCurrent) {
+                    if (averageCurrent > acceptableCurrentDrop) {
+                        currentCheck = (thisRead[bcmScaler] >= (averageCurrent-acceptableCurrentDrop));
+                    }
+                    if (averageCurrent <= acceptableCurrentDrop) {
+                        currentCheck = (thisRead[bcmScaler] >= (averageCurrent-2));
+                    }
+
+
+                    if (currentCheck) {
                         for (auto const &scaler: scalers) {
                             increment = (thisRead[scaler] - prevRead[scaler]);
                             scalerTotal[std::make_tuple(run,scaler)] += (increment);
@@ -212,7 +220,12 @@ void livetime(Int_t calculateLT=1, Int_t printPDF=1) {
                                                        nBins, lowerBin, upperBin);
 
                     // Start with BCM cut
-                    cutStr  = Form("(%s>=%f)", bcmBranch.Data(), averageCurrent);
+                    if (averageCurrent > acceptableCurrentDrop) {
+                        cutStr  = Form("(%s>=(%f-%f))", bcmBranch.Data(), averageCurrent, acceptableCurrentDrop);
+                    }
+                    if (averageCurrent <= acceptableCurrentDrop) {
+                        cutStr  = Form("(%s>=(%f-2))", bcmBranch.Data(), averageCurrent);
+                    }
                     std::cout << cutStr << std::endl;
                     T->Draw(drawStr.Data(), cutStr.Data(), "goff");
 
