@@ -131,7 +131,7 @@ Double_t correctForPrescale(Double_t rate, Int_t ps);
 TCut insideDipoleExit = "P.dc.InsideDipoleExit==1";
 TCut betaCut = "P.gtr.beta > 0.6 && P.gtr.beta < 1.4";
 TCut deltaCut = "P.gtr.dp > -10 && P.gtr.dp < 12";
-TCut hodostartCut = "P.hod.goodstarttime==1";
+TCut hodostartCut = ""; //"P.hod.goodstarttime==1";
 
 TCut calCut = "P.cal.etottracknorm > 0.7 && P.cal.eprtracknorm > 0.035";
 TCut cerCut = "P.ngcer.npeSum > 5.0";
@@ -183,8 +183,8 @@ TCut DeepakDelta5 = "-15 < P.gtr.dp && P.gtr.dp < 15";
 TCut DeepakDelta7 = "-15 < P.gtr.dp && P.gtr.dp < 15";
 TCut DeepakY = "-5 < P.gtr.y && P.gtr.y < 5";
 TCut DeepakAngle = "-0.2 < P.gtr.th && P.gtr.th < 0.2 && -0.2 < P.gtr.ph && P.gtr.ph< 0.2 ";
-TCut fewNegADChits = "P.hod.1x.totNumGoodNegAdcHits<5 && P.hod.1y.totNumGoodNegAdcHits<5 && P.hod.2x.totNumGoodNegAdcHits<5 && P.hod.2y.totNumGoodNegAdcHits<5";
-TCut goodFpTime = "-10 < P.hod.1x.fptime && P.hod.1x.fptime < 50 && -10 < P.hod.1y.fptime && P.hod.1y.fptime < 50 && -10 < P.hod.2x.fptime && P.hod.2x.fptime < 50 && -10 < P.hod.2y.fptime && P.hod.2y.fptime < 50";
+TCut fewNegADChits = ""; //"P.hod.1x.totNumGoodNegAdcHits<5 && P.hod.1y.totNumGoodNegAdcHits<5 && P.hod.2x.totNumGoodNegAdcHits<5 && P.hod.2y.totNumGoodNegAdcHits<5";
+TCut goodFpTime = ""; //"-10 < P.hod.1x.fptime && P.hod.1x.fptime < 50 && -10 < P.hod.1y.fptime && P.hod.1y.fptime < 50 && -10 < P.hod.2x.fptime && P.hod.2x.fptime < 50 && -10 < P.hod.2y.fptime && P.hod.2y.fptime < 50";
 
 TCut oneTrack = "P.dc.ntrack==1";
 TCut multiTrack = "P.dc.ntrack>1";
@@ -216,8 +216,8 @@ void targetboiling() {
     // Scalers
     calculateScalers(runs);
 
-    // // Generate quality plots
-    // plot(runs);
+    // Generate quality plots
+    plot(runs);
 
     // Livetime
     calculateLivetime(runs);
@@ -237,11 +237,27 @@ void targetboiling() {
 }
 
 //--------------------------------------------------------------------------
+//ifarm1802:~$ ls /w/hallc-scifs17exp/e1206107/bhetuwal/boiling_rootfiles/
+//hms_replay_production_1980_-1.root  hms_replay_production_2081_-1.root   shms_replay_production_3117_-1.root
+//hms_replay_production_2045_-1.root  hms_replay_production_2082_-1.root   shms_replay_production_3118_-1.root
+//hms_replay_production_2046_-1.root  hms_replay_production_2083_-1.root   shms_replay_production_3122_-1.root
+//hms_replay_production_2047_-1.root  hms_replay_production_2084_-1.root   shms_replay_production_3123_-1.root
+//hms_replay_production_2048_-1.root  hms_replay_production_2085_-1.root   shms_replay_production_3206_-1.root
+//hms_replay_production_2049_-1.root  hms_replay_production_2093_-1.root   shms_replay_production_3207_-1.root
+//hms_replay_production_2050_-1.root  hms_replay_production_2094_-1.root   shms_replay_production_3210_-1.root
+//hms_replay_production_2051_-1.root  hms_replay_production_2095_-1.root   shms_replay_production_3211_-1.root
+//hms_replay_production_2052_-1.root  shms_replay_production_3109_-1.root  shms_replay_production_3212_-1.root
+//hms_replay_production_2053_-1.root  shms_replay_production_3110_-1.root  shms_replay_production_3213_-1.root
+//hms_replay_production_2054_-1.root  shms_replay_production_3111_-1.root  shms_replay_production_3214_-1.root
+//hms_replay_production_2059_-1.root  shms_replay_production_3112_-1.root  shms_replay_production_3215_-1.root
+//hms_replay_production_2075_-1.root  shms_replay_production_3113_-1.root  shms_replay_production_3223_-1.root
+//hms_replay_production_2076_-1.root  shms_replay_production_3114_-1.root  shms_replay_production_3224_-1.root
+//hms_replay_production_2078_-1.root  shms_replay_production_3115_-1.root  shms_replay_production_3225_-1.root
+//hms_replay_production_2080_-1.root  shms_replay_production_3116_-1.root
 std::map<Int_t, Run*> load() {
     std::cout << "Load" << std::endl;
 
-    // TString rootfileFormat = "/volatile/hallc/comm2017/e1206107/ROOTfiles/lumi_scan/lumi_scan/edtm/shms_replay_production_all_%d_-1.root";
-    TString rootfileFormat = "/home/jmatter/ROOTfiles/pass5/shms_replay_production_all_%d_1000000.root";
+    TString rootfileFormat = "/w/hallc-scifs17exp/e1206107/bhetuwal/boiling_rootfiles/shms_replay_production_%d_-1.root";
 
     std::map<Int_t, Run*> runs;
 
@@ -249,10 +265,10 @@ std::map<Int_t, Run*> load() {
     // These data are from January 2018 right around the time we took
     // our first batch of data.
     std::vector<Int_t> runNumbers = {
-        3225, 3224, 3223, 3222,
+        3225, 3224, 3223, // 3222,
         3114, 3113, 3112, 3111, 3110, 3109,
         // 2013, 2012, 2010,
-        2000, 1999, 1998, 1997, 1996, 1995, // 1994, 1993, 1992,
+        // 2000, 1999, 1998, 1997, 1996, 1995, 1994, 1993, 1992,
         3215, 3214, 3213, 3212, 3211, 3210, 3207, 3206
     };
 
@@ -268,7 +284,7 @@ std::map<Int_t, Run*> load() {
     runs[3225]->target = "C12";
     runs[3224]->target = "C12";
     runs[3223]->target = "C12";
-    runs[3222]->target = "C12";
+    // runs[3222]->target = "C12";
     runs[3114]->target = "C12";
     runs[3113]->target = "C12";
     runs[3112]->target = "C12";
@@ -278,12 +294,12 @@ std::map<Int_t, Run*> load() {
     // runs[2013]->target = "C12";
     // runs[2012]->target = "C12";
     // runs[2010]->target = "C12";
-    runs[2000]->target = "C12";
-    runs[1999]->target = "C12";
-    runs[1998]->target = "C12";
-    runs[1997]->target = "C12";
-    runs[1996]->target = "C12";
-    runs[1995]->target = "C12";
+    // runs[2000]->target = "C12";
+    // runs[1999]->target = "C12";
+    // runs[1998]->target = "C12";
+    // runs[1997]->target = "C12";
+    // runs[1996]->target = "C12";
+    // runs[1995]->target = "C12";
     // runs[1994]->target = "C12";
     // runs[1993]->target = "C12";
     // runs[1992]->target = "C12";
@@ -300,7 +316,7 @@ std::map<Int_t, Run*> load() {
     runs[3225]->hclogCurrent = 35;
     runs[3224]->hclogCurrent = 50;
     runs[3223]->hclogCurrent = 60;
-    runs[3222]->hclogCurrent = 60;
+    // runs[3222]->hclogCurrent = 60;
     runs[3114]->hclogCurrent = 60;
     runs[3113]->hclogCurrent = 50;
     runs[3112]->hclogCurrent = 25;
@@ -310,12 +326,12 @@ std::map<Int_t, Run*> load() {
     // runs[2013]->hclogCurrent = 65;
     // runs[2012]->hclogCurrent = 55;
     // runs[2010]->hclogCurrent = 65;
-    runs[2000]->hclogCurrent = 65;
-    runs[1999]->hclogCurrent = 60;
-    runs[1998]->hclogCurrent = 50;
-    runs[1997]->hclogCurrent = 40;
-    runs[1996]->hclogCurrent = 30;
-    runs[1995]->hclogCurrent = 20;
+    // runs[2000]->hclogCurrent = 65;
+    // runs[1999]->hclogCurrent = 60;
+    // runs[1998]->hclogCurrent = 50;
+    // runs[1997]->hclogCurrent = 40;
+    // runs[1996]->hclogCurrent = 30;
+    // runs[1995]->hclogCurrent = 20;
     // runs[1994]->hclogCurrent = 10;
     // runs[1993]->hclogCurrent = 7;
     // runs[1992]->hclogCurrent = 2;
@@ -332,7 +348,7 @@ std::map<Int_t, Run*> load() {
     runs[3225]->ps1 = -1;
     runs[3224]->ps1 = -1;
     runs[3223]->ps1 = -1;
-    runs[3222]->ps1 = -1;
+    // runs[3222]->ps1 = -1;
     runs[3114]->ps1 = -1;
     runs[3113]->ps1 = -1;
     runs[3112]->ps1 = -1;
@@ -342,12 +358,12 @@ std::map<Int_t, Run*> load() {
     // runs[2013]->ps1 = 6;
     // runs[2012]->ps1 = 5;
     // runs[2010]->ps1 = 0;
-    runs[2000]->ps1 = 6;
-    runs[1999]->ps1 = 5;
-    runs[1998]->ps1 = 5;
-    runs[1997]->ps1 = 5;
-    runs[1996]->ps1 = 4;
-    runs[1995]->ps1 = 4;
+    // runs[2000]->ps1 = 6;
+    // runs[1999]->ps1 = 5;
+    // runs[1998]->ps1 = 5;
+    // runs[1997]->ps1 = 5;
+    // runs[1996]->ps1 = 4;
+    // runs[1995]->ps1 = 4;
     // runs[1994]->ps1 = 2;
     // runs[1993]->ps1 = 1;
     // runs[1992]->ps1 = 0;
@@ -365,7 +381,7 @@ std::map<Int_t, Run*> load() {
     runs[3225]->ps2 = 0;
     runs[3224]->ps2 = 0;
     runs[3223]->ps2 = 0;
-    runs[3222]->ps2 = 0;
+    // runs[3222]->ps2 = 0;
     runs[3114]->ps2 = 7;
     runs[3113]->ps2 = 6;
     runs[3112]->ps2 = 5;
@@ -375,12 +391,12 @@ std::map<Int_t, Run*> load() {
     // runs[2013]->ps2 = -1;
     // runs[2012]->ps2 = -1;
     // runs[2010]->ps2 = -1;
-    runs[2000]->ps2 = -1;
-    runs[1999]->ps2 = -1;
-    runs[1998]->ps2 = -1;
-    runs[1997]->ps2 = -1;
-    runs[1996]->ps2 = -1;
-    runs[1995]->ps2 = -1;
+    // runs[2000]->ps2 = -1;
+    // runs[1999]->ps2 = -1;
+    // runs[1998]->ps2 = -1;
+    // runs[1997]->ps2 = -1;
+    // runs[1996]->ps2 = -1;
+    // runs[1995]->ps2 = -1;
     // runs[1994]->ps2 = -1;
     // runs[1993]->ps2 = -1;
     // runs[1992]->ps2 = -1;
@@ -459,21 +475,21 @@ void plot(std::map<Int_t, Run*> runs) {
         h2 = drawTH2(T, "P.gtr.dp", "P.cal.etottracknorm", histoname, 75, 0, 1.5, 400, -40, 40, hodostartCut && betaCut && cerCut);
         h2->Write();
 
-        // Check track positions at calorimeter vs energy deposition
-        histoname = Form("run%d_cal_xtrack_ytrack", run);
-        h2 = drawTH2(T, "P.cal.xtrack", "P.cal.ytrack", histoname, 400, -100, 100, 400, -100, 100, betaCut && cerCut);
-        h2->Write();
-        histoname = Form("run%d_cal_xtrack_etottracknorm", run);
-        h2 = drawTH2(T, "P.cal.xtrack", "P.cal.etottracknorm", histoname, 150, 0, 1.5, 400, -100, 100, betaCut && cerCut);
-        h2->Write();
-        histoname = Form("run%d_cal_ytrack_etottracknorm", run);
-        h2 = drawTH2(T, "P.cal.ytrack", "P.cal.etottracknorm", histoname, 150, 0, 1.5, 400, -100, 100, betaCut && cerCut);
-        h2->Write();
+        // // Check track positions at calorimeter vs energy deposition
+        // histoname = Form("run%d_cal_xtrack_ytrack", run);
+        // h2 = drawTH2(T, "P.cal.xtrack", "P.cal.ytrack", histoname, 400, -100, 100, 400, -100, 100, betaCut && cerCut);
+        // h2->Write();
+        // histoname = Form("run%d_cal_xtrack_etottracknorm", run);
+        // h2 = drawTH2(T, "P.cal.xtrack", "P.cal.etottracknorm", histoname, 150, 0, 1.5, 400, -100, 100, betaCut && cerCut);
+        // h2->Write();
+        // histoname = Form("run%d_cal_ytrack_etottracknorm", run);
+        // h2 = drawTH2(T, "P.cal.ytrack", "P.cal.etottracknorm", histoname, 150, 0, 1.5, 400, -100, 100, betaCut && cerCut);
+        // h2->Write();
 
-        // shower vs preshower energy
-        histoname = Form("run%d_preshower_vs_shower", run);
-        h2 = drawTH2(T, "P.cal.pr.eplane", "P.cal.fly.earray", histoname, 200, 0, 4, 200, 0, 4, betaCut && cerCut);
-        h2->Write();
+        // // shower vs preshower energy
+        // histoname = Form("run%d_preshower_vs_shower", run);
+        // h2 = drawTH2(T, "P.cal.pr.eplane", "P.cal.fly.earray", histoname, 200, 0, 4, 200, 0, 4, betaCut && cerCut);
+        // h2->Write();
 
         // normalized shower vs preshower energy
         histoname = Form("run%d_preshower_vs_shower_norm", run);
