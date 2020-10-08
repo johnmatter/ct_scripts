@@ -2,27 +2,27 @@
     std::map<Double_t, TFile*> fcoin, fsing_shms, fdummy_shms;
     std::map<Double_t, TTree*> tcoin, tsing_shms, tdummy_shms;
 
-    // Q^2 = 8
-    fcoin[8.0]       = new TFile("coin_replay_production_LH2_8_smallcoll.root");
-    fsing_shms[8.0]  = new TFile("lh2_shms_singles_q2_8.root");
-    fdummy_shms[8.0] = new TFile("dummy_shms_q2_8.root");
+    // // Q^2 = 8
+    // fcoin[8.0]       = new TFile("coin_replay_production_LH2_8_smallcoll.root");
+    // fsing_shms[8.0]  = new TFile("lh2_shms_singles_q2_8.root");
+    // fdummy_shms[8.0] = new TFile("dummy_shms_q2_8.root");
 
-    // Q^2 = 9.5
-    fcoin[9.5]       = new TFile("coin_replay_production_LH2_9.5_smallcoll.root");
-    fsing_shms[9.5]  = new TFile("lh2_shms_singles_q2_9.5.root");
-    fdummy_shms[9.5] = new TFile("dummy_shms_q2_9.5.root");
+    // // Q^2 = 9.5
+    // fcoin[9.5]       = new TFile("coin_replay_production_LH2_9.5_smallcoll.root");
+    // fsing_shms[9.5]  = new TFile("lh2_shms_singles_q2_9.5.root");
+    // fdummy_shms[9.5] = new TFile("dummy_shms_q2_9.5.root");
 
     // Q^2 = 11.5
     fcoin[11.5]       = new TFile("coin_replay_production_LH2_11.5_largecoll.root");
     fsing_shms[11.5]  = new TFile("lh2_shms_singles_q2_11.5.root");
     fdummy_shms[11.5] = new TFile("dummy_shms_q2_11.5.root");
 
-    // Q^2 = 14.3
-    fcoin[14.3]       = new TFile("coin_replay_production_LH2_14.3_largecoll.root");
-    fsing_shms[14.3]  = new TFile("lh2_shms_singles_q2_14.3.root");
-    fdummy_shms[14.3] = new TFile("dummy_shms_q2_14.3.root");
+    // // Q^2 = 14.3
+    // fcoin[14.3]       = new TFile("coin_replay_production_LH2_14.3_largecoll.root");
+    // fsing_shms[14.3]  = new TFile("lh2_shms_singles_q2_14.3.root");
+    // fdummy_shms[14.3] = new TFile("dummy_shms_q2_14.3.root");
 
-    for (Double_t q2: {8.0, 9.5, 11.5, 14.3}) {
+    for (Double_t q2: {11.5}) {
         fcoin[q2]->GetObject("T",tcoin[q2]);
         fsing_shms[q2]->GetObject("T",tsing_shms[q2]);
         fdummy_shms[q2]->GetObject("T",tdummy_shms[q2]);
@@ -43,7 +43,7 @@
 
     // ------------------------------------------------------------------------
     // Get stuff from canvas root files
-    for (auto q2: {8.0, 9.5, 11.5, 14.3}) {
+    for (auto q2: {11.5}) {
         canvas_file[q2] = TFile::Open(Form("q2_%.1f_canvas.root", q2));
 
         // Get canvas

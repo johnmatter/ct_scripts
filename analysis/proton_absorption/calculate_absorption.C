@@ -1,5 +1,5 @@
 {
-    std::vector<Double_t> q2s = {9.5, 11.5};
+    std::vector<Double_t> q2s = {11.5};
     std::map<Double_t, TFile*> file;
     std::map<Double_t, TCanvas*> canvas;
     std::map<Double_t, std::map<TString, TH1F*>> histo;
@@ -11,7 +11,7 @@
     std::map<Double_t, Double_t> uncertainty;
 
     std::vector<TString> histoNames = {"h_emiss", "h_delta", "h_hslope", "h_pslope",
-                                       "h_react_cut", "h_react_open", "h_coinW_singlescut",
+                                       "h_coinW_singlescut",
                                        "h_ngc_open", "h_ngc_singlescut", "h_ngc_coincut",
                                        "h_coinW_coincut", "h_coinW_inpeak", "h_coinW_open",
                                        "h_singW_cut", "h_singW_inpeak", "h_singW_open",
@@ -19,6 +19,13 @@
                                        "h_singW_open_wide", "h_sing_W_count", "h_coin_W_count"};
 
     TString canvasName;
+
+    // ------------------------------------------------------------------------
+    // Efficiency; HMS cancels out in ratio so we only need SHMS
+    Double_t cer = 0.993903;
+    Double_t hod = 0.9998273;
+    Double_t track = 0.972022;
+    Double_t eff = cer*hod*track;
 
     // ------------------------------------------------------------------------
     // Get stuff from canvas root files
@@ -40,6 +47,7 @@
     // Singles charge
     singQ[8.0]  = 69051.0/1e3;
     singQ[9.5]  = 89364.0/1e3;
+    // singQ[11.5] = 88049.344637/1e3;
     singQ[11.5] = 88359.6/1e3;
     singQ[14.3] = 245645.0/1e3;
 
@@ -59,7 +67,7 @@
         coinN[q2] = histo[q2][coinHistogramName]->Integral();
 
         singY[q2] = singN[q2]/singQ[q2];
-        coinY[q2] = coinN[q2]/coinQ[q2];
+        coinY[q2] = coinN[q2]/coinQ[q2]/eff;
 
         absorption[q2] = 100*(1-(coinY[q2]/singY[q2]));
         uncertainty[q2] = absorption[q2]*sqrt( (1/coinN[q2]) + (1/Double_t(singN[q2])) );

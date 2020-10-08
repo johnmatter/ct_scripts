@@ -13,10 +13,10 @@
 
 void draw_simc_hms_fp() {
 
-    std::vector<Double_t> q2s = {9.5, 11.5};
+    std::vector<Double_t> q2s = {11.5};
 
     std::map<Double_t, TFile*> fsimc;
-    fsimc[9.5]   = new TFile("/Volumes/ssd750/ct/simc/worksim/with_radcorr/pion_collimator/h1_q_95.root");
+    // fsimc[9.5]   = new TFile("/Volumes/ssd750/ct/simc/worksim/with_radcorr/pion_collimator/h1_q_95.root");
     fsimc[11.5]  = new TFile("/Volumes/ssd750/ct/simc/worksim/with_radcorr/large_collimator/h1_q_115.root");
 
     std::map<Double_t, TH2F*> histos;

@@ -1,5 +1,5 @@
 {
-    std::vector<Double_t> q2s = {9.5, 11.5};
+    std::vector<Double_t> q2s = {11.5};
     std::map<Double_t, TCanvas*> canvas;
     std::map<Double_t, TFile*> file;
     TString canvasName;

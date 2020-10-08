@@ -15,7 +15,7 @@
 
     emisscut[8.0]  = "P.kin.secondary.emiss<0.03";
     emisscut[9.5]  = "P.kin.secondary.emiss<0.03";
-    emisscut[11.5] = "P.kin.secondary.emiss<0.03";
+    emisscut[11.5] = "abs(P.kin.secondary.emiss)<0.03";
     emisscut[14.3] = "P.kin.secondary.emiss<0.03";
 
     pdeltacut[8.0]  = "-0.0 < P.gtr.dp && P.gtr.dp < 4.0";
@@ -81,23 +81,28 @@
     hfpcutg[9.5]->SetPoint(13, -2.95144, 0.815563);
     hfpcutg[9.5]->SetPoint(14, -2.99191, 0.509301);
 
-    hfpcutg[11.5] = new TCutG("hfpcutg_115", 14);
+    hfpcutg[11.5] = new TCutG("hfpcutg_115", 19);
     hfpcutg[11.5]->SetVarX("H.dc.y[0]");
     hfpcutg[11.5]->SetVarY("H.dc.x[0]");
-    hfpcutg[11.5]->SetPoint(0, -3.15378, -0.919918);
-    hfpcutg[11.5]->SetPoint(1, -2.99191, 5.20531);
-    hfpcutg[11.5]->SetPoint(2, 2.9973, 19.2933);
-    hfpcutg[11.5]->SetPoint(3, 10.0791, 20.8246);
-    hfpcutg[11.5]->SetPoint(4, 8.90558, 15.7203);
-    hfpcutg[11.5]->SetPoint(5, 4.08993, 4.18444);
-    hfpcutg[11.5]->SetPoint(6, 4.04946, -2.24705);
-    hfpcutg[11.5]->SetPoint(7, 9.35072, -13.0683);
-    hfpcutg[11.5]->SetPoint(8, 5.06115, -17.2539);
-    hfpcutg[11.5]->SetPoint(9, 1.74281, -15.9267);
-    hfpcutg[11.5]->SetPoint(10, -2.14209, -9.59732);
-    hfpcutg[11.5]->SetPoint(11, -3.31565, -5.10549);
-    hfpcutg[11.5]->SetPoint(12, -3.11331, -0.51157);
-    hfpcutg[11.5]->SetPoint(13, -3.15378, -0.919918);
+    hfpcutg[11.5]->SetPoint(0, -5.14252, 0.0154593);
+    hfpcutg[11.5]->SetPoint(1, -3.93869, 5.87898);
+    hfpcutg[11.5]->SetPoint(2, -0.413217, 11.5437);
+    hfpcutg[11.5]->SetPoint(3, 4.44506, 17.0097);
+    hfpcutg[11.5]->SetPoint(4, 8.05653, 18.2023);
+    hfpcutg[11.5]->SetPoint(5, 10.2492, 16.6122);
+    hfpcutg[11.5]->SetPoint(6, 9.81927, 12.8357);
+    hfpcutg[11.5]->SetPoint(7, 7.92755, 9.25795);
+    hfpcutg[11.5]->SetPoint(8, 6.2078, 3.49382);
+    hfpcutg[11.5]->SetPoint(9, 5.60589, -1.97217);
+    hfpcutg[11.5]->SetPoint(10, 6.2508, -6.04682);
+    hfpcutg[11.5]->SetPoint(11, 7.66959, -9.72394);
+    hfpcutg[11.5]->SetPoint(12, 8.01354, -12.7054);
+    hfpcutg[11.5]->SetPoint(13, 6.93869, -14.2955);
+    hfpcutg[11.5]->SetPoint(14, -3.55175, -14.0967);
+    hfpcutg[11.5]->SetPoint(15, -5.40048, -11.0159);
+    hfpcutg[11.5]->SetPoint(16, -6.08838, -3.66166);
+    hfpcutg[11.5]->SetPoint(17, -5.18551, 0.313604);
+    hfpcutg[11.5]->SetPoint(18, -5.14252, 0.0154593);
 
     hfpcutg[14.3] = new TCutG("hfpcutg_143", 10);
     hfpcutg[14.3]->SetVarX("H.dc.y[0]");
