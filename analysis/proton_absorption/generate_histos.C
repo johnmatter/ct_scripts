@@ -76,6 +76,7 @@ void generate_histos(Double_t q2) {
     hslopecut[11.5]->SetVarX("H.gtr.ph");
     hslopecut[11.5]->SetVarY("H.gtr.th");
 
+    // Original contour
     hslopecut[11.5]->SetPoint(0,-0.0266854,-0.0496894);
     hslopecut[11.5]->SetPoint(1,-0.0290262,0.0139752);
     hslopecut[11.5]->SetPoint(2,-0.0154494,0.0690994);
@@ -87,6 +88,32 @@ void generate_histos(Double_t q2) {
     hslopecut[11.5]->SetPoint(8,-0.0262172,-0.0504658);
     hslopecut[11.5]->SetPoint(9,-0.0262172,-0.0504658);
     hslopecut[11.5]->SetPoint(10,-0.0266854,-0.0496894);
+
+    // // Grow contour area by 10%
+    // hslopecut[11.5]->SetPoint(0, -0.028123, -0.052213);
+    // hslopecut[11.5]->SetPoint(1, -0.030578, 0.014558);
+    // hslopecut[11.5]->SetPoint(2, -0.016339, 0.072373);
+    // hslopecut[11.5]->SetPoint(3, 0.014104, 0.077259);
+    // hslopecut[11.5]->SetPoint(4, 0.036200, 0.045501);
+    // hslopecut[11.5]->SetPoint(5, 0.033254, -0.027785);
+    // hslopecut[11.5]->SetPoint(6, 0.023433, -0.069313);
+    // hslopecut[11.5]->SetPoint(7, -0.015357, -0.066871);
+    // hslopecut[11.5]->SetPoint(8, -0.027632, -0.053028);
+    // hslopecut[11.5]->SetPoint(9, -0.027632, -0.053028);
+    // hslopecut[11.5]->SetPoint(10, -0.028123, -0.052213);
+
+    // // Shrink contour area by 10%
+    // hslopecut[11.5]->SetPoint(0, -0.025174, -0.047037);
+    // hslopecut[11.5]->SetPoint(1, -0.027395, 0.013362);
+    // hslopecut[11.5]->SetPoint(2, -0.014515, 0.065659);
+    // hslopecut[11.5]->SetPoint(3, 0.013023, 0.070079);
+    // hslopecut[11.5]->SetPoint(4, 0.033010, 0.041352);
+    // hslopecut[11.5]->SetPoint(5, 0.030345, -0.024940);
+    // hslopecut[11.5]->SetPoint(6, 0.021462, -0.062505);
+    // hslopecut[11.5]->SetPoint(7, -0.013626, -0.060295);
+    // hslopecut[11.5]->SetPoint(8, -0.024730, -0.047774);
+    // hslopecut[11.5]->SetPoint(9, -0.024730, -0.047774);
+    // hslopecut[11.5]->SetPoint(10, -0.025174, -0.047037);
 
     // pslopecut[8.0]  = "-0.020 < P.gtr.th && P.gtr.th < 0.020 && -0.010 < P.gtr.ph && P.gtr.ph < 0.010";
     // pslopecut[9.5]  = "-0.045 < P.gtr.th && P.gtr.th < 0.040 && -0.020 < P.gtr.ph && P.gtr.ph < 0.020";
